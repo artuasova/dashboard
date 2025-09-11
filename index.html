@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Система учета продаж и прибыли</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #3b82f6;
@@ -582,13 +582,13 @@
                     <div class="card">
                         <h2 class="card-title">Продажи по маркетплейсам</h2>
                         <div class="chart-container">
-                            <div id="marketplace-chart"></div>
+                            <canvas id="marketplace-chart"></canvas>
                         </div>
                     </div>
                     <div class="card">
                         <h2 class="card-title">Динамика продаж</h2>
                         <div class="chart-container">
-                            <div id="sales-chart"></div>
+                            <canvas id="sales-chart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -597,7 +597,7 @@
                     <div class="card">
                         <h2 class="card-title">Топ-5 самых прибыльных товаров</h2>
                         <div class="chart-container">
-                            <div id="top-products-chart"></div>
+                            <canvas id="top-products-chart"></canvas>
                         </div>
                     </div>
                     <div class="card">
@@ -825,7 +825,7 @@
                         <div class="card" style="background: #f0f9ff;">
                             <h3>График операционных расходов</h3>
                             <div class="chart-container">
-                                <div id="expenses-chart"></div>
+                                <canvas id="expenses-chart"></canvas>
                             </div>
                         </div>
                         <div class="card" style="background: #f0f9ff;">
@@ -1451,6 +1451,9 @@
         const editIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
         const deleteIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
         
+        // Графики
+        let marketplaceChart, salesChart, topProductsChart, expensesChart;
+        
         // Инициализация приложения
         document.addEventListener('DOMContentLoaded', function() {
             // Установка текущей даты по умолчанию
@@ -1734,10 +1737,100 @@
             });
         }
         
-        // Инициализация графиков D3.js
+        // Инициализация графиков
         function initCharts() {
-            // Пример инициализации графиков
-            // В реальной реализации здесь будет код для создания графиков D3.js
+            const marketplaceCtx = document.getElementById('marketplace-chart').getContext('2d');
+            marketplaceChart = new Chart(marketplaceCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Яндекс', 'Озон'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['#ffcc00', '#005bff']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            const salesCtx = document.getElementById('sales-chart').getContext('2d');
+            salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Выручка',
+                            data: [],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Прибыль',
+                            data: [],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            const topProductsCtx = document.getElementById('top-products-chart').getContext('2d');
+            topProductsChart = new Chart(topProductsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Прибыль',
+                        data: [],
+                        backgroundColor: '#8b5cf6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            const expensesCtx = document.getElementById('expenses-chart').getContext('2d');
+            expensesChart = new Chart(expensesCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Операционные расходы',
+                        data: [],
+                        backgroundColor: '#f59e0b'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         }
         
         // Добавление новой продажи
@@ -2179,7 +2272,56 @@
         
         // Обновление графиков
         function updateCharts(filteredData) {
-            // В реальной реализации здесь будет код для обновления графиков D3.js
+            // График по маркетплейсам
+            const marketplaceData = {
+                'Яндекс': { revenue: 0, profit: 0 },
+                'Озон': { revenue: 0, profit: 0 }
+            };
+            
+            filteredData.forEach(sale => {
+                marketplaceData[sale.marketplace].revenue += sale.sellingPrice * sale.quantity;
+                marketplaceData[sale.marketplace].profit += sale.profit;
+            });
+            
+            marketplaceChart.data.datasets[0].data = [
+                marketplaceData['Яндекс'].revenue,
+                marketplaceData['Озон'].revenue
+            ];
+            marketplaceChart.update();
+            
+            // График динамики продаж
+            const salesByMonth = {};
+            
+            filteredData.forEach(sale => {
+                const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+                if (!salesByMonth[month]) {
+                    salesByMonth[month] = { revenue: 0, profit: 0 };
+                }
+                salesByMonth[month].revenue += sale.sellingPrice * sale.quantity;
+                salesByMonth[month].profit += sale.profit;
+            });
+            
+            const months = Object.keys(salesByMonth);
+            const revenues = months.map(month => salesByMonth[month].revenue);
+            const profits = months.map(month => salesByMonth[month].profit);
+            
+            salesChart.data.labels = months;
+            salesChart.data.datasets[0].data = revenues;
+            salesChart.data.datasets[1].data = profits;
+            salesChart.update();
+            
+            // График топ-5 товаров
+            const topProducts = [...filteredData]
+                .sort((a, b) => b.profit - a.profit)
+                .slice(0, 5)
+                .map(sale => ({
+                    name: sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name,
+                    profit: sale.profit
+                }));
+            
+            topProductsChart.data.labels = topProducts.map(p => p.name);
+            topProductsChart.data.datasets[0].data = topProducts.map(p => p.profit);
+            topProductsChart.update();
         }
         
         // Обновление таблицы последних продаж
@@ -2625,6 +2767,13 @@
                 }
                 expensesByMonth[month] += expense.amount;
             });
+            
+            const months = Object.keys(expensesByMonth);
+            const amounts = months.map(month => expensesByMonth[month]);
+            
+            expensesChart.data.labels = months;
+            expensesChart.data.datasets[0].data = amounts;
+            expensesChart.update();
             
             // Обновление расходов по категориям
             const expensesByCategory = document.getElementById('expenses-by-category');
