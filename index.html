@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -5,8 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Система учета продаж и прибыли</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --primary: #3b82f6;
@@ -138,7 +137,6 @@
             padding: 20px;
             color: white;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            cursor: move;
         }
         
         .metric-card h3 {
@@ -423,70 +421,6 @@
             background: var(--light-gray);
         }
         
-        .spoiler {
-            margin-bottom: 20px;
-        }
-        
-        .spoiler-header {
-            padding: 15px;
-            background: var(--light);
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .spoiler-content {
-            padding: 15px;
-            border: 1px solid var(--border);
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            display: none;
-        }
-        
-        .spoiler-content.active {
-            display: block;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .search-box {
-            margin-bottom: 15px;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-        }
-        
-        .widget-selector {
-            margin-bottom: 15px;
-        }
-        
-        .widget-selector label {
-            display: inline-block;
-            margin-right: 15px;
-        }
-        
         @media (max-width: 768px) {
             .metrics-grid {
                 grid-template-columns: 1fr;
@@ -522,7 +456,6 @@
             <ul class="nav-tabs">
                 <li class="nav-item active" data-tab="dashboard">Дашборд</li>
                 <li class="nav-item" data-tab="sales">Добавить продажу</li>
-                <li class="nav-item" data-tab="all-sales">Все продажи</li>
                 <li class="nav-item" data-tab="expenses">Расходы</li>
                 <li class="nav-item" data-tab="returns">Возвраты</li>
                 <li class="nav-item" data-tab="analytics">Аналитика</li>
@@ -534,6 +467,34 @@
         <main>
             <!-- Dashboard Tab -->
             <div id="dashboard" class="tab-content active">
+                <div class="metrics-grid">
+                    <div class="metric-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <h3>Общая выручка</h3>
+                        <div class="value" id="total-revenue">0 ₽</div>
+                        <div>за выбранный период</div>
+                    </div>
+                    <div class="metric-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                        <h3>Общие расходы</h3>
+                        <div class="value" id="total-cost">0 ₽</div>
+                        <div>включая налоги</div>
+                    </div>
+                    <div class="metric-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                        <h3>Чистая прибыль</h3>
+                        <div class="value" id="total-profit">0 ₽</div>
+                        <div>за выбранный период</div>
+                    </div>
+                    <div class="metric-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                        <h3>Рентабельность</h3>
+                        <div class="value" id="average-margin">0%</div>
+                        <div>средняя за период</div>
+                    </div>
+                    <div class="metric-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                        <h3>Возвраты</h3>
+                        <div class="value" id="total-returns">0 ₽</div>
+                        <div>за выбранный период</div>
+                    </div>
+                </div>
+                
                 <div class="card">
                     <h2 class="card-title">Фильтры</h2>
                     <div class="filters">
@@ -541,11 +502,8 @@
                             <label for="period">Период</label>
                             <select id="period">
                                 <option value="all">Все время</option>
-                                <option value="day">Текущий день</option>
-                                <option value="week">Текущая неделя</option>
                                 <option value="month">Текущий месяц</option>
                                 <option value="quarter">Текущий квартал</option>
-                                <option value="year">Текущий год</option>
                             </select>
                         </div>
                         <div>
@@ -566,59 +524,8 @@
                         </div>
                         <div>
                             <label>&nbsp;</label>
-                            <button class="btn btn-primary" id="apply-filters">Применить</button>
+                            <button class="btn btn-danger" id="reset-filters">Сбросить фильтры</button>
                         </div>
-                    </div>
-                </div>
-                
-                <div class="widget-selector">
-                    <label>
-                        <input type="checkbox" id="show-revenue-widget" checked> 
-                        Общая выручка
-                    </label>
-                    <label>
-                        <input type="checkbox" id="show-cost-widget" checked> 
-                        Общие расходы
-                    </label>
-                    <label>
-                        <input type="checkbox" id="show-profit-widget" checked> 
-                        Чистая прибыль
-                    </label>
-                    <label>
-                        <input type="checkbox" id="show-margin-widget" checked> 
-                        Рентабельность
-                    </label>
-                    <label>
-                        <input type="checkbox" id="show-returns-widget" checked> 
-                        Возвраты
-                    </label>
-                </div>
-                
-                <div class="metrics-grid" id="metrics-container">
-                    <div class="metric-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);" data-metric="revenue">
-                        <h3>Общая выручка</h3>
-                        <div class="value" id="total-revenue">0 ₽</div>
-                        <div>за выбранный период</div>
-                    </div>
-                    <div class="metric-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);" data-metric="cost">
-                        <h3>Общие расходы</h3>
-                        <div class="value" id="total-cost">0 ₽</div>
-                        <div>включая налоги</div>
-                    </div>
-                    <div class="metric-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" data-metric="profit">
-                        <h3>Чистая прибыль</h3>
-                        <div class="value" id="total-profit">0 ₽</div>
-                        <div>за выбранный период</div>
-                    </div>
-                    <div class="metric-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);" data-metric="margin">
-                        <h3>Рентабельность</h3>
-                        <div class="value" id="average-margin">0%</div>
-                        <div>средняя за период</div>
-                    </div>
-                    <div class="metric-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);" data-metric="returns">
-                        <h3>Возвраты</h3>
-                        <div class="value" id="total-returns">0 ₽</div>
-                        <div>за выбранный период</div>
                     </div>
                 </div>
                 
@@ -628,17 +535,11 @@
                         <div class="chart-container">
                             <canvas id="marketplace-chart"></canvas>
                         </div>
-                        <div style="text-align: center; margin-top: 10px;">
-                            <button class="btn btn-sm btn-secondary" id="save-marketplace-chart">Сохранить график</button>
-                        </div>
                     </div>
                     <div class="card">
                         <h2 class="card-title">Динамика продаж</h2>
                         <div class="chart-container">
                             <canvas id="sales-chart"></canvas>
-                        </div>
-                        <div style="text-align: center; margin-top: 10px;">
-                            <button class="btn btn-sm btn-secondary" id="save-sales-chart">Сохранить график</button>
                         </div>
                     </div>
                 </div>
@@ -648,9 +549,6 @@
                         <h2 class="card-title">Топ-5 самых прибыльных товаров</h2>
                         <div class="chart-container">
                             <canvas id="top-products-chart"></canvas>
-                        </div>
-                        <div style="text-align: center; margin-top: 10px;">
-                            <button class="btn btn-sm btn-secondary" id="save-top-products-chart">Сохранить график</button>
                         </div>
                     </div>
                     <div class="card">
@@ -678,13 +576,6 @@
             <div id="sales" class="tab-content">
                 <div class="card">
                     <h2 class="card-title">Добавить новую продажу</h2>
-                    <div class="form-group">
-                        <label for="sale-template">Шаблон продажи</label>
-                        <select id="sale-template">
-                            <option value="">Выберите шаблон</option>
-                            <option value="new">Новый шаблон</option>
-                        </select>
-                    </div>
                     <div class="grid">
                         <div>
                             <label for="product-name">Название товара *</label>
@@ -694,14 +585,14 @@
                             <label for="article">Артикул *</label>
                             <input type="text" id="article" placeholder="Введите артикул">
                         </div>
-                        <div id="marketplace-field">
+                        <div>
                             <label for="marketplace-select">Маркетплейс</label>
                             <select id="marketplace-select">
                                 <option value="Яндекс">Яндекс Маркет</option>
                                 <option value="Озон">Озон</option>
                             </select>
                         </div>
-                        <div id="shop-field">
+                        <div>
                             <label for="shop-select">Магазин</label>
                             <select id="shop-select">
                                 <option value="">Выберите магазин</option>
@@ -716,15 +607,15 @@
                             <label for="selling-price">Цена продажи (₽) *</label>
                             <input type="number" id="selling-price" placeholder="0">
                         </div>
-                        <div id="commission-field">
+                        <div>
                             <label for="commission">Комиссия маркетплейса (₽)</label>
                             <input type="number" id="commission" placeholder="0">
                         </div>
-                        <div id="logistics-field">
+                        <div>
                             <label for="logistics">Логистика (₽)</label>
                             <input type="number" id="logistics" placeholder="0">
                         </div>
-                        <div id="delivery-mv-field">
+                        <div>
                             <label for="delivery-mv">Доставка до МВ (₽)</label>
                             <input type="number" id="delivery-mv" placeholder="0">
                         </div>
@@ -753,126 +644,28 @@
                     <div class="card" style="background: #f0f9ff;">
                         <h3>Калькулятор прибыли</h3>
                         <div class="grid">
-                            <div style="background: #dbeafe; padding: 15px; border-radius: 8px; transition: all 0.3s ease;">
-                                <h4 style="color: #1e40af;">Прибыль</h4>
-                                <div id="profit-calc" style="font-size: 1.5rem; font-weight: bold; color: #1e40af;">0 ₽</div>
+                            <div style="background: #dcfce7; padding: 15px; border-radius: 8px;">
+                                <h4 style="color: #166534;">Выручка</h4>
+                                <div id="revenue-calc" style="font-size: 1.5rem; font-weight: bold; color: #166534;">0 ₽</div>
                             </div>
-                            <div style="background: #e0e7ff; padding: 15px; border-radius: 8px; transition: all 0.3s ease;">
-                                <h4 style="color: #4338ca;">Маржа</h4>
-                                <div id="margin-calc" style="font-size: 1.5rem; font-weight: bold; color: #4338ca;">0%</div>
-                            </div>
-                            <div style="background: #fee2e2; padding: 15px; border-radius: 8px; transition: all 0.3s ease;">
+                            <div style="background: #fee2e2; padding: 15px; border-radius: 8px;">
                                 <h4 style="color: #991b1b;">Расходы</h4>
                                 <div id="cost-calc" style="font-size: 1.5rem; font-weight: bold; color: #991b1b;">0 ₽</div>
                             </div>
-                            <div style="background: #dcfce7; padding: 15px; border-radius: 8px; transition: all 0.3s ease;">
-                                <h4 style="color: #166534;">Выручка</h4>
-                                <div id="revenue-calc" style="font-size: 1.5rem; font-weight: bold; color: #166534;">0 ₽</div>
+                            <div style="background: #dbeafe; padding: 15px; border-radius: 8px;">
+                                <h4 style="color: #1e40af;">Прибыль</h4>
+                                <div id="profit-calc" style="font-size: 1.5rem; font-weight: bold; color: #1e40af;">0 ₽</div>
+                            </div>
+                            <div style="background: #e0e7ff; padding: 15px; border-radius: 8px;">
+                                <h4 style="color: #4338ca;">Маржа</h4>
+                                <div id="margin-calc" style="font-size: 1.5rem; font-weight: bold; color: #4338ca;">0%</div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="btn-group">
                         <button class="btn btn-primary" id="add-sale">Добавить продажу</button>
-                        <button class="btn btn-secondary" id="save-template">Сохранить как шаблон</button>
                         <button class="btn btn-secondary" id="go-to-dashboard">Перейти к дашборду</button>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <h2 class="card-title">Последние добавленные продажи</h2>
-                    <div style="max-height: 400px; overflow-y: auto;">
-                        <table id="recent-added-sales">
-                            <thead>
-                                <tr>
-                                    <th>Товар</th>
-                                    <th>Маркетплейс</th>
-                                    <th>Дата</th>
-                                    <th>Прибыль</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Данные будут заполнены скриптом -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div style="text-align: center; margin-top: 15px;">
-                        <button class="btn btn-secondary" id="show-more-sales">Показать еще...</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- All Sales Tab -->
-            <div id="all-sales" class="tab-content">
-                <div class="card">
-                    <h2 class="card-title">Все продажи</h2>
-                    
-                    <div class="card">
-                        <h3>Фильтры</h3>
-                        <div class="search-box">
-                            <input type="text" id="sales-search" placeholder="Поиск по названию товара или артикулу...">
-                        </div>
-                        <div class="filters">
-                            <div>
-                                <label for="all-sales-period">Период</label>
-                                <select id="all-sales-period">
-                                    <option value="all">Все время</option>
-                                    <option value="day">Сегодня</option>
-                                    <option value="week">Неделя</option>
-                                    <option value="month">Месяц</option>
-                                    <option value="quarter">Квартал</option>
-                                    <option value="year">Год</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="all-sales-start-date">Дата от</label>
-                                <input type="date" id="all-sales-start-date">
-                            </div>
-                            <div>
-                                <label for="all-sales-end-date">Дата до</label>
-                                <input type="date" id="all-sales-end-date">
-                            </div>
-                            <div>
-                                <label for="all-sales-marketplace">Маркетплейс</label>
-                                <select id="all-sales-marketplace">
-                                    <option value="all">Все маркетплейсы</option>
-                                    <option value="Яндекс">Яндекс Маркет</option>
-                                    <option value="Озон">Озон</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="all-sales-shop">Магазин</label>
-                                <select id="all-sales-shop">
-                                    <option value="all">Все магазины</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label>&nbsp;</label>
-                                <button class="btn btn-primary" id="apply-sales-filters">Применить</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="max-height: 500px; overflow-y: auto;">
-                        <table id="all-sales-table">
-                            <thead>
-                                <tr>
-                                    <th>Товар</th>
-                                    <th>Артикул</th>
-                                    <th>Маркетплейс</th>
-                                    <th>Магазин</th>
-                                    <th>Дата</th>
-                                    <th>Выручка</th>
-                                    <th>Прибыль</th>
-                                    <th>Маржа</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Данные будут заполнены скриптом -->
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -891,9 +684,6 @@
                             <div class="chart-container">
                                 <canvas id="expenses-chart"></canvas>
                             </div>
-                            <div style="text-align: center; margin-top: 10px;">
-                                <button class="btn btn-sm btn-secondary" id="save-expenses-chart">Сохранить график</button>
-                            </div>
                         </div>
                         <div class="card" style="background: #f0f9ff;">
                             <h3>Расходы по категориям</h3>
@@ -905,9 +695,6 @@
                     
                     <div class="card">
                         <h3>Все операционные расходы</h3>
-                        <div class="search-box">
-                            <input type="text" id="expenses-search" placeholder="Поиск по категории или описанию...">
-                        </div>
                         <div style="max-height: 400px; overflow-y: auto;">
                             <table id="expenses-table">
                                 <thead>
@@ -916,57 +703,12 @@
                                         <th>Сумма</th>
                                         <th>Дата</th>
                                         <th>Описание</th>
-                                        <th>Действия</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <!-- Данные будут заполнены скриптом -->
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>Расширенное управление расходами</h3>
-                        <div class="grid">
-                            <div class="card" style="background: #f1f5f9;">
-                                <h4>Бюджетирование</h4>
-                                <div class="form-group">
-                                    <label for="budget-category">Категория</label>
-                                    <select id="budget-category">
-                                        <option value="">Выберите категорию</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="budget-amount">Плановый бюджет (₽)</label>
-                                    <input type="number" id="budget-amount" placeholder="0">
-                                </div>
-                                <div class="form-group">
-                                    <label for="budget-period">Период</label>
-                                    <select id="budget-period">
-                                        <option value="month">Месяц</option>
-                                        <option value="quarter">Квартал</option>
-                                        <option value="year">Год</option>
-                                    </select>
-                                </div>
-                                <button class="btn btn-primary" id="set-budget">Установить бюджет</button>
-                            </div>
-                            <div class="card" style="background: #f1f5f9;">
-                                <h4>Амортизация</h4>
-                                <div class="form-group">
-                                    <label for="asset-name">Название актива</label>
-                                    <input type="text" id="asset-name" placeholder="Например, оборудование">
-                                </div>
-                                <div class="form-group">
-                                    <label for="asset-cost">Стоимость (₽)</label>
-                                    <input type="number" id="asset-cost" placeholder="0">
-                                </div>
-                                <div class="form-group">
-                                    <label for="asset-lifetime">Срок службы (лет)</label>
-                                    <input type="number" id="asset-lifetime" placeholder="0">
-                                </div>
-                                <button class="btn btn-primary" id="add-asset">Добавить актив</button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -988,7 +730,6 @@
                                     <th>Причина</th>
                                     <th>Сумма</th>
                                     <th>Дата</th>
-                                    <th>Действия</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1066,30 +807,26 @@
                 <div class="card">
                     <h2 class="card-title">Финансовые отчеты</h2>
                     
-                    <div class="card">
-                        <h3>Фильтры</h3>
-                        <div class="filters">
-                            <div>
-                                <label for="report-period">Период отчета</label>
-                                <select id="report-period">
-                                    <option value="all">Все время</option>
-                                    <option value="month">Текущий месяц</option>
-                                    <option value="quarter">Текущий квартал</option>
-                                    <option value="year">Текущий год</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="report-start-date">Дата от</label>
-                                <input type="date" id="report-start-date">
-                            </div>
-                            <div>
-                                <label for="report-end-date">Дата до</label>
-                                <input type="date" id="report-end-date">
-                            </div>
-                            <div>
-                                <label>&nbsp;</label>
-                                <button class="btn btn-primary" id="generate-report">Сгенерировать отчет</button>
-                            </div>
+                    <div class="grid">
+                        <div>
+                            <label for="report-period">Период отчета</label>
+                            <select id="report-period">
+                                <option>1 квартал 2025</option>
+                                <option>2 квартал 2025</option>
+                                <option>3 квартал 2025</option>
+                                <option>4 квартал 2025</option>
+                                <option>Январь 2025</option>
+                                <option>Февраль 2025</option>
+                                <option>Март 2025</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="export-format">Формат экспорта</label>
+                            <select id="export-format">
+                                <option>PDF</option>
+                                <option>Excel</option>
+                                <option>CSV</option>
+                            </select>
                         </div>
                     </div>
                     
@@ -1151,11 +888,9 @@
                     </div>
                     
                     <div class="btn-group">
-                        <button class="btn btn-primary" id="export-pdf">Экспорт в PDF</button>
+                        <button class="btn btn-primary" id="export-report">Скачать отчет (PDF)</button>
                         <button class="btn btn-secondary" id="export-excel">Экспорт в Excel</button>
-                        <button class="btn btn-info" id="export-csv">Экспорт в CSV</button>
-                        <button class="btn btn-warning" id="export-google-sheets">Экспорт в Google Sheets</button>
-                        <button class="btn btn-secondary" id="print-report">Печать</button>
+                        <button class="btn btn-info" id="print-report">Печать</button>
                     </div>
                 </div>
             </div>
@@ -1165,281 +900,124 @@
                 <div class="card">
                     <h2 class="card-title">Настройки системы</h2>
                     
-                    <div class="spoiler">
-                        <div class="spoiler-header" data-target="tax-settings">
-                            <span>Система налогообложения</span>
-                            <span>▼</span>
+                    <div style="margin-bottom: 30px;">
+                        <h3>Система налогообложения</h3>
+                        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+                            <div>
+                                <label>
+                                    <input type="radio" name="tax-system" value="1%" checked> 
+                                    УСН Доходы (1%)
+                                </label>
+                            </div>
+                            <div>
+                                <label>
+                                    <input type="radio" name="tax-system" value="7%"> 
+                                    УСН Доходы (7%)
+                                </label>
+                            </div>
+                            <div>
+                                <label>
+                                    <input type="radio" name="tax-system" value="15%"> 
+                                    УСН Доходы-Расходы (15%)
+                                </label>
+                            </div>
+                            <p style="margin-top: 10px; color: #64748b; font-size: 0.9rem;">
+                                Выберите систему налогообложения для автоматического расчета налогов
+                            </p>
                         </div>
-                        <div class="spoiler-content" id="tax-settings">
-                            <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                                <div id="tax-systems-list">
-                                    <div class="expense-item">
-                                        <div>
-                                            <strong>УСН Доходы (1%)</strong>
-                                            <input type="number" step="0.01" value="0.99" style="width: 80px; margin-left: 10px;">
-                                        </div>
-                                        <button class="btn btn-danger btn-sm" onclick="removeTaxSystem('УСН Доходы (1%)')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <div>
-                                            <strong>УСН Доходы (7%)</strong>
-                                            <input type="number" step="0.01" value="0.93" style="width: 80px; margin-left: 10px;">
-                                        </div>
-                                        <button class="btn btn-danger btn-sm" onclick="removeTaxSystem('УСН Доходы (7%)')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <div>
-                                            <strong>УСН Доходы-Расходы (15%)</strong>
-                                            <input type="number" step="0.01" value="0.85" style="width: 80px; margin-left: 10px;">
-                                        </div>
-                                        <button class="btn btn-danger btn-sm" onclick="removeTaxSystem('УСН Доходы-Расходы (15%)')">Удалить</button>
-                                    </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h3>Магазины</h3>
+                        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                <input type="text" id="new-shop-name" placeholder="Название магазина" style="flex: 1;">
+                                <button class="btn btn-primary" id="add-shop">Добавить</button>
+                            </div>
+                            <div id="shops-list">
+                                <!-- Список магазинов будет заполнен скриптом -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h3>Категории товаров</h3>
+                        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                <input type="text" id="new-category-name" placeholder="Название категории" style="flex: 1;">
+                                <button class="btn btn-primary" id="add-category">Добавить</button>
+                            </div>
+                            <div id="categories-list">
+                                <div class="expense-item">
+                                    <span>Садовые товары</span>
+                                    <button class="btn btn-danger btn-sm" onclick="removeCategory('Садовые товары')">Удалить</button>
                                 </div>
-                                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                    <input type="text" id="new-tax-name" placeholder="Название системы" style="flex: 1;">
-                                    <input type="number" id="new-tax-rate" step="0.01" placeholder="Ставка (0.99)" style="flex: 1;">
-                                    <button class="btn btn-primary" id="add-tax-system">Добавить</button>
+                                <div class="expense-item">
+                                    <span>Строительные товары</span>
+                                    <button class="btn btn-danger btn-sm" onclick="removeCategory('Строительные товары')">Удалить</button>
+                                </div>
+                                <div class="expense-item">
+                                    <span>Бытовые товары</span>
+                                    <button class="btn btn-danger btn-sm" onclick="removeCategory('Бытовые товары')">Удалить</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="spoiler">
-                        <div class="spoiler-header" data-target="field-settings">
-                            <span>Настройки полей</span>
-                            <span>▼</span>
-                        </div>
-                        <div class="spoiler-content" id="field-settings">
-                            <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                                <div>
-                                    <label>
-                                        <input type="checkbox" id="show-marketplace" checked> 
-                                        Показывать поле "Маркетплейс"
-                                    </label>
+                    <div style="margin-bottom: 30px;">
+                        <h3>Категории операционных расходов</h3>
+                        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                <input type="text" id="new-expense-category" placeholder="Название категории расходов" style="flex: 1;">
+                                <button class="btn btn-primary" id="add-expense-category">Добавить</button>
+                            </div>
+                            <div id="expense-categories-list">
+                                <div class="expense-item">
+                                    <span>Аренда</span>
+                                    <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Аренда')">Удалить</button>
                                 </div>
-                                <div>
-                                    <label>
-                                        <input type="checkbox" id="show-shop" checked> 
-                                        Показывать поле "Магазин"
-                                    </label>
+                                <div class="expense-item">
+                                    <span>Зарплата</span>
+                                    <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Зарплата')">Удалить</button>
                                 </div>
-                                <div>
-                                    <label>
-                                        <input type="checkbox" id="show-commission" checked> 
-                                        Показывать поле "Комиссия"
-                                    </label>
+                                <div class="expense-item">
+                                    <span>Уборщица</span>
+                                    <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Уборщица')">Удалить</button>
                                 </div>
-                                <div>
-                                    <label>
-                                        <input type="checkbox" id="show-logistics" checked> 
-                                        Показывать поле "Логистика"
-                                    </label>
-                                </div>
-                                <div>
-                                    <label>
-                                        <input type="checkbox" id="show-delivery-mv" checked> 
-                                        Показывать поле "Доставка до МВ"
-                                    </label>
+                                <div class="expense-item">
+                                    <span>Курьеры</span>
+                                    <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Курьеры')">Удалить</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="spoiler">
-                        <div class="spoiler-header" data-target="shops-settings">
-                            <span>Магазины</span>
-                            <span>▼</span>
-                        </div>
-                        <div class="spoiler-content" id="shops-settings">
-                            <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                                    <input type="text" id="new-shop-name" placeholder="Название магазина" style="flex: 1;">
-                                    <button class="btn btn-primary" id="add-shop">Добавить</button>
-                                </div>
-                                <div id="shops-list">
-                                    <!-- Список магазинов будет заполнен скриптом -->
-                                </div>
+                    <div>
+                        <h3>Настройки уведомлений</h3>
+                        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+                            <div>
+                                <label>
+                                    <input type="checkbox" checked> 
+                                    Уведомления о новых продажах
+                                </label>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="spoiler">
-                        <div class="spoiler-header" data-target="categories-settings">
-                            <span>Категории товаров</span>
-                            <span>▼</span>
-                        </div>
-                        <div class="spoiler-content" id="categories-settings">
-                            <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                                    <input type="text" id="new-category-name" placeholder="Название категории" style="flex: 1;">
-                                    <button class="btn btn-primary" id="add-category">Добавить</button>
-                                </div>
-                                <div id="categories-list">
-                                    <div class="expense-item">
-                                        <span>Садовые товары</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeCategory('Садовые товары')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <span>Строительные товары</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeCategory('Строительные товары')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <span>Бытовые товары</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeCategory('Бытовые товары')">Удалить</button>
-                                    </div>
-                                </div>
+                            <div>
+                                <label>
+                                    <input type="checkbox"> 
+                                    Уведомления о возвратах
+                                </label>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="spoiler">
-                        <div class="spoiler-header" data-target="expense-categories-settings">
-                            <span>Категории операционных расходов</span>
-                            <span>▼</span>
-                        </div>
-                        <div class="spoiler-content" id="expense-categories-settings">
-                            <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                                    <input type="text" id="new-expense-category" placeholder="Название категории расходов" style="flex: 1;">
-                                    <button class="btn btn-primary" id="add-expense-category">Добавить</button>
-                                </div>
-                                <div id="expense-categories-list">
-                                    <div class="expense-item">
-                                        <span>Аренда</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Аренда')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <span>Зарплата</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Зарплата')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <span>Уборщица</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Уборщица')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <span>Курьеры</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Курьеры')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <span>Реклама/маркетинг</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Реклама/маркетинг')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <span>ФОТ админ.персонал</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('ФОТ админ.персонал')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <span>Аренда офиса</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Аренда офиса')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <span>Коммерческие расходы</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Коммерческие расходы')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <span>Административные расходы</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Административные расходы')">Удалить</button>
-                                    </div>
-                                    <div class="expense-item">
-                                        <span>Амортизация</span>
-                                        <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Амортизация')">Удалить</button>
-                                    </div>
-                                </div>
+                            <div>
+                                <label>
+                                    <input type="checkbox" checked> 
+                                    Ежедневные отчеты
+                                </label>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="spoiler">
-                        <div class="spoiler-header" data-target="import-export-settings">
-                            <span>Импорт/Экспорт данных</span>
-                            <span>▼</span>
-                        </div>
-                        <div class="spoiler-content" id="import-export-settings">
-                            <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                                <h4>Импорт продаж</h4>
-                                <div class="form-group">
-                                    <label for="import-sales-file">Выберите файл (CSV/Excel)</label>
-                                    <input type="file" id="import-sales-file" accept=".csv,.xlsx,.xls">
-                                </div>
-                                <button class="btn btn-primary" id="import-sales">Импортировать продажи</button>
-                                
-                                <h4 style="margin-top: 20px;">Экспорт данных</h4>
-                                <div class="btn-group">
-                                    <button class="btn btn-secondary" id="export-all-data-excel">Экспорт всех данных в Excel</button>
-                                    <button class="btn btn-info" id="export-all-data-csv">Экспорт всех данных в CSV</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="spoiler">
-                        <div class="spoiler-header" data-target="automation-settings">
-                            <span>Автоматизации</span>
-                            <span>▼</span>
-                        </div>
-                        <div class="spoiler-content" id="automation-settings">
-                            <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                                <h4>Шаблоны продаж</h4>
-                                <div id="sale-templates-list">
-                                    <!-- Список шаблонов будет заполнен скриптом -->
-                                </div>
-                                
-                                <h4 style="margin-top: 20px;">Автозаполнение полей</h4>
-                                <div>
-                                    <label>
-                                        <input type="checkbox" id="auto-fill-marketplace" checked> 
-                                        Автоматически заполнять маркетплейс
-                                    </label>
-                                </div>
-                                <div>
-                                    <label>
-                                        <input type="checkbox" id="auto-fill-shop" checked> 
-                                        Автоматически заполнять магазин
-                                    </label>
-                                </div>
-                                <div>
-                                    <label>
-                                        <input type="checkbox" id="auto-fill-advertising" checked> 
-                                        Автоматически заполнять РК + Эквайринг
-                                    </label>
-                                </div>
-                                <div>
-                                    <label>
-                                        <input type="checkbox" id="auto-fill-tax" checked> 
-                                        Автоматически заполнять налог
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="spoiler">
-                        <div class="spoiler-header" data-target="account-settings">
-                            <span>Аккаунт</span>
-                            <span>▼</span>
-                        </div>
-                        <div class="spoiler-content" id="account-settings">
-                            <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                                <div class="form-group">
-                                    <label for="user-name">Имя пользователя</label>
-                                    <input type="text" id="user-name" value="Администратор">
-                                </div>
-                                <div class="form-group">
-                                    <label for="user-email">Email</label>
-                                    <input type="email" id="user-email" value="admin@example.com">
-                                </div>
-                                <div class="form-group">
-                                    <label for="user-password">Новый пароль</label>
-                                    <input type="password" id="user-password" placeholder="Введите новый пароль">
-                                </div>
-                                <div class="form-group">
-                                    <label for="user-password-confirm">Подтвердите пароль</label>
-                                    <input type="password" id="user-password-confirm" placeholder="Подтвердите новый пароль">
-                                </div>
-                                <div class="btn-group">
-                                    <button class="btn btn-secondary">Сохранить изменения</button>
-                                    <button class="btn btn-danger">Выйти</button>
-                                </div>
+                            <div>
+                                <label>
+                                    <input type="checkbox"> 
+                                    Предупреждения о низкой марже
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -1450,86 +1028,6 @@
                 </div>
             </div>
         </main>
-    </div>
-    
-    <!-- Edit Sale Modal -->
-    <div id="edit-sale-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Редактировать продажу</h3>
-                <span class="close" id="close-edit-sale-modal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="edit-sale-id">
-                <div class="grid">
-                    <div>
-                        <label for="edit-product-name">Название товара *</label>
-                        <input type="text" id="edit-product-name" placeholder="Введите название товара">
-                    </div>
-                    <div>
-                        <label for="edit-article">Артикул *</label>
-                        <input type="text" id="edit-article" placeholder="Введите артикул">
-                    </div>
-                    <div id="edit-marketplace-field">
-                        <label for="edit-marketplace-select">Маркетплейс</label>
-                        <select id="edit-marketplace-select">
-                            <option value="Яндекс">Яндекс Маркет</option>
-                            <option value="Озон">Озон</option>
-                        </select>
-                    </div>
-                    <div id="edit-shop-field">
-                        <label for="edit-shop-select">Магазин</label>
-                        <select id="edit-shop-select">
-                            <option value="">Выберите магазин</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="edit-purchase-price">Цена закупки (₽) *</label>
-                        <input type="number" id="edit-purchase-price" placeholder="0">
-                    </div>
-                    <div>
-                        <label for="edit-selling-price">Цена продажи (₽) *</label>
-                        <input type="number" id="edit-selling-price" placeholder="0">
-                    </div>
-                    <div id="edit-commission-field">
-                        <label for="edit-commission">Комиссия маркетплейса (₽)</label>
-                        <input type="number" id="edit-commission" placeholder="0">
-                    </div>
-                    <div id="edit-logistics-field">
-                        <label for="edit-logistics">Логистика (₽)</label>
-                        <input type="number" id="edit-logistics" placeholder="0">
-                    </div>
-                    <div id="edit-delivery-mv-field">
-                        <label for="edit-delivery-mv">Доставка до МВ (₽)</label>
-                        <input type="number" id="edit-delivery-mv" placeholder="0">
-                    </div>
-                    <div>
-                        <label for="edit-advertising">РК + Эквайринг (%)</label>
-                        <input type="number" id="edit-advertising" step="0.01" value="0.98">
-                    </div>
-                    <div>
-                        <label for="edit-tax-rate">Налог (%)</label>
-                        <select id="edit-tax-rate">
-                            <option value="0.99">1% (УСН Доходы)</option>
-                            <option value="0.93">7% (УСН Доходы)</option>
-                            <option value="0.85">15% (УСН Доходы-Расходы)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="edit-quantity">Количество</label>
-                        <input type="number" id="edit-quantity" value="1" min="1">
-                    </div>
-                    <div>
-                        <label for="edit-sale-date">Дата продажи</label>
-                        <input type="date" id="edit-sale-date">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancel-edit-sale">Отмена</button>
-                <button class="btn btn-primary" id="save-edit-sale">Сохранить</button>
-            </div>
-        </div>
     </div>
     
     <!-- Return Modal -->
@@ -1590,12 +1088,6 @@
                         <option value="Зарплата">Зарплата</option>
                         <option value="Уборщица">Уборщица</option>
                         <option value="Курьеры">Курьеры</option>
-                        <option value="Реклама/маркетинг">Реклама/маркетинг</option>
-                        <option value="ФОТ админ.персонал">ФОТ админ.персонал</option>
-                        <option value="Аренда офиса">Аренда офиса</option>
-                        <option value="Коммерческие расходы">Коммерческие расходы</option>
-                        <option value="Административные расходы">Административные расходы</option>
-                        <option value="Амортизация">Амортизация</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -1618,9 +1110,6 @@
         </div>
     </div>
     
-    <!-- Notifications -->
-    <div id="notification" class="notification"></div>
-    
     <script>
         // Глобальные переменные
         let salesData = [];
@@ -1628,11 +1117,7 @@
         let expensesData = [];
         let shops = ["Магазин 1", "Магазин 2"];
         let categories = ["Садовые товары", "Строительные товары", "Бытовые товары"];
-        let expenseCategories = [
-            "Аренда", "Зарплата", "Уборщица", "Курьеры", 
-            "Реклама/маркетинг", "ФОТ админ.персонал", "Аренда офиса",
-            "Коммерческие расходы", "Административные расходы", "Амортизация"
-        ];
+        let expenseCategories = ["Аренда", "Зарплата", "Уборщица", "Курьеры"];
         let taxSystems = [
             {name: "УСН Доходы (1%)", rate: 0.99},
             {name: "УСН Доходы (7%)", rate: 0.93},
@@ -1643,17 +1128,8 @@
             showShop: true,
             showCommission: true,
             showLogistics: true,
-            showDeliveryMV: true,
-            autoFill: {
-                marketplace: true,
-                shop: true,
-                advertising: true,
-                tax: true
-            }
+            showDeliveryMV: true
         };
-        let saleTemplates = [];
-        let budgets = [];
-        let assets = [];
         
         // Последние значения
         let lastValues = {
@@ -1662,10 +1138,6 @@
             advertising: 0.98,
             taxRate: 0.99
         };
-        
-        // SVG иконки
-        const editIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-        const deleteIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
         
         // Графики
         let marketplaceChart, salesChart, topProductsChart, expensesChart;
@@ -1677,63 +1149,89 @@
             document.getElementById('sale-date').value = today;
             document.getElementById('return-date').value = today;
             document.getElementById('expense-date').value = today;
-            document.getElementById('all-sales-start-date').value = '';
-            document.getElementById('all-sales-end-date').value = '';
-            document.getElementById('report-start-date').value = '';
-            document.getElementById('report-end-date').value = '';
             
             // Загрузка данных из localStorage
             loadData();
             
-            // Применение настроек
-            applySettings();
-            
-            // Восстановление последних значений
-            restoreLastValues();
-            
             // Обработчики событий для навигации
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', function() {
-                    showTab(this.getAttribute('data-tab'));
+                    // Удаление активного класса у всех элементов
+                    document.querySelectorAll('.nav-item').forEach(el => {
+                        el.classList.remove('active');
+                    });
+                    document.querySelectorAll('.tab-content').forEach(el => {
+                        el.classList.remove('active');
+                    });
+                    
+                    // Добавление активного класса к выбранному элементу
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // Обновление данных при переходе на дашборд
+                    if (tabId === 'dashboard') {
+                        updateDashboard();
+                    }
+                    
+                    // Обновление аналитики
+                    if (tabId === 'analytics') {
+                        updateAnalytics();
+                    }
+                    
+                    // Обновление отчетов
+                    if (tabId === 'reports') {
+                        updateReports();
+                    }
+                    
+                    // Обновление настроек
+                    if (tabId === 'settings') {
+                        updateSettings();
+                    }
+                    
+                    // Обновление расходов
+                    if (tabId === 'expenses') {
+                        updateExpenses();
+                    }
+                    
+                    // Обновление возвратов
+                    if (tabId === 'returns') {
+                        updateReturns();
+                    }
                 });
             });
             
             // Обработчики событий для кнопок
             document.getElementById('add-sale').addEventListener('click', addSale);
-            document.getElementById('save-template').addEventListener('click', saveTemplate);
             document.getElementById('go-to-dashboard').addEventListener('click', function() {
-                showTab('dashboard');
+                document.querySelectorAll('.nav-item').forEach(el => {
+                    el.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-content').forEach(el => {
+                    el.classList.remove('active');
+                });
+                
+                document.querySelector('.nav-item[data-tab="dashboard"]').classList.add('active');
+                document.getElementById('dashboard').classList.add('active');
                 updateDashboard();
             });
-            
-            // Обработчики для модальных окон
-            document.getElementById('close-edit-sale-modal').addEventListener('click', function() {
-                document.getElementById('edit-sale-modal').style.display = 'none';
-            });
-            document.getElementById('cancel-edit-sale').addEventListener('click', function() {
-                document.getElementById('edit-sale-modal').style.display = 'none';
-            });
-            document.getElementById('save-edit-sale').addEventListener('click', saveEditedSale);
             
             document.getElementById('open-return-modal').addEventListener('click', function() {
                 document.getElementById('return-modal').style.display = 'flex';
                 populateReturnSales();
             });
-            document.getElementById('close-return-modal').addEventListener('click', function() {
-                document.getElementById('return-modal').style.display = 'none';
-            });
+            
             document.getElementById('cancel-return').addEventListener('click', function() {
                 document.getElementById('return-modal').style.display = 'none';
             });
+            
+            document.getElementById('close-return-modal').addEventListener('click', function() {
+                document.getElementById('return-modal').style.display = 'none';
+            });
+            
             document.getElementById('add-return').addEventListener('click', addReturn);
             
-            document.getElementById('close-expense-modal').addEventListener('click', function() {
-                document.getElementById('expense-modal').style.display = 'none';
-            });
-            document.getElementById('cancel-expense').addEventListener('click', function() {
-                document.getElementById('expense-modal').style.display = 'none';
-            });
-            document.getElementById('add-expense').addEventListener('click', addExpense);
+            document.getElementById('reset-filters').addEventListener('click', resetFilters);
             
             // Обработчики для калькулятора прибыли
             const calcFields = ['selling-price', 'quantity', 'purchase-price', 'commission', 'logistics', 'delivery-mv', 'advertising', 'tax-rate'];
@@ -1741,81 +1239,29 @@
                 document.getElementById(field).addEventListener('input', updateProfitCalculator);
             });
             
+            // Обработчики для расходов
+            document.getElementById('open-expense-modal').addEventListener('click', function() {
+                document.getElementById('expense-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('close-expense-modal').addEventListener('click', function() {
+                document.getElementById('expense-modal').style.display = 'none';
+            });
+            
+            document.getElementById('cancel-expense').addEventListener('click', function() {
+                document.getElementById('expense-modal').style.display = 'none';
+            });
+            
+            document.getElementById('add-expense').addEventListener('click', addExpense);
+            
             // Обработчики для настроек
             document.getElementById('add-shop').addEventListener('click', addShop);
             document.getElementById('add-category').addEventListener('click', addCategory);
             document.getElementById('add-expense-category').addEventListener('click', addExpenseCategory);
-            document.getElementById('add-tax-system').addEventListener('click', addTaxSystem);
             document.getElementById('save-settings').addEventListener('click', saveSettings);
             
-            // Обработчики для фильтров
-            document.getElementById('apply-filters').addEventListener('click', updateDashboard);
-            document.getElementById('apply-sales-filters').addEventListener('click', updateAllSalesTable);
-            document.getElementById('generate-report').addEventListener('click', updateReports);
-            
-            // Обработчики для спойлеров
-            document.querySelectorAll('.spoiler-header').forEach(header => {
-                header.addEventListener('click', function() {
-                    const target = this.getAttribute('data-target');
-                    const content = document.getElementById(target);
-                    const icon = this.querySelector('span:last-child');
-                    
-                    if (content.classList.contains('active')) {
-                        content.classList.remove('active');
-                        icon.textContent = '▼';
-                    } else {
-                        content.classList.add('active');
-                        icon.textContent = '▲';
-                    }
-                });
-            });
-            
-            // Обработчики для drag and drop метрик
-            initMetricDragAndDrop();
-            
-            // Обработчики для поиска
-            document.getElementById('sales-search').addEventListener('input', updateAllSalesTable);
-            document.getElementById('expenses-search').addEventListener('input', updateExpenses);
-            
-            // Обработчики для виджетов дашборда
-            document.getElementById('show-revenue-widget').addEventListener('change', toggleWidget);
-            document.getElementById('show-cost-widget').addEventListener('change', toggleWidget);
-            document.getElementById('show-profit-widget').addEventListener('change', toggleWidget);
-            document.getElementById('show-margin-widget').addEventListener('change', toggleWidget);
-            document.getElementById('show-returns-widget').addEventListener('change', toggleWidget);
-            
-            // Обработчики для сохранения графиков
-            document.getElementById('save-marketplace-chart').addEventListener('click', function() {
-                saveChartAsImage('marketplace-chart', 'marketplace-chart.png');
-            });
-            document.getElementById('save-sales-chart').addEventListener('click', function() {
-                saveChartAsImage('sales-chart', 'sales-chart.png');
-            });
-            document.getElementById('save-top-products-chart').addEventListener('click', function() {
-                saveChartAsImage('top-products-chart', 'top-products-chart.png');
-            });
-            document.getElementById('save-expenses-chart').addEventListener('click', function() {
-                saveChartAsImage('expenses-chart', 'expenses-chart.png');
-            });
-            
             // Обработчики для экспорта отчетов
-            document.getElementById('export-pdf').addEventListener('click', exportReportPDF);
-            document.getElementById('export-excel').addEventListener('click', exportReportExcel);
-            document.getElementById('export-csv').addEventListener('click', exportReportCSV);
-            document.getElementById('export-google-sheets').addEventListener('click', exportReportGoogleSheets);
-            document.getElementById('print-report').addEventListener('click', printReport);
-            
-            // Обработчики для импорта/экспорта данных
-            document.getElementById('import-sales').addEventListener('click', importSales);
-            document.getElementById('export-all-data-excel').addEventListener('click', exportAllDataExcel);
-            document.getElementById('export-all-data-csv').addEventListener('click', exportAllDataCSV);
-            
-            // Обработчики для расширенного управления расходами
-            document.getElementById('set-budget').addEventListener('click', setBudget);
-            document.getElementById('add-asset').addEventListener('click', addAsset);
-            
-            // Обработчики для шаблонов продаж
-            document.getElementById('sale-template').addEventListener('change', loadTemplate);
+            document.getElementById('export-report').addEventListener('click', exportReport);
             
             // Инициализация графиков
             initCharts();
@@ -1825,234 +1271,7 @@
             
             // Обновление списка магазинов
             updateShopsList();
-            
-            // Обновление таблицы всех продаж
-            updateAllSalesTable();
-            
-            // Обновление расходов
-            updateExpenses();
         });
-        
-        // Функция для переключения вкладок
-        function showTab(tabId) {
-            // Удаление активного класса у всех элементов
-            document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-content').forEach(el => {
-                el.classList.remove('active');
-            });
-            
-            // Добавление активного класса к выбранному элементу
-            document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
-            document.getElementById(tabId).classList.add('active');
-            
-            // Обновление данных при переходе на нужную вкладку
-            if (tabId === 'dashboard') {
-                updateDashboard();
-            } else if (tabId === 'analytics') {
-                updateAnalytics();
-            } else if (tabId === 'reports') {
-                updateReports();
-            } else if (tabId === 'settings') {
-                updateSettings();
-            } else if (tabId === 'expenses') {
-                updateExpenses();
-            } else if (tabId === 'returns') {
-                updateReturns();
-            } else if (tabId === 'all-sales') {
-                updateAllSalesTable();
-            } else if (tabId === 'sales') {
-                updateRecentAddedSales();
-                updateSaleTemplates();
-            }
-        }
-        
-        // Загрузка данных из localStorage
-        function loadData() {
-            if (localStorage.getItem('salesData')) {
-                salesData = JSON.parse(localStorage.getItem('salesData'));
-            }
-            if (localStorage.getItem('returnsData')) {
-                returnsData = JSON.parse(localStorage.getItem('returnsData'));
-            }
-            if (localStorage.getItem('expensesData')) {
-                expensesData = JSON.parse(localStorage.getItem('expensesData'));
-            }
-            if (localStorage.getItem('shops')) {
-                shops = JSON.parse(localStorage.getItem('shops'));
-            }
-            if (localStorage.getItem('categories')) {
-                categories = JSON.parse(localStorage.getItem('categories'));
-            }
-            if (localStorage.getItem('expenseCategories')) {
-                expenseCategories = JSON.parse(localStorage.getItem('expenseCategories'));
-            }
-            if (localStorage.getItem('taxSystems')) {
-                taxSystems = JSON.parse(localStorage.getItem('taxSystems'));
-            }
-            if (localStorage.getItem('settings')) {
-                settings = JSON.parse(localStorage.getItem('settings'));
-            }
-            if (localStorage.getItem('lastValues')) {
-                lastValues = JSON.parse(localStorage.getItem('lastValues'));
-            }
-            if (localStorage.getItem('saleTemplates')) {
-                saleTemplates = JSON.parse(localStorage.getItem('saleTemplates'));
-            }
-            if (localStorage.getItem('budgets')) {
-                budgets = JSON.parse(localStorage.getItem('budgets'));
-            }
-            if (localStorage.getItem('assets')) {
-                assets = JSON.parse(localStorage.getItem('assets'));
-            }
-        }
-        
-        // Сохранение данных в localStorage
-        function saveData() {
-            localStorage.setItem('salesData', JSON.stringify(salesData));
-            localStorage.setItem('returnsData', JSON.stringify(returnsData));
-            localStorage.setItem('expensesData', JSON.stringify(expensesData));
-            localStorage.setItem('shops', JSON.stringify(shops));
-            localStorage.setItem('categories', JSON.stringify(categories));
-            localStorage.setItem('expenseCategories', JSON.stringify(expenseCategories));
-            localStorage.setItem('taxSystems', JSON.stringify(taxSystems));
-            localStorage.setItem('settings', JSON.stringify(settings));
-            localStorage.setItem('lastValues', JSON.stringify(lastValues));
-            localStorage.setItem('saleTemplates', JSON.stringify(saleTemplates));
-            localStorage.setItem('budgets', JSON.stringify(budgets));
-            localStorage.setItem('assets', JSON.stringify(assets));
-        }
-        
-        // Применение настроек
-        function applySettings() {
-            // Показ/скрытие полей
-            document.getElementById('marketplace-field').style.display = settings.showMarketplace ? 'block' : 'none';
-            document.getElementById('shop-field').style.display = settings.showShop ? 'block' : 'none';
-            document.getElementById('commission-field').style.display = settings.showCommission ? 'block' : 'none';
-            document.getElementById('logistics-field').style.display = settings.showLogistics ? 'block' : 'none';
-            document.getElementById('delivery-mv-field').style.display = settings.showDeliveryMV ? 'block' : 'none';
-            
-            document.getElementById('edit-marketplace-field').style.display = settings.showMarketplace ? 'block' : 'none';
-            document.getElementById('edit-shop-field').style.display = settings.showShop ? 'block' : 'none';
-            document.getElementById('edit-commission-field').style.display = settings.showCommission ? 'block' : 'none';
-            document.getElementById('edit-logistics-field').style.display = settings.showLogistics ? 'block' : 'none';
-            document.getElementById('edit-delivery-mv-field').style.display = settings.showDeliveryMV ? 'block' : 'none';
-            
-            // Обновление селектов налогов
-            const taxSelect = document.getElementById('tax-rate');
-            const editTaxSelect = document.getElementById('edit-tax-rate');
-            
-            taxSelect.innerHTML = '';
-            editTaxSelect.innerHTML = '';
-            
-            taxSystems.forEach(tax => {
-                const option = document.createElement('option');
-                option.value = tax.rate;
-                option.textContent = tax.name;
-                taxSelect.appendChild(option.cloneNode(true));
-                editTaxSelect.appendChild(option);
-            });
-            
-            // Обновление списка шаблонов
-            updateSaleTemplates();
-        }
-        
-        // Восстановление последних значений
-        function restoreLastValues() {
-            if (settings.autoFill.marketplace) {
-                document.getElementById('marketplace-select').value = lastValues.marketplace;
-            }
-            if (settings.autoFill.shop) {
-                document.getElementById('shop-select').value = lastValues.shop;
-            }
-            if (settings.autoFill.advertising) {
-                document.getElementById('advertising').value = lastValues.advertising;
-            }
-            if (settings.autoFill.tax) {
-                document.getElementById('tax-rate').value = lastValues.taxRate;
-            }
-        }
-        
-        // Сохранение последних значений
-        function saveLastValues() {
-            lastValues.marketplace = document.getElementById('marketplace-select').value;
-            lastValues.shop = document.getElementById('shop-select').value;
-            lastValues.advertising = document.getElementById('advertising').value;
-            lastValues.taxRate = document.getElementById('tax-rate').value;
-            saveData();
-        }
-        
-        // Инициализация drag and drop для метрик
-        function initMetricDragAndDrop() {
-            const container = document.getElementById('metrics-container');
-            const metrics = container.querySelectorAll('.metric-card');
-            
-            metrics.forEach(metric => {
-                metric.setAttribute('draggable', true);
-                
-                metric.addEventListener('dragstart', function(e) {
-                    e.dataTransfer.setData('text/plain', this.dataset.metric);
-                    this.classList.add('dragging');
-                });
-                
-                metric.addEventListener('dragend', function() {
-                    this.classList.remove('dragging');
-                });
-                
-                metric.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                });
-                
-                metric.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    const draggedMetric = e.dataTransfer.getData('text/plain');
-                    const draggedElement = container.querySelector(`[data-metric="${draggedMetric}"]`);
-                    
-                    if (draggedElement !== this) {
-                        const allMetrics = Array.from(container.querySelectorAll('.metric-card'));
-                        const thisIndex = allMetrics.indexOf(this);
-                        const draggedIndex = allMetrics.indexOf(draggedElement);
-                        
-                        if (thisIndex < draggedIndex) {
-                            container.insertBefore(draggedElement, this);
-                        } else {
-                            container.insertBefore(draggedElement, this.nextSibling);
-                        }
-                    }
-                });
-            });
-        }
-        
-        // Переключение видимости виджетов
-        function toggleWidget() {
-            const showRevenue = document.getElementById('show-revenue-widget').checked;
-            const showCost = document.getElementById('show-cost-widget').checked;
-            const showProfit = document.getElementById('show-profit-widget').checked;
-            const showMargin = document.getElementById('show-margin-widget').checked;
-            const showReturns = document.getElementById('show-returns-widget').checked;
-            
-            document.querySelector('[data-metric="revenue"]').style.display = showRevenue ? 'block' : 'none';
-            document.querySelector('[data-metric="cost"]').style.display = showCost ? 'block' : 'none';
-            document.querySelector('[data-metric="profit"]').style.display = showProfit ? 'block' : 'none';
-            document.querySelector('[data-metric="margin"]').style.display = showMargin ? 'block' : 'none';
-            document.querySelector('[data-metric="returns"]').style.display = showReturns ? 'block' : 'none';
-            
-            saveData();
-        }
-        
-        // Сохранение графика как изображения
-        function saveChartAsImage(chartId, filename) {
-            const canvas = document.getElementById(chartId);
-            const url = canvas.toDataURL('image/png');
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            showNotification('График сохранен как изображение', 'success');
-        }
         
         // Инициализация графиков
         function initCharts() {
@@ -2068,21 +1287,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    return `${label}: ${value.toLocaleString('ru-RU')} ₽`;
-                                }
-                            }
-                        }
-                    }
+                    maintainAspectRatio: false
                 }
             });
             
@@ -2097,16 +1302,14 @@
                             data: [],
                             borderColor: '#3b82f6',
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.1,
-                            fill: true
+                            tension: 0.1
                         },
                         {
                             label: 'Прибыль',
                             data: [],
                             borderColor: '#10b981',
                             backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            tension: 0.1,
-                            fill: true
+                            tension: 0.1
                         }
                     ]
                 },
@@ -2115,26 +1318,7 @@
                     maintainAspectRatio: false,
                     scales: {
                         y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString('ru-RU') + ' ₽';
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.dataset.label || '';
-                                    const value = context.raw || 0;
-                                    return `${label}: ${value.toLocaleString('ru-RU')} ₽`;
-                                }
-                            }
+                            beginAtZero: true
                         }
                     }
                 }
@@ -2156,25 +1340,7 @@
                     maintainAspectRatio: false,
                     scales: {
                         y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString('ru-RU') + ' ₽';
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.raw || 0;
-                                    return `Прибыль: ${value.toLocaleString('ru-RU')} ₽`;
-                                }
-                            }
+                            beginAtZero: true
                         }
                     }
                 }
@@ -2196,25 +1362,7 @@
                     maintainAspectRatio: false,
                     scales: {
                         y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString('ru-RU') + ' ₽';
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.raw || 0;
-                                    return `Расходы: ${value.toLocaleString('ru-RU')} ₽`;
-                                }
-                            }
+                            beginAtZero: true
                         }
                     }
                 }
@@ -2229,7 +1377,7 @@
             const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
             
             if (!name || !article || !purchasePrice || !sellingPrice) {
-                showNotification('Пожалуйста, заполните все обязательные поля', 'error');
+                alert('Пожалуйста, заполните все обязательные поля');
                 return;
             }
             
@@ -2258,7 +1406,6 @@
             
             salesData.push(sale);
             saveData();
-            saveLastValues();
             
             // Очистка формы
             document.getElementById('product-name').value = '';
@@ -2270,97 +1417,12 @@
             document.getElementById('delivery-mv').value = '';
             document.getElementById('quantity').value = '1';
             document.getElementById('sale-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('shop-select').value = '';
             
             updateProfitCalculator();
             updateDashboard();
-            updateRecentAddedSales();
             
-            showNotification('Продажа успешно добавлена!', 'success');
-        }
-        
-        // Сохранение шаблона продажи
-        function saveTemplate() {
-            const name = document.getElementById('product-name').value;
-            const article = document.getElementById('article').value;
-            const purchasePrice = document.getElementById('purchase-price').value;
-            const sellingPrice = document.getElementById('selling-price').value;
-            const commission = document.getElementById('commission').value;
-            const logistics = document.getElementById('logistics').value;
-            const deliveryToMV = document.getElementById('delivery-mv').value;
-            const advertising = document.getElementById('advertising').value;
-            const taxRate = document.getElementById('tax-rate').value;
-            const marketplace = document.getElementById('marketplace-select').value;
-            const shop = document.getElementById('shop-select').value;
-            
-            if (!name || !article) {
-                showNotification('Пожалуйста, заполните название товара и артикул', 'error');
-                return;
-            }
-            
-            const template = {
-                id: Date.now(),
-                name: name,
-                article: article,
-                purchasePrice: purchasePrice,
-                sellingPrice: sellingPrice,
-                commission: commission,
-                logistics: logistics,
-                deliveryToMV: deliveryToMV,
-                advertising: advertising,
-                taxRate: taxRate,
-                marketplace: marketplace,
-                shop: shop
-            };
-            
-            saleTemplates.push(template);
-            saveData();
-            updateSaleTemplates();
-            
-            showNotification('Шаблон успешно сохранен!', 'success');
-        }
-        
-        // Загрузка шаблона продажи
-        function loadTemplate() {
-            const templateId = document.getElementById('sale-template').value;
-            if (templateId === '' || templateId === 'new') return;
-            
-            const template = saleTemplates.find(t => t.id == templateId);
-            if (!template) return;
-            
-            document.getElementById('product-name').value = template.name;
-            document.getElementById('article').value = template.article;
-            document.getElementById('purchase-price').value = template.purchasePrice;
-            document.getElementById('selling-price').value = template.sellingPrice;
-            document.getElementById('commission').value = template.commission;
-            document.getElementById('logistics').value = template.logistics;
-            document.getElementById('delivery-mv').value = template.deliveryToMV;
-            document.getElementById('advertising').value = template.advertising;
-            document.getElementById('tax-rate').value = template.taxRate;
-            document.getElementById('marketplace-select').value = template.marketplace;
-            document.getElementById('shop-select').value = template.shop;
-            
-            updateProfitCalculator();
-        }
-        
-        // Обновление списка шаблонов
-        function updateSaleTemplates() {
-            const select = document.getElementById('sale-template');
-            const currentSelection = select.value;
-            
-            // Оставляем только "Выберите шаблон" и "Новый шаблон"
-            select.innerHTML = '<option value="">Выберите шаблон</option><option value="new">Новый шаблон</option>';
-            
-            saleTemplates.forEach(template => {
-                const option = document.createElement('option');
-                option.value = template.id;
-                option.textContent = template.name;
-                select.appendChild(option);
-            });
-            
-            // Восстанавливаем выбор, если он еще существует
-            if (currentSelection && saleTemplates.some(t => t.id == currentSelection)) {
-                select.value = currentSelection;
-            }
+            alert('Продажа успешно добавлена!');
         }
         
         // Расчет прибыли
@@ -2370,9 +1432,10 @@
             const commissionCost = sale.commission * sale.quantity;
             const logisticsCost = (sale.logistics || 0) * sale.quantity;
             const deliveryCost = (sale.deliveryToMV || 0) * sale.quantity;
-            const advertisingCost = (sale.advertising || 0) * revenue / 100;
+            const advertisingCost = (sale.advertising || 0) * revenue / 100; // Преобразование процентов в абсолютное значение
             const taxCost = (1 - sale.taxRate) * revenue;
             
+            // Правильный расчет: Выручка - Закупка - Комиссия - Логистика - Доставка - РК - Налог
             return revenue - purchaseCost - commissionCost - logisticsCost - deliveryCost - advertisingCost - taxCost;
         }
         
@@ -2399,155 +1462,17 @@
             const commissionCost = commission * quantity;
             const logisticsCost = logistics * quantity;
             const deliveryCost = deliveryToMV * quantity;
-            const advertisingCost = advertising * revenue / 100;
+            const advertisingCost = advertising * revenue / 100; // Преобразование процентов в абсолютное значение
             const taxCost = (1 - taxRate) * revenue;
             
             const cost = purchaseCost + commissionCost + logisticsCost + deliveryCost + advertisingCost + taxCost;
             const profit = revenue - cost;
             const margin = revenue > 0 ? Math.round((profit / revenue) * 100) : 0;
             
-            // Анимация изменения значений
-            animateValue(document.getElementById('revenue-calc'), revenue);
-            animateValue(document.getElementById('cost-calc'), cost);
-            animateValue(document.getElementById('profit-calc'), profit);
-            animateValue(document.getElementById('margin-calc'), margin, true);
-        }
-        
-        // Анимация изменения значений
-        function animateValue(element, newValue, isPercent = false) {
-            const currentValue = parseFloat(element.textContent.replace(/[^\d.-]/g, '')) || 0;
-            const duration = 500;
-            const startTime = performance.now();
-            
-            function updateValue(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const currentValueAnimated = currentValue + (newValue - currentValue) * progress;
-                
-                if (isPercent) {
-                    element.textContent = Math.round(currentValueAnimated) + '%';
-                } else {
-                    element.textContent = Math.round(currentValueAnimated).toLocaleString('ru-RU') + ' ₽';
-                }
-                
-                if (progress < 1) {
-                    requestAnimationFrame(updateValue);
-                }
-            }
-            
-            requestAnimationFrame(updateValue);
-        }
-        
-        // Обновление таблицы последних добавленных продаж
-        function updateRecentAddedSales() {
-            const tbody = document.querySelector('#recent-added-sales tbody');
-            tbody.innerHTML = '';
-            
-            const recentSales = [...salesData]
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .slice(0, 10);
-            
-            recentSales.forEach(sale => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td title="${sale.name}">${sale.name.length > 30 ? sale.name.substring(0, 30) + '...' : sale.name}</td>
-                    <td>${sale.marketplace}</td>
-                    <td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
-                    <td class="${sale.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        ${sale.profit.toLocaleString('ru-RU')} ₽
-                    </td>
-                    <td class="actions-cell">
-                        <button class="icon-btn" onclick="editSale(${sale.id})" title="Редактировать">${editIcon}</button>
-                        <button class="icon-btn" onclick="deleteSale(${sale.id})" title="Удалить">${deleteIcon}</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-        
-        // Редактирование продажи
-        function editSale(saleId) {
-            const sale = salesData.find(s => s.id === saleId);
-            if (!sale) return;
-            
-            document.getElementById('edit-sale-id').value = sale.id;
-            document.getElementById('edit-product-name').value = sale.name;
-            document.getElementById('edit-article').value = sale.article;
-            document.getElementById('edit-purchase-price').value = sale.purchasePrice;
-            document.getElementById('edit-selling-price').value = sale.sellingPrice;
-            document.getElementById('edit-commission').value = sale.commission;
-            document.getElementById('edit-logistics').value = sale.logistics || '';
-            document.getElementById('edit-delivery-mv').value = sale.deliveryToMV || '';
-            document.getElementById('edit-advertising').value = sale.advertising;
-            document.getElementById('edit-tax-rate').value = sale.taxRate;
-            document.getElementById('edit-quantity').value = sale.quantity;
-            document.getElementById('edit-sale-date').value = sale.date;
-            document.getElementById('edit-marketplace-select').value = sale.marketplace;
-            document.getElementById('edit-shop-select').value = sale.shop || '';
-            
-            // Обновление списка магазинов в модальном окне
-            const shopSelect = document.getElementById('edit-shop-select');
-            shopSelect.innerHTML = '<option value="">Выберите магазин</option>';
-            shops.forEach(shop => {
-                const option = document.createElement('option');
-                option.value = shop;
-                option.textContent = shop;
-                shopSelect.appendChild(option);
-            });
-            shopSelect.value = sale.shop || '';
-            
-            document.getElementById('edit-sale-modal').style.display = 'flex';
-        }
-        
-        // Сохранение отредактированной продажи
-        function saveEditedSale() {
-            const saleId = parseInt(document.getElementById('edit-sale-id').value);
-            const saleIndex = salesData.findIndex(s => s.id === saleId);
-            
-            if (saleIndex === -1) return;
-            
-            salesData[saleIndex] = {
-                id: saleId,
-                name: document.getElementById('edit-product-name').value,
-                article: document.getElementById('edit-article').value,
-                purchasePrice: parseFloat(document.getElementById('edit-purchase-price').value) || 0,
-                sellingPrice: parseFloat(document.getElementById('edit-selling-price').value) || 0,
-                commission: parseFloat(document.getElementById('edit-commission').value) || 0,
-                logistics: parseFloat(document.getElementById('edit-logistics').value) || 0,
-                deliveryToMV: parseFloat(document.getElementById('edit-delivery-mv').value) || 0,
-                advertising: parseFloat(document.getElementById('edit-advertising').value) || 0.98,
-                taxRate: parseFloat(document.getElementById('edit-tax-rate').value) || 0.97,
-                quantity: parseInt(document.getElementById('edit-quantity').value) || 1,
-                date: document.getElementById('edit-sale-date').value,
-                marketplace: document.getElementById('edit-marketplace-select').value,
-                shop: document.getElementById('edit-shop-select').value,
-                profit: 0,
-                margin: 0
-            };
-            
-            // Пересчет прибыли и маржи
-            salesData[saleIndex].profit = calculateProfit(salesData[saleIndex]);
-            salesData[saleIndex].margin = calculateMargin(salesData[saleIndex]);
-            
-            saveData();
-            document.getElementById('edit-sale-modal').style.display = 'none';
-            updateDashboard();
-            updateAllSalesTable();
-            updateRecentAddedSales();
-            
-            showNotification('Продажа успешно обновлена!', 'success');
-        }
-        
-        // Удаление продажи
-        function deleteSale(saleId) {
-            if (confirm('Вы уверены, что хотите удалить эту продажу?')) {
-                salesData = salesData.filter(s => s.id !== saleId);
-                saveData();
-                updateDashboard();
-                updateAllSalesTable();
-                updateRecentAddedSales();
-                showNotification('Продажа удалена!', 'success');
-            }
+            document.getElementById('revenue-calc').textContent = revenue.toLocaleString('ru-RU') + ' ₽';
+            document.getElementById('cost-calc').textContent = cost.toLocaleString('ru-RU') + ' ₽';
+            document.getElementById('profit-calc').textContent = profit.toLocaleString('ru-RU') + ' ₽';
+            document.getElementById('margin-calc').textContent = margin + '%';
         }
         
         // Добавление возврата
@@ -2558,7 +1483,7 @@
             const date = document.getElementById('return-date').value;
             
             if (!saleId || !reason || !amount) {
-                showNotification('Пожалуйста, заполните все поля для возврата', 'error');
+                alert('Пожалуйста, заполните все поля для возврата');
                 return;
             }
             
@@ -2583,7 +1508,7 @@
             updateDashboard();
             updateReturns();
             
-            showNotification('Возврат успешно добавлен!', 'success');
+            alert('Возврат успешно добавлен!');
         }
         
         // Заполнение списка продаж для возврата
@@ -2612,33 +1537,18 @@
                     <td>${ret.reason}</td>
                     <td>${ret.amount.toLocaleString('ru-RU')} ₽</td>
                     <td>${new Date(ret.date).toLocaleDateString('ru-RU')}</td>
-                    <td class="actions-cell">
-                        <button class="icon-btn" onclick="editReturn(${ret.id})" title="Редактировать">${editIcon}</button>
-                        <button class="icon-btn" onclick="deleteReturn(${ret.id})" title="Удалить">${deleteIcon}</button>
-                    </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
         
-        // Редактирование возврата
-        function editReturn(returnId) {
-            const returnItem = returnsData.find(r => r.id === returnId);
-            if (!returnItem) return;
-            
-            // В реальной реализации здесь будет код для редактирования возврата
-            showNotification('Функция редактирования возврата в разработке', 'info');
-        }
-        
-        // Удаление возврата
-        function deleteReturn(returnId) {
-            if (confirm('Вы уверены, что хотите удалить этот возврат?')) {
-                returnsData = returnsData.filter(r => r.id !== returnId);
-                saveData();
-                updateReturns();
-                updateDashboard();
-                showNotification('Возврат удален!', 'success');
-            }
+        // Сброс фильтров
+        function resetFilters() {
+            document.getElementById('period').value = 'all';
+            document.getElementById('marketplace').value = 'all';
+            document.getElementById('start-date').value = '';
+            document.getElementById('end-date').value = '';
+            updateDashboard();
         }
         
         // Обновление дашборда
@@ -2691,19 +1601,11 @@
                 const now = new Date();
                 let startDatePeriod;
                 
-                if (period === 'day') {
-                    startDatePeriod = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                } else if (period === 'week') {
-                    const day = now.getDay();
-                    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-                    startDatePeriod = new Date(now.getFullYear(), now.getMonth(), diff);
-                } else if (period === 'month') {
+                if (period === 'month') {
                     startDatePeriod = new Date(now.getFullYear(), now.getMonth(), 1);
                 } else if (period === 'quarter') {
                     const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
                     startDatePeriod = new Date(now.getFullYear(), quarterStartMonth, 1);
-                } else if (period === 'year') {
-                    startDatePeriod = new Date(now.getFullYear(), 0, 1);
                 }
                 
                 if (startDatePeriod) {
@@ -2897,15 +1799,6 @@
                 salesByMonth[month].revenue += sale.sellingPrice * sale.quantity;
                 salesByMonth[month].profit += sale.profit;
                 salesByMonth[month].count += 1;
-                
-                // Расчет расходов для таблицы
-                const purchaseCost = sale.purchasePrice * sale.quantity;
-                const commissionCost = sale.commission * sale.quantity;
-                const logisticsCost = (sale.logistics || 0) * sale.quantity;
-                const deliveryCost = (sale.deliveryToMV || 0) * sale.quantity;
-                const advertisingCost = (sale.advertising || 0) * sale.sellingPrice * sale.quantity / 100;
-                const taxCost = (1 - sale.taxRate) * sale.sellingPrice * sale.quantity;
-                salesByMonth[month].cost += purchaseCost + commissionCost + logisticsCost + deliveryCost + advertisingCost + taxCost;
             });
             
             Object.keys(salesByMonth).forEach(month => {
@@ -2984,29 +1877,13 @@
             document.getElementById('report-profit-percent').textContent = totalRevenue > 0 ? Math.round((totalProfit / totalRevenue) * 100) + '%' : '0%';
         }
         
-        // Экспорт отчета в PDF
-        function exportReportPDF() {
-            showNotification('Экспорт в PDF в разработке', 'info');
-        }
-        
-        // Экспорт отчета в Excel
-        function exportReportExcel() {
-            showNotification('Экспорт в Excel в разработке', 'info');
-        }
-        
-        // Экспорт отчета в CSV
-        function exportReportCSV() {
-            showNotification('Экспорт в CSV в разработке', 'info');
-        }
-        
-        // Экспорт отчета в Google Sheets
-        function exportReportGoogleSheets() {
-            showNotification('Экспорт в Google Sheets в разработке', 'info');
-        }
-        
-        // Печать отчета
-        function printReport() {
-            window.print();
+        // Экспорт отчета
+        function exportReport() {
+            const format = document.getElementById('export-format').value;
+            const period = document.getElementById('report-period').value;
+            
+            alert(`Отчет за ${period} в формате ${format} будет экспортирован`);
+            // Здесь должна быть логика экспорта в выбранный формат
         }
         
         // Обновление настроек
@@ -3014,21 +1891,6 @@
             updateShopsList();
             updateCategoriesList();
             updateExpenseCategoriesList();
-            updateTaxSystemsList();
-            updateSaleTemplates();
-            
-            // Установка значений чекбоксов
-            document.getElementById('show-marketplace').checked = settings.showMarketplace;
-            document.getElementById('show-shop').checked = settings.showShop;
-            document.getElementById('show-commission').checked = settings.showCommission;
-            document.getElementById('show-logistics').checked = settings.showLogistics;
-            document.getElementById('show-delivery-mv').checked = settings.showDeliveryMV;
-            
-            // Установка значений автозаполнения
-            document.getElementById('auto-fill-marketplace').checked = settings.autoFill.marketplace;
-            document.getElementById('auto-fill-shop').checked = settings.autoFill.shop;
-            document.getElementById('auto-fill-advertising').checked = settings.autoFill.advertising;
-            document.getElementById('auto-fill-tax').checked = settings.autoFill.tax;
         }
         
         // Обновление списка магазинов
@@ -3054,26 +1916,6 @@
                 option.value = shop;
                 option.textContent = shop;
                 shopSelect.appendChild(option);
-            });
-            
-            // Обновление селекта в форме всех продаж
-            const allSalesShopSelect = document.getElementById('all-sales-shop');
-            allSalesShopSelect.innerHTML = '<option value="all">Все магазины</option>';
-            shops.forEach(shop => {
-                const option = document.createElement('option');
-                option.value = shop;
-                option.textContent = shop;
-                allSalesShopSelect.appendChild(option);
-            });
-            
-            // Обновление селекта бюджетов
-            const budgetCategorySelect = document.getElementById('budget-category');
-            budgetCategorySelect.innerHTML = '<option value="">Выберите категорию</option>';
-            expenseCategories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
-                budgetCategorySelect.appendChild(option);
             });
         }
         
@@ -3116,25 +1958,6 @@
                 option.value = category;
                 option.textContent = category;
                 expenseCategorySelect.appendChild(option);
-            });
-        }
-        
-        // Обновление списка налоговых систем
-        function updateTaxSystemsList() {
-            const taxSystemsList = document.getElementById('tax-systems-list');
-            taxSystemsList.innerHTML = '';
-            
-            taxSystems.forEach(tax => {
-                const div = document.createElement('div');
-                div.className = 'expense-item';
-                div.innerHTML = `
-                    <div>
-                        <strong>${tax.name}</strong>
-                        <input type="number" step="0.01" value="${tax.rate}" style="width: 80px; margin-left: 10px;" onchange="updateTaxRate('${tax.name}', this.value)">
-                    </div>
-                    <button class="btn btn-danger btn-sm" onclick="removeTaxSystem('${tax.name}')">Удалить</button>
-                `;
-                taxSystemsList.appendChild(div);
             });
         }
         
@@ -3192,52 +2015,10 @@
             updateExpenseCategoriesList();
         }
         
-        // Добавление налоговой системы
-        function addTaxSystem() {
-            const taxName = document.getElementById('new-tax-name').value.trim();
-            const taxRate = parseFloat(document.getElementById('new-tax-rate').value);
-            
-            if (taxName && !isNaN(taxRate)) {
-                taxSystems.push({name: taxName, rate: taxRate});
-                saveData();
-                document.getElementById('new-tax-name').value = '';
-                document.getElementById('new-tax-rate').value = '';
-                updateTaxSystemsList();
-            }
-        }
-        
-        // Удаление налоговой системы
-        function removeTaxSystem(taxName) {
-            taxSystems = taxSystems.filter(tax => tax.name !== taxName);
-            saveData();
-            updateTaxSystemsList();
-        }
-        
-        // Обновление ставки налога
-        function updateTaxRate(taxName, newRate) {
-            const tax = taxSystems.find(t => t.name === taxName);
-            if (tax) {
-                tax.rate = parseFloat(newRate);
-                saveData();
-            }
-        }
-        
         // Сохранение настроек
         function saveSettings() {
-            settings.showMarketplace = document.getElementById('show-marketplace').checked;
-            settings.showShop = document.getElementById('show-shop').checked;
-            settings.showCommission = document.getElementById('show-commission').checked;
-            settings.showLogistics = document.getElementById('show-logistics').checked;
-            settings.showDeliveryMV = document.getElementById('show-delivery-mv').checked;
-            
-            settings.autoFill.marketplace = document.getElementById('auto-fill-marketplace').checked;
-            settings.autoFill.shop = document.getElementById('auto-fill-shop').checked;
-            settings.autoFill.advertising = document.getElementById('auto-fill-advertising').checked;
-            settings.autoFill.tax = document.getElementById('auto-fill-tax').checked;
-            
             saveData();
-            applySettings();
-            showNotification('Настройки сохранены!', 'success');
+            alert('Настройки сохранены!');
         }
         
         // Добавление расхода
@@ -3248,7 +2029,7 @@
             const description = document.getElementById('expense-description').value;
             
             if (!category || !amount || !date) {
-                showNotification('Пожалуйста, заполните все обязательные поля', 'error');
+                alert('Пожалуйста, заполните все обязательные поля');
                 return;
             }
             
@@ -3273,26 +2054,15 @@
             updateExpenses();
             updateDashboard();
             
-            showNotification('Расход успешно добавлен!', 'success');
+            alert('Расход успешно добавлен!');
         }
         
         // Обновление расходов
         function updateExpenses() {
-            // Фильтрация по поиску
-            const searchTerm = document.getElementById('expenses-search').value.toLowerCase();
-            let filteredExpenses = [...expensesData];
-            
-            if (searchTerm) {
-                filteredExpenses = filteredExpenses.filter(expense => 
-                    expense.category.toLowerCase().includes(searchTerm) ||
-                    (expense.description && expense.description.toLowerCase().includes(searchTerm))
-                );
-            }
-            
             // Обновление графика расходов
             const expensesByMonth = {};
             
-            filteredExpenses.forEach(expense => {
+            expensesData.forEach(expense => {
                 const month = new Date(expense.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
                 if (!expensesByMonth[month]) {
                     expensesByMonth[month] = 0;
@@ -3313,7 +2083,7 @@
             
             const categoryTotals = {};
             
-            filteredExpenses.forEach(expense => {
+            expensesData.forEach(expense => {
                 if (!categoryTotals[expense.category]) {
                     categoryTotals[expense.category] = 0;
                 }
@@ -3339,7 +2109,7 @@
             const expensesTable = document.querySelector('#expenses-table tbody');
             expensesTable.innerHTML = '';
             
-            [...filteredExpenses]
+            [...expensesData]
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .forEach(expense => {
                     const tr = document.createElement('tr');
@@ -3348,269 +2118,55 @@
                         <td>${expense.amount.toLocaleString('ru-RU')} ₽</td>
                         <td>${new Date(expense.date).toLocaleDateString('ru-RU')}</td>
                         <td>${expense.description || '-'}</td>
-                        <td class="actions-cell">
-                            <button class="icon-btn" onclick="editExpense(${expense.id})" title="Редактировать">${editIcon}</button>
-                            <button class="icon-btn" onclick="deleteExpense(${expense.id})" title="Удалить">${deleteIcon}</button>
-                        </td>
                     `;
                     expensesTable.appendChild(tr);
                 });
         }
         
-        // Редактирование расхода
-        function editExpense(expenseId) {
-            const expense = expensesData.find(e => e.id === expenseId);
-            if (!expense) return;
-            
-            // В реальной реализации здесь будет код для редактирования расхода
-            showNotification('Функция редактирования расхода в разработке', 'info');
-        }
-        
-        // Удаление расхода
-        function deleteExpense(expenseId) {
-            if (confirm('Вы уверены, что хотите удалить этот расход?')) {
-                expensesData = expensesData.filter(e => e.id !== expenseId);
-                saveData();
-                updateExpenses();
-                updateDashboard();
-                showNotification('Расход удален!', 'success');
+        // Загрузка данных из localStorage
+        function loadData() {
+            if (localStorage.getItem('salesData')) {
+                salesData = JSON.parse(localStorage.getItem('salesData'));
+            }
+            if (localStorage.getItem('returnsData')) {
+                returnsData = JSON.parse(localStorage.getItem('returnsData'));
+            }
+            if (localStorage.getItem('expensesData')) {
+                expensesData = JSON.parse(localStorage.getItem('expensesData'));
+            }
+            if (localStorage.getItem('shops')) {
+                shops = JSON.parse(localStorage.getItem('shops'));
+            }
+            if (localStorage.getItem('categories')) {
+                categories = JSON.parse(localStorage.getItem('categories'));
+            }
+            if (localStorage.getItem('expenseCategories')) {
+                expenseCategories = JSON.parse(localStorage.getItem('expenseCategories'));
+            }
+            if (localStorage.getItem('taxSystems')) {
+                taxSystems = JSON.parse(localStorage.getItem('taxSystems'));
+            }
+            if (localStorage.getItem('settings')) {
+                settings = JSON.parse(localStorage.getItem('settings'));
+            }
+            if (localStorage.getItem('lastValues')) {
+                lastValues = JSON.parse(localStorage.getItem('lastValues'));
             }
         }
         
-        // Установка бюджета
-        function setBudget() {
-            const category = document.getElementById('budget-category').value;
-            const amount = parseFloat(document.getElementById('budget-amount').value);
-            const period = document.getElementById('budget-period').value;
-            
-            if (!category || !amount) {
-                showNotification('Пожалуйста, заполните все поля', 'error');
-                return;
-            }
-            
-            const budget = {
-                id: Date.now(),
-                category: category,
-                amount: amount,
-                period: period,
-                date: new Date().toISOString().split('T')[0]
-            };
-            
-            budgets.push(budget);
-            saveData();
-            
-            document.getElementById('budget-category').value = '';
-            document.getElementById('budget-amount').value = '';
-            
-            showNotification('Бюджет установлен!', 'success');
-        }
-        
-        // Добавление актива для амортизации
-        function addAsset() {
-            const name = document.getElementById('asset-name').value;
-            const cost = parseFloat(document.getElementById('asset-cost').value);
-            const lifetime = parseInt(document.getElementById('asset-lifetime').value);
-            
-            if (!name || !cost || !lifetime) {
-                showNotification('Пожалуйста, заполните все поля', 'error');
-                return;
-            }
-            
-            const asset = {
-                id: Date.now(),
-                name: name,
-                cost: cost,
-                lifetime: lifetime,
-                date: new Date().toISOString().split('T')[0]
-            };
-            
-            assets.push(asset);
-            saveData();
-            
-            document.getElementById('asset-name').value = '';
-            document.getElementById('asset-cost').value = '';
-            document.getElementById('asset-lifetime').value = '';
-            
-            showNotification('Актив добавлен!', 'success');
-        }
-        
-        // Обновление таблицы всех продаж
-        function updateAllSalesTable() {
-            const tbody = document.querySelector('#all-sales-table tbody');
-            tbody.innerHTML = '';
-            
-            // Получение значений фильтров
-            const searchTerm = document.getElementById('sales-search').value.toLowerCase();
-            const period = document.getElementById('all-sales-period').value;
-            const startDate = document.getElementById('all-sales-start-date').value;
-            const endDate = document.getElementById('all-sales-end-date').value;
-            const filterMarketplace = document.getElementById('all-sales-marketplace').value;
-            const filterShop = document.getElementById('all-sales-shop').value;
-            
-            let filteredSales = [...salesData];
-            
-            // Применение поиска
-            if (searchTerm) {
-                filteredSales = filteredSales.filter(sale => 
-                    sale.name.toLowerCase().includes(searchTerm) ||
-                    sale.article.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            // Применение фильтров по периоду
-            if (period !== 'all') {
-                const now = new Date();
-                let startDatePeriod;
-                let endDatePeriod = now;
-                
-                if (period === 'day') {
-                    startDatePeriod = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                } else if (period === 'week') {
-                    const day = now.getDay();
-                    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-                    startDatePeriod = new Date(now.getFullYear(), now.getMonth(), diff);
-                } else if (period === 'month') {
-                    startDatePeriod = new Date(now.getFullYear(), now.getMonth(), 1);
-                } else if (period === 'quarter') {
-                    const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
-                    startDatePeriod = new Date(now.getFullYear(), quarterStartMonth, 1);
-                } else if (period === 'year') {
-                    startDatePeriod = new Date(now.getFullYear(), 0, 1);
-                }
-                
-                if (startDatePeriod) {
-                    filteredSales = filteredSales.filter(sale => new Date(sale.date) >= startDatePeriod);
-                }
-            }
-            
-            // Применение фильтров по дате
-            if (startDate) {
-                filteredSales = filteredSales.filter(sale => sale.date >= startDate);
-            }
-            
-            if (endDate) {
-                filteredSales = filteredSales.filter(sale => sale.date <= endDate);
-            }
-            
-            // Применение фильтров по маркетплейсу и магазину
-            if (filterMarketplace !== 'all') {
-                filteredSales = filteredSales.filter(sale => sale.marketplace === filterMarketplace);
-            }
-            
-            if (filterShop !== 'all') {
-                filteredSales = filteredSales.filter(sale => sale.shop === filterShop);
-            }
-            
-            // Сортировка по дате (новые первыми)
-            filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            filteredSales.forEach(sale => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td title="${sale.name}">${sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name}</td>
-                    <td>${sale.article}</td>
-                    <td>${sale.marketplace}</td>
-                    <td>${sale.shop || '-'}</td>
-                    <td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
-                    <td>${(sale.sellingPrice * sale.quantity).toLocaleString('ru-RU')} ₽</td>
-                    <td class="${sale.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        ${sale.profit.toLocaleString('ru-RU')} ₽
-                    </td>
-                    <td>${sale.margin}%</td>
-                    <td class="actions-cell">
-                        <button class="icon-btn" onclick="editSale(${sale.id})" title="Редактировать">${editIcon}</button>
-                        <button class="icon-btn" onclick="deleteSale(${sale.id})" title="Удалить">${deleteIcon}</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-        
-        // Импорт продаж
-        function importSales() {
-            const fileInput = document.getElementById('import-sales-file');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                showNotification('Пожалуйста, выберите файл для импорта', 'error');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                    
-                    // Обработка импортированных данных
-                    jsonData.forEach(row => {
-                        const sale = {
-                            id: Date.now() + Math.floor(Math.random() * 1000),
-                            name: row['Название'] || row['Name'] || '',
-                            article: row['Артикул'] || row['Article'] || '',
-                            purchasePrice: parseFloat(row['Закупка']) || parseFloat(row['Purchase']) || 0,
-                            sellingPrice: parseFloat(row['Цена']) || parseFloat(row['Price']) || 0,
-                            commission: parseFloat(row['Комиссия']) || parseFloat(row['Commission']) || 0,
-                            logistics: parseFloat(row['Логистика']) || parseFloat(row['Logistics']) || 0,
-                            deliveryToMV: parseFloat(row['Доставка до МВ']) || parseFloat(row['Delivery to MV']) || 0,
-                            advertising: parseFloat(row['РК + Экв']) || parseFloat(row['Advertising']) || 0.98,
-                            taxRate: parseFloat(row['Налог']) || parseFloat(row['Tax']) || 0.97,
-                            quantity: parseInt(row['Количество']) || parseInt(row['Quantity']) || 1,
-                            date: row['Дата'] || row['Date'] || new Date().toISOString().split('T')[0],
-                            marketplace: row['Маркетплейс'] || row['Marketplace'] || 'Яндекс',
-                            shop: row['Магазин'] || row['Shop'] || '',
-                            profit: 0,
-                            margin: 0
-                        };
-                        
-                        // Расчет прибыли и маржи
-                        sale.profit = calculateProfit(sale);
-                        sale.margin = calculateMargin(sale);
-                        
-                        salesData.push(sale);
-                    });
-                    
-                    saveData();
-                    updateDashboard();
-                    updateAllSalesTable();
-                    fileInput.value = '';
-                    
-                    showNotification(`Импортировано ${jsonData.length} продаж`, 'success');
-                } catch (error) {
-                    showNotification('Ошибка при импорте файла: ' + error.message, 'error');
-                }
-            };
-            
-            if (file.name.endsWith('.csv')) {
-                reader.readAsText(file);
-            } else {
-                reader.readAsArrayBuffer(file);
-            }
-        }
-        
-        // Экспорт всех данных в Excel
-        function exportAllDataExcel() {
-            showNotification('Экспорт всех данных в Excel в разработке', 'info');
-        }
-        
-        // Экспорт всех данных в CSV
-        function exportAllDataCSV() {
-            showNotification('Экспорт всех данных в CSV в разработке', 'info');
-        }
-        
-        // Показ уведомления
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+        // Сохранение данных в localStorage
+        function saveData() {
+            localStorage.setItem('salesData', JSON.stringify(salesData));
+            localStorage.setItem('returnsData', JSON.stringify(returnsData));
+            localStorage.setItem('expensesData', JSON.stringify(expensesData));
+            localStorage.setItem('shops', JSON.stringify(shops));
+            localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('expenseCategories', JSON.stringify(expenseCategories));
+            localStorage.setItem('taxSystems', JSON.stringify(taxSystems));
+            localStorage.setItem('settings', JSON.stringify(settings));
+            localStorage.setItem('lastValues', JSON.stringify(lastValues));
         }
     </script>
 </body>
 </html>
+```
