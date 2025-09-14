@@ -1,2172 +1,2723 @@
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Система учета продаж и прибыли</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
-            --secondary: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --info: #6366f1;
-            --light: #f8fafc;
-            --dark: #0f172a;
-            --gray: #64748b;
-            --light-gray: #e2e8f0;
-            --border: #cbd5e1;
-            --yandex: #ffcc00;
-            --yandex-dark: #ff9900;
-            --ozon: #005bff;
-            --ozon-dark: #0041cc;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        header {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            padding: 24px;
-            margin-bottom: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        h1 {
-            color: var(--dark);
-            font-size: 2rem;
-            margin-bottom: 8px;
-        }
-        
-        .subtitle {
-            color: var(--gray);
-            font-size: 1.1rem;
-        }
-        
-        nav {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 24px;
-            overflow-x: auto;
-        }
-        
-        .nav-tabs {
-            display: flex;
-            list-style: none;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .nav-item {
-            padding: 16px 24px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-        
-        .nav-item.active {
-            border-bottom-color: var(--primary);
-            color: var(--primary);
-            font-weight: 600;
-        }
-        
-        .nav-item:hover:not(.active) {
-            background: var(--light);
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-        
-        .card-title {
-            font-size: 1.5rem;
-            color: var(--dark);
-            margin-bottom: 20px;
-        }
-        
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-        
-        .metric-card {
-            border-radius: 10px;
-            padding: 20px;
-            color: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .metric-card h3 {
-            font-size: 1rem;
-            margin-bottom: 8px;
-            opacity: 0.9;
-        }
-        
-        .metric-card .value {
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-        
-        .filters {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .form-group {
-            margin-bottom: 16px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--dark);
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-        
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-        
-        .btn-secondary {
-            background: var(--secondary);
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #059669;
-        }
-        
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-        
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
-        
-        .btn-warning:hover {
-            background: #d97706;
-        }
-        
-        .btn-info {
-            background: var(--info);
-            color: white;
-        }
-        
-        .btn-info:hover {
-            background: #4f46e5;
-        }
-        
-        .btn-ozon {
-            background: var(--ozon);
-            color: white;
-        }
-        
-        .btn-ozon:hover {
-            background: var(--ozon-dark);
-        }
-        
-        .btn-yandex {
-            background: var(--yandex);
-            color: black;
-        }
-        
-        .btn-yandex:hover {
-            background: var(--yandex-dark);
-        }
-        
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.875rem;
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        th {
-            background-color: var(--light);
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        tr:hover {
-            background-color: rgba(59, 130, 246, 0.05);
-        }
-        
-        .chart-container {
-            height: 300px;
-            margin: 20px 0;
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .modal-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-body {
-            padding: 24px;
-        }
-        
-        .modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-        
-        .close {
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--gray);
-        }
-        
-        .profit-positive {
-            color: var(--secondary);
-        }
-        
-        .profit-negative {
-            color: var(--danger);
-        }
-        
-        .marketplace-yandex {
-            background-color: rgba(255, 204, 0, 0.1);
-            border-left: 4px solid var(--yandex);
-        }
-        
-        .marketplace-ozon {
-            background-color: rgba(0, 91, 255, 0.1);
-            border-left: 4px solid var(--ozon);
-        }
-        
-        .expense-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            background: white;
-            margin-bottom: 5px;
-            border-radius: 4px;
-            align-items: center;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1001;
-            transform: translateX(120%);
-            transition: transform 0.3s ease;
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-        }
-        
-        .notification.success {
-            background: var(--secondary);
-        }
-        
-        .notification.error {
-            background: var(--danger);
-        }
-        
-        .actions-cell {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .icon-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 4px;
-        }
-        
-        .icon-btn:hover {
-            background: var(--light-gray);
-        }
-        
-        @media (max-width: 768px) {
-            .metrics-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .filters {
-                grid-template-columns: 1fr;
-            }
-            
-            .nav-tabs {
-                flex-wrap: nowrap;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Система учета продаж и прибыли</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+--primary: #3b82f6;
+--primary-dark: #2563eb;
+--secondary: #10b981;
+--danger: #ef4444;
+--warning: #f59e0b;
+--info: #6366f1;
+--light: #f8fafc;
+--dark: #0f172a;
+--gray: #64748b;
+--light-gray: #e2e8f0;
+--border: #cbd5e1;
+--yandex: #ffcc00;
+--yandex-dark: #ff9900;
+--ozon: #005bff;
+--ozon-dark: #0041cc;
+}
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+body {
+background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+min-height: 100vh;
+padding: 20px;
+}
+.container {
+max-width: 1400px;
+margin: 0 auto;
+}
+header {
+background: white;
+border-radius: 12px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+padding: 24px;
+margin-bottom: 24px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+h1 {
+color: var(--dark);
+font-size: 2rem;
+margin-bottom: 8px;
+}
+.subtitle {
+color: var(--gray);
+font-size: 1.1rem;
+}
+nav {
+background: white;
+border-radius: 12px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+margin-bottom: 24px;
+overflow-x: auto;
+}
+.nav-tabs {
+display: flex;
+list-style: none;
+border-bottom: 1px solid var(--border);
+}
+.nav-item {
+padding: 16px 24px;
+cursor: pointer;
+border-bottom: 3px solid transparent;
+transition: all 0.3s ease;
+white-space: nowrap;
+}
+.nav-item.active {
+border-bottom-color: var(--primary);
+color: var(--primary);
+font-weight: 600;
+}
+.nav-item:hover:not(.active) {
+background: var(--light);
+}
+.tab-content {
+display: none;
+opacity: 0;
+transform: translateY(10px);
+transition: all 0.3s ease;
+}
+.tab-content.active {
+display: block;
+opacity: 1;
+transform: translateY(0);
+}
+.card {
+background: white;
+border-radius: 12px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+padding: 24px;
+margin-bottom: 24px;
+}
+.card-title {
+font-size: 1.5rem;
+color: var(--dark);
+margin-bottom: 20px;
+}
+.metrics-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+gap: 20px;
+margin-bottom: 24px;
+}
+.metric-card {
+border-radius: 10px;
+padding: 20px;
+color: white;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+cursor: move;
+}
+.metric-card h3 {
+font-size: 1rem;
+margin-bottom: 8px;
+opacity: 0.9;
+}
+.metric-card .value {
+font-size: 1.8rem;
+font-weight: 700;
+}
+.tooltip {
+position: relative;
+display: inline-block;
+cursor: help;
+}
+.tooltip .tooltip-text {
+visibility: hidden;
+width: 200px;
+background-color: #333;
+color: #fff;
+text-align: center;
+border-radius: 6px;
+padding: 5px;
+position: absolute;
+z-index: 1;
+bottom: 125%;
+left: 50%;
+margin-left: -100px;
+opacity: 0;
+transition: opacity 0.3s;
+}
+.tooltip:hover .tooltip-text {
+visibility: visible;
+opacity: 1;
+}
+.filters {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+gap: 16px;
+margin-bottom: 24px;
+}
+.form-group {
+margin-bottom: 16px;
+}
+label {
+display: block;
+margin-bottom: 8px;
+font-weight: 500;
+color: var(--dark);
+}
+input, select, textarea {
+width: 100%;
+padding: 12px;
+border: 1px solid var(--border);
+border-radius: 8px;
+font-size: 1rem;
+transition: border-color 0.3s;
+}
+input:focus, select:focus, textarea:focus {
+outline: none;
+border-color: var(--primary);
+box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.btn {
+padding: 12px 24px;
+border: none;
+border-radius: 8px;
+font-size: 1rem;
+font-weight: 500;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+.btn-primary {
+background: var(--primary);
+color: white;
+}
+.btn-primary:hover {
+background: var(--primary-dark);
+}
+.btn-secondary {
+background: var(--secondary);
+color: white;
+}
+.btn-secondary:hover {
+background: #059669;
+}
+.btn-danger {
+background: var(--danger);
+color: white;
+}
+.btn-danger:hover {
+background: #dc2626;
+}
+.btn-warning {
+background: var(--warning);
+color: white;
+}
+.btn-warning:hover {
+background: #d97706;
+}
+.btn-info {
+background: var(--info);
+color: white;
+}
+.btn-info:hover {
+background: #4f46e5;
+}
+.btn-ozon {
+background: var(--ozon);
+color: white;
+}
+.btn-ozon:hover {
+background: var(--ozon-dark);
+}
+.btn-yandex {
+background: var(--yandex);
+color: black;
+}
+.btn-yandex:hover {
+background: var(--yandex-dark);
+}
+.btn-sm {
+padding: 6px 12px;
+font-size: 0.875rem;
+}
+.btn-group {
+display: flex;
+gap: 12px;
+flex-wrap: wrap;
+}
+table {
+width: 100%;
+border-collapse: collapse;
+margin: 20px 0;
+}
+th, td {
+padding: 12px 15px;
+text-align: left;
+border-bottom: 1px solid var(--border);
+}
+th {
+background-color: var(--light);
+font-weight: 600;
+color: var(--dark);
+}
+tr:hover {
+background-color: rgba(59, 130, 246, 0.05);
+}
+.chart-container {
+height: 300px;
+margin: 20px 0;
+}
+.grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+gap: 24px;
+margin-bottom: 24px;
+}
+.modal {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.5);
+z-index: 1000;
+align-items: center;
+justify-content: center;
+}
+.modal-content {
+background: white;
+border-radius: 12px;
+width: 90%;
+max-width: 600px;
+box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+max-height: 90vh;
+overflow-y: auto;
+}
+.modal-header {
+padding: 20px 24px;
+border-bottom: 1px solid var(--border);
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.modal-body {
+padding: 24px;
+}
+.modal-footer {
+padding: 16px 24px;
+border-top: 1px solid var(--border);
+display: flex;
+justify-content: flex-end;
+gap: 12px;
+}
+.close {
+font-size: 1.5rem;
+cursor: pointer;
+color: var(--gray);
+}
+.profit-positive {
+color: var(--secondary);
+}
+.profit-negative {
+color: var(--danger);
+}
+.marketplace-yandex {
+background-color: rgba(255, 204, 0, 0.1);
+border-left: 4px solid var(--yandex);
+}
+.marketplace-ozon {
+background-color: rgba(0, 91, 255, 0.1);
+border-left: 4px solid var(--ozon);
+}
+.expense-item {
+display: flex;
+justify-content: space-between;
+padding: 10px;
+background: white;
+margin-bottom: 5px;
+border-radius: 4px;
+align-items: center;
+}
+.notification {
+position: fixed;
+top: 20px;
+right: 20px;
+padding: 15px 20px;
+border-radius: 8px;
+color: white;
+font-weight: 500;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+z-index: 1001;
+transform: translateX(120%);
+transition: transform 0.3s ease;
+}
+.notification.show {
+transform: translateX(0);
+}
+.notification.success {
+background: var(--secondary);
+}
+.notification.error {
+background: var(--danger);
+}
+.actions-cell {
+display: flex;
+gap: 5px;
+}
+.icon-btn {
+background: none;
+border: none;
+cursor: pointer;
+padding: 5px;
+border-radius: 4px;
+}
+.icon-btn:hover {
+background: var(--light-gray);
+}
+.spoiler {
+margin-bottom: 20px;
+}
+.spoiler-header {
+padding: 15px;
+background: var(--light);
+border-radius: 8px;
+cursor: pointer;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.spoiler-content {
+padding: 15px;
+border: 1px solid var(--border);
+border-top: none;
+border-radius: 0 0 8px 8px;
+display: none;
+}
+.spoiler-content.active {
+display: block;
+}
+.user-info {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.avatar {
+width: 40px;
+height: 40px;
+border-radius: 50%;
+background: var(--primary);
+display: flex;
+align-items: center;
+justify-content: center;
+color: white;
+font-weight: bold;
+}
+.pagination {
+display: flex;
+justify-content: center;
+gap: 10px;
+margin-top: 20px;
+}
+.pagination button {
+padding: 8px 16px;
+border: 1px solid var(--border);
+background: white;
+border-radius: 4px;
+cursor: pointer;
+}
+.pagination button.active {
+background: var(--primary);
+color: white;
+border-color: var(--primary);
+}
+@media (max-width: 768px) {
+.metrics-grid {
+grid-template-columns: 1fr;
+}
+.filters {
+grid-template-columns: 1fr;
+}
+.nav-tabs {
+flex-wrap: nowrap;
+}
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div>
-                <h1>Система учета продаж и прибыли</h1>
-                <p class="subtitle">Управляйте своими продажами, отслеживайте прибыль и анализируйте эффективность</p>
-            </div>
-            <div class="user-info">
-                <div class="avatar">А</div>
-                <div>
-                    <div>Администратор</div>
-                    <div style="font-size: 0.9rem; color: var(--gray);">admin@example.com</div>
-                </div>
-            </div>
-        </header>
-        
-        <nav>
-            <ul class="nav-tabs">
-                <li class="nav-item active" data-tab="dashboard">Дашборд</li>
-                <li class="nav-item" data-tab="sales">Добавить продажу</li>
-                <li class="nav-item" data-tab="expenses">Расходы</li>
-                <li class="nav-item" data-tab="returns">Возвраты</li>
-                <li class="nav-item" data-tab="analytics">Аналитика</li>
-                <li class="nav-item" data-tab="reports">Отчеты</li>
-                <li class="nav-item" data-tab="settings">Настройки</li>
-            </ul>
-        </nav>
-        
-        <main>
-            <!-- Dashboard Tab -->
-            <div id="dashboard" class="tab-content active">
-                <div class="metrics-grid">
-                    <div class="metric-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                        <h3>Общая выручка</h3>
-                        <div class="value" id="total-revenue">0 ₽</div>
-                        <div>за выбранный период</div>
-                    </div>
-                    <div class="metric-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
-                        <h3>Общие расходы</h3>
-                        <div class="value" id="total-cost">0 ₽</div>
-                        <div>включая налоги</div>
-                    </div>
-                    <div class="metric-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-                        <h3>Чистая прибыль</h3>
-                        <div class="value" id="total-profit">0 ₽</div>
-                        <div>за выбранный период</div>
-                    </div>
-                    <div class="metric-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
-                        <h3>Рентабельность</h3>
-                        <div class="value" id="average-margin">0%</div>
-                        <div>средняя за период</div>
-                    </div>
-                    <div class="metric-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                        <h3>Возвраты</h3>
-                        <div class="value" id="total-returns">0 ₽</div>
-                        <div>за выбранный период</div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <h2 class="card-title">Фильтры</h2>
-                    <div class="filters">
-                        <div>
-                            <label for="period">Период</label>
-                            <select id="period">
-                                <option value="all">Все время</option>
-                                <option value="month">Текущий месяц</option>
-                                <option value="quarter">Текущий квартал</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="marketplace">Маркетплейс</label>
-                            <select id="marketplace">
-                                <option value="all">Все маркетплейсы</option>
-                                <option value="Яндекс">Яндекс Маркет</option>
-                                <option value="Озон">Озон</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="start-date">Дата от</label>
-                            <input type="date" id="start-date">
-                        </div>
-                        <div>
-                            <label for="end-date">Дата до</label>
-                            <input type="date" id="end-date">
-                        </div>
-                        <div>
-                            <label>&nbsp;</label>
-                            <button class="btn btn-danger" id="reset-filters">Сбросить фильтры</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="grid">
-                    <div class="card">
-                        <h2 class="card-title">Продажи по маркетплейсам</h2>
-                        <div class="chart-container">
-                            <canvas id="marketplace-chart"></canvas>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h2 class="card-title">Динамика продаж</h2>
-                        <div class="chart-container">
-                            <canvas id="sales-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="grid">
-                    <div class="card">
-                        <h2 class="card-title">Топ-5 самых прибыльных товаров</h2>
-                        <div class="chart-container">
-                            <canvas id="top-products-chart"></canvas>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h2 class="card-title">Последние продажи</h2>
-                        <div style="max-height: 300px; overflow-y: auto;">
-                            <table id="recent-sales-table">
-                                <thead>
-                                    <tr>
-                                        <th>Товар</th>
-                                        <th>Маркетплейс</th>
-                                        <th>Дата</th>
-                                        <th>Прибыль</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Данные будут заполнены скриптом -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Sales Tab -->
-            <div id="sales" class="tab-content">
-                <div class="card">
-                    <h2 class="card-title">Добавить новую продажу</h2>
-                    <div class="grid">
-                        <div>
-                            <label for="product-name">Название товара *</label>
-                            <input type="text" id="product-name" placeholder="Введите название товара">
-                        </div>
-                        <div>
-                            <label for="article">Артикул *</label>
-                            <input type="text" id="article" placeholder="Введите артикул">
-                        </div>
-                        <div>
-                            <label for="marketplace-select">Маркетплейс</label>
-                            <select id="marketplace-select">
-                                <option value="Яндекс">Яндекс Маркет</option>
-                                <option value="Озон">Озон</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="shop-select">Магазин</label>
-                            <select id="shop-select">
-                                <option value="">Выберите магазин</option>
-                                <!-- Опции будут заполнены из настроек -->
-                            </select>
-                        </div>
-                        <div>
-                            <label for="purchase-price">Цена закупки (₽) *</label>
-                            <input type="number" id="purchase-price" placeholder="0">
-                        </div>
-                        <div>
-                            <label for="selling-price">Цена продажи (₽) *</label>
-                            <input type="number" id="selling-price" placeholder="0">
-                        </div>
-                        <div>
-                            <label for="commission">Комиссия маркетплейса (₽)</label>
-                            <input type="number" id="commission" placeholder="0">
-                        </div>
-                        <div>
-                            <label for="logistics">Логистика (₽)</label>
-                            <input type="number" id="logistics" placeholder="0">
-                        </div>
-                        <div>
-                            <label for="delivery-mv">Доставка до МВ (₽)</label>
-                            <input type="number" id="delivery-mv" placeholder="0">
-                        </div>
-                        <div>
-                            <label for="advertising">РК + Эквайринг (%)</label>
-                            <input type="number" id="advertising" step="0.01" value="0.98">
-                        </div>
-                        <div>
-                            <label for="tax-rate">Налог (%)</label>
-                            <select id="tax-rate">
-                                <option value="0.99">1% (УСН Доходы)</option>
-                                <option value="0.93">7% (УСН Доходы)</option>
-                                <option value="0.85">15% (УСН Доходы-Расходы)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="quantity">Количество</label>
-                            <input type="number" id="quantity" value="1" min="1">
-                        </div>
-                        <div>
-                            <label for="sale-date">Дата продажи</label>
-                            <input type="date" id="sale-date">
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="background: #f0f9ff;">
-                        <h3>Калькулятор прибыли</h3>
-                        <div class="grid">
-                            <div style="background: #dcfce7; padding: 15px; border-radius: 8px;">
-                                <h4 style="color: #166534;">Выручка</h4>
-                                <div id="revenue-calc" style="font-size: 1.5rem; font-weight: bold; color: #166534;">0 ₽</div>
-                            </div>
-                            <div style="background: #fee2e2; padding: 15px; border-radius: 8px;">
-                                <h4 style="color: #991b1b;">Расходы</h4>
-                                <div id="cost-calc" style="font-size: 1.5rem; font-weight: bold; color: #991b1b;">0 ₽</div>
-                            </div>
-                            <div style="background: #dbeafe; padding: 15px; border-radius: 8px;">
-                                <h4 style="color: #1e40af;">Прибыль</h4>
-                                <div id="profit-calc" style="font-size: 1.5rem; font-weight: bold; color: #1e40af;">0 ₽</div>
-                            </div>
-                            <div style="background: #e0e7ff; padding: 15px; border-radius: 8px;">
-                                <h4 style="color: #4338ca;">Маржа</h4>
-                                <div id="margin-calc" style="font-size: 1.5rem; font-weight: bold; color: #4338ca;">0%</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button class="btn btn-primary" id="add-sale">Добавить продажу</button>
-                        <button class="btn btn-secondary" id="go-to-dashboard">Перейти к дашборду</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Expenses Tab -->
-            <div id="expenses" class="tab-content">
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 class="card-title">Операционные расходы</h2>
-                        <button class="btn btn-warning" id="open-expense-modal">Добавить расход</button>
-                    </div>
-                    
-                    <div class="grid">
-                        <div class="card" style="background: #f0f9ff;">
-                            <h3>График операционных расходов</h3>
-                            <div class="chart-container">
-                                <canvas id="expenses-chart"></canvas>
-                            </div>
-                        </div>
-                        <div class="card" style="background: #f0f9ff;">
-                            <h3>Расходы по категориям</h3>
-                            <div id="expenses-by-category">
-                                <!-- Данные будут заполнены скриптом -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>Все операционные расходы</h3>
-                        <div style="max-height: 400px; overflow-y: auto;">
-                            <table id="expenses-table">
-                                <thead>
-                                    <tr>
-                                        <th>Категория</th>
-                                        <th>Сумма</th>
-                                        <th>Дата</th>
-                                        <th>Описание</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Данные будут заполнены скриптом -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Returns Tab -->
-            <div id="returns" class="tab-content">
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 class="card-title">Учет возвратов</h2>
-                        <button class="btn btn-warning" id="open-return-modal">Добавить возврат</button>
-                    </div>
-                    
-                    <div style="max-height: 500px; overflow-y: auto;">
-                        <table id="returns-table">
-                            <thead>
-                                <tr>
-                                    <th>Товар</th>
-                                    <th>Причина</th>
-                                    <th>Сумма</th>
-                                    <th>Дата</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Данные будут заполнены скриптом -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Analytics Tab -->
-            <div id="analytics" class="tab-content">
-                <div class="card">
-                    <h2 class="card-title">Аналитика продаж</h2>
-                    
-                    <div class="grid">
-                        <div class="card" style="background: #f1f5f9;">
-                            <h3>Продажи по маркетплейсам</h3>
-                            <div id="marketplace-analytics">
-                                <!-- Данные будут заполнены скриптом -->
-                            </div>
-                        </div>
-                        <div class="card" style="background: #f1f5f9;">
-                            <h3>Топ-5 самых прибыльных товаров</h3>
-                            <div id="top-products-analytics">
-                                <!-- Данные будут заполнены скриптом -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="background: #f1f5f9;">
-                        <h3>Динамика продаж по месяцам</h3>
-                        <div style="overflow-x: auto;">
-                            <table id="monthly-sales-table">
-                                <thead>
-                                    <tr>
-                                        <th>Месяц</th>
-                                        <th>Выручка</th>
-                                        <th>Расходы</th>
-                                        <th>Прибыль</th>
-                                        <th>Рентабельность</th>
-                                        <th>Количество продаж</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Данные будут заполнены скриптом -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="background: #f1f5f9;">
-                        <h3>Продажи по магазинам</h3>
-                        <div style="overflow-x: auto;">
-                            <table id="shop-sales-table">
-                                <thead>
-                                    <tr>
-                                        <th>Магазин</th>
-                                        <th>Выручка</th>
-                                        <th>Прибыль</th>
-                                        <th>Количество продаж</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Данные будут заполнены скриптом -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Reports Tab -->
-            <div id="reports" class="tab-content">
-                <div class="card">
-                    <h2 class="card-title">Финансовые отчеты</h2>
-                    
-                    <div class="grid">
-                        <div>
-                            <label for="report-period">Период отчета</label>
-                            <select id="report-period">
-                                <option>1 квартал 2025</option>
-                                <option>2 квартал 2025</option>
-                                <option>3 квартал 2025</option>
-                                <option>4 квартал 2025</option>
-                                <option>Январь 2025</option>
-                                <option>Февраль 2025</option>
-                                <option>Март 2025</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="export-format">Формат экспорта</label>
-                            <select id="export-format">
-                                <option>PDF</option>
-                                <option>Excel</option>
-                                <option>CSV</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="background: #f1f5f9;">
-                        <h3>Отчет о прибылях и убытках</h3>
-                        <div style="overflow-x: auto;">
-                            <table id="pnl-report">
-                                <thead>
-                                    <tr>
-                                        <th>Статья</th>
-                                        <th style="text-align: right;">Сумма (₽)</th>
-                                        <th style="text-align: right;">%</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr style="background: #dbeafe;">
-                                        <td><strong>Выручка</strong></td>
-                                        <td id="report-revenue" style="text-align: right; font-weight: bold;">0</td>
-                                        <td style="text-align: right;">100%</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding-left: 30px;">Садовые товары</td>
-                                        <td id="report-garden-revenue" style="text-align: right;">0</td>
-                                        <td style="text-align: right;">100%</td>
-                                    </tr>
-                                    <tr style="background: #fee2e2;">
-                                        <td><strong>Прямые расходы</strong></td>
-                                        <td id="report-direct-costs" style="text-align: right; font-weight: bold;">0</td>
-                                        <td id="report-direct-costs-percent" style="text-align: right;">0%</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding-left: 30px;">Закупка товаров</td>
-                                        <td id="report-purchase-cost" style="text-align: right;">0</td>
-                                        <td id="report-purchase-percent" style="text-align: right;">0%</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding-left: 30px;">Комиссия платформ</td>
-                                        <td id="report-commission-cost" style="text-align: right;">0</td>
-                                        <td id="report-commission-percent" style="text-align: right;">0%</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding-left: 30px;">Налоги</td>
-                                        <td id="report-tax-cost" style="text-align: right;">0</td>
-                                        <td id="report-tax-percent" style="text-align: right;">0%</td>
-                                    </tr>
-                                    <tr style="background: #ffedd5;">
-                                        <td><strong>Операционные расходы</strong></td>
-                                        <td id="report-operating-expenses" style="text-align: right; font-weight: bold;">0</td>
-                                        <td id="report-operating-expenses-percent" style="text-align: right;">0%</td>
-                                    </tr>
-                                    <tr style="background: #dcfce7;">
-                                        <td><strong>Чистая прибыль</strong></td>
-                                        <td id="report-profit" style="text-align: right; font-weight: bold; color: #166534;">0</td>
-                                        <td id="report-profit-percent" style="text-align: right; font-weight: bold; color: #166534;">0%</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button class="btn btn-primary" id="export-report">Скачать отчет (PDF)</button>
-                        <button class="btn btn-secondary" id="export-excel">Экспорт в Excel</button>
-                        <button class="btn btn-info" id="print-report">Печать</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Settings Tab -->
-            <div id="settings" class="tab-content">
-                <div class="card">
-                    <h2 class="card-title">Настройки системы</h2>
-                    
-                    <div style="margin-bottom: 30px;">
-                        <h3>Система налогообложения</h3>
-                        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                            <div>
-                                <label>
-                                    <input type="radio" name="tax-system" value="1%" checked> 
-                                    УСН Доходы (1%)
-                                </label>
-                            </div>
-                            <div>
-                                <label>
-                                    <input type="radio" name="tax-system" value="7%"> 
-                                    УСН Доходы (7%)
-                                </label>
-                            </div>
-                            <div>
-                                <label>
-                                    <input type="radio" name="tax-system" value="15%"> 
-                                    УСН Доходы-Расходы (15%)
-                                </label>
-                            </div>
-                            <p style="margin-top: 10px; color: #64748b; font-size: 0.9rem;">
-                                Выберите систему налогообложения для автоматического расчета налогов
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 30px;">
-                        <h3>Магазины</h3>
-                        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                                <input type="text" id="new-shop-name" placeholder="Название магазина" style="flex: 1;">
-                                <button class="btn btn-primary" id="add-shop">Добавить</button>
-                            </div>
-                            <div id="shops-list">
-                                <!-- Список магазинов будет заполнен скриптом -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 30px;">
-                        <h3>Категории товаров</h3>
-                        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                                <input type="text" id="new-category-name" placeholder="Название категории" style="flex: 1;">
-                                <button class="btn btn-primary" id="add-category">Добавить</button>
-                            </div>
-                            <div id="categories-list">
-                                <div class="expense-item">
-                                    <span>Садовые товары</span>
-                                    <button class="btn btn-danger btn-sm" onclick="removeCategory('Садовые товары')">Удалить</button>
-                                </div>
-                                <div class="expense-item">
-                                    <span>Строительные товары</span>
-                                    <button class="btn btn-danger btn-sm" onclick="removeCategory('Строительные товары')">Удалить</button>
-                                </div>
-                                <div class="expense-item">
-                                    <span>Бытовые товары</span>
-                                    <button class="btn btn-danger btn-sm" onclick="removeCategory('Бытовые товары')">Удалить</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 30px;">
-                        <h3>Категории операционных расходов</h3>
-                        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                                <input type="text" id="new-expense-category" placeholder="Название категории расходов" style="flex: 1;">
-                                <button class="btn btn-primary" id="add-expense-category">Добавить</button>
-                            </div>
-                            <div id="expense-categories-list">
-                                <div class="expense-item">
-                                    <span>Аренда</span>
-                                    <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Аренда')">Удалить</button>
-                                </div>
-                                <div class="expense-item">
-                                    <span>Зарплата</span>
-                                    <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Зарплата')">Удалить</button>
-                                </div>
-                                <div class="expense-item">
-                                    <span>Уборщица</span>
-                                    <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Уборщица')">Удалить</button>
-                                </div>
-                                <div class="expense-item">
-                                    <span>Курьеры</span>
-                                    <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Курьеры')">Удалить</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h3>Настройки уведомлений</h3>
-                        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                            <div>
-                                <label>
-                                    <input type="checkbox" checked> 
-                                    Уведомления о новых продажах
-                                </label>
-                            </div>
-                            <div>
-                                <label>
-                                    <input type="checkbox"> 
-                                    Уведомления о возвратах
-                                </label>
-                            </div>
-                            <div>
-                                <label>
-                                    <input type="checkbox" checked> 
-                                    Ежедневные отчеты
-                                </label>
-                            </div>
-                            <div>
-                                <label>
-                                    <input type="checkbox"> 
-                                    Предупреждения о низкой марже
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 30px; text-align: right;">
-                        <button class="btn btn-secondary" id="save-settings">Сохранить настройки</button>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-    
-    <!-- Return Modal -->
-    <div id="return-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Добавить возврат</h3>
-                <span class="close" id="close-return-modal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="return-sale">Продажа</label>
-                    <select id="return-sale">
-                        <option value="">Выберите продажу</option>
-                        <!-- Опции будут заполнены скриптом -->
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="return-reason">Причина возврата</label>
-                    <select id="return-reason">
-                        <option value="">Выберите причину</option>
-                        <option value="Брак">Брак</option>
-                        <option value="Не подошел">Не подошел</option>
-                        <option value="Повреждение при доставке">Повреждение при доставке</option>
-                        <option value="Отказ клиента">Отказ клиента</option>
-                        <option value="Другое">Другое</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="return-amount">Сумма возврата (₽)</label>
-                    <input type="number" id="return-amount" placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label for="return-date">Дата возврата</label>
-                    <input type="date" id="return-date">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancel-return">Отмена</button>
-                <button class="btn btn-warning" id="add-return">Добавить возврат</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Expense Modal -->
-    <div id="expense-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Добавить операционный расход</h3>
-                <span class="close" id="close-expense-modal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="expense-category">Категория расхода</label>
-                    <select id="expense-category">
-                        <option value="">Выберите категорию</option>
-                        <option value="Аренда">Аренда</option>
-                        <option value="Зарплата">Зарплата</option>
-                        <option value="Уборщица">Уборщица</option>
-                        <option value="Курьеры">Курьеры</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="expense-amount">Сумма (₽)</label>
-                    <input type="number" id="expense-amount" placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label for="expense-date">Дата</label>
-                    <input type="date" id="expense-date">
-                </div>
-                <div class="form-group">
-                    <label for="expense-description">Описание</label>
-                    <textarea id="expense-description" placeholder="Описание расхода"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancel-expense">Отмена</button>
-                <button class="btn btn-warning" id="add-expense">Добавить расход</button>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        // Глобальные переменные
-        let salesData = [];
-        let returnsData = [];
-        let expensesData = [];
-        let shops = ["Магазин 1", "Магазин 2"];
-        let categories = ["Садовые товары", "Строительные товары", "Бытовые товары"];
-        let expenseCategories = ["Аренда", "Зарплата", "Уборщица", "Курьеры"];
-        let taxSystems = [
-            {name: "УСН Доходы (1%)", rate: 0.99},
-            {name: "УСН Доходы (7%)", rate: 0.93},
-            {name: "УСН Доходы-Расходы (15%)", rate: 0.85}
-        ];
-        let settings = {
-            showMarketplace: true,
-            showShop: true,
-            showCommission: true,
-            showLogistics: true,
-            showDeliveryMV: true
-        };
-        
-        // Последние значения
-        let lastValues = {
-            marketplace: "Яндекс",
-            shop: "",
-            advertising: 0.98,
-            taxRate: 0.99
-        };
-        
-        // Графики
-        let marketplaceChart, salesChart, topProductsChart, expensesChart;
-        
-        // Инициализация приложения
-        document.addEventListener('DOMContentLoaded', function() {
-            // Установка текущей даты по умолчанию
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('sale-date').value = today;
-            document.getElementById('return-date').value = today;
-            document.getElementById('expense-date').value = today;
-            
-            // Загрузка данных из localStorage
-            loadData();
-            
-            // Обработчики событий для навигации
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    // Удаление активного класса у всех элементов
-                    document.querySelectorAll('.nav-item').forEach(el => {
-                        el.classList.remove('active');
-                    });
-                    document.querySelectorAll('.tab-content').forEach(el => {
-                        el.classList.remove('active');
-                    });
-                    
-                    // Добавление активного класса к выбранному элементу
-                    this.classList.add('active');
-                    const tabId = this.getAttribute('data-tab');
-                    document.getElementById(tabId).classList.add('active');
-                    
-                    // Обновление данных при переходе на дашборд
-                    if (tabId === 'dashboard') {
-                        updateDashboard();
-                    }
-                    
-                    // Обновление аналитики
-                    if (tabId === 'analytics') {
-                        updateAnalytics();
-                    }
-                    
-                    // Обновление отчетов
-                    if (tabId === 'reports') {
-                        updateReports();
-                    }
-                    
-                    // Обновление настроек
-                    if (tabId === 'settings') {
-                        updateSettings();
-                    }
-                    
-                    // Обновление расходов
-                    if (tabId === 'expenses') {
-                        updateExpenses();
-                    }
-                    
-                    // Обновление возвратов
-                    if (tabId === 'returns') {
-                        updateReturns();
-                    }
-                });
-            });
-            
-            // Обработчики событий для кнопок
-            document.getElementById('add-sale').addEventListener('click', addSale);
-            document.getElementById('go-to-dashboard').addEventListener('click', function() {
-                document.querySelectorAll('.nav-item').forEach(el => {
-                    el.classList.remove('active');
-                });
-                document.querySelectorAll('.tab-content').forEach(el => {
-                    el.classList.remove('active');
-                });
-                
-                document.querySelector('.nav-item[data-tab="dashboard"]').classList.add('active');
-                document.getElementById('dashboard').classList.add('active');
-                updateDashboard();
-            });
-            
-            document.getElementById('open-return-modal').addEventListener('click', function() {
-                document.getElementById('return-modal').style.display = 'flex';
-                populateReturnSales();
-            });
-            
-            document.getElementById('cancel-return').addEventListener('click', function() {
-                document.getElementById('return-modal').style.display = 'none';
-            });
-            
-            document.getElementById('close-return-modal').addEventListener('click', function() {
-                document.getElementById('return-modal').style.display = 'none';
-            });
-            
-            document.getElementById('add-return').addEventListener('click', addReturn);
-            
-            document.getElementById('reset-filters').addEventListener('click', resetFilters);
-            
-            // Обработчики для калькулятора прибыли
-            const calcFields = ['selling-price', 'quantity', 'purchase-price', 'commission', 'logistics', 'delivery-mv', 'advertising', 'tax-rate'];
-            calcFields.forEach(field => {
-                document.getElementById(field).addEventListener('input', updateProfitCalculator);
-            });
-            
-            // Обработчики для расходов
-            document.getElementById('open-expense-modal').addEventListener('click', function() {
-                document.getElementById('expense-modal').style.display = 'flex';
-            });
-            
-            document.getElementById('close-expense-modal').addEventListener('click', function() {
-                document.getElementById('expense-modal').style.display = 'none';
-            });
-            
-            document.getElementById('cancel-expense').addEventListener('click', function() {
-                document.getElementById('expense-modal').style.display = 'none';
-            });
-            
-            document.getElementById('add-expense').addEventListener('click', addExpense);
-            
-            // Обработчики для настроек
-            document.getElementById('add-shop').addEventListener('click', addShop);
-            document.getElementById('add-category').addEventListener('click', addCategory);
-            document.getElementById('add-expense-category').addEventListener('click', addExpenseCategory);
-            document.getElementById('save-settings').addEventListener('click', saveSettings);
-            
-            // Обработчики для экспорта отчетов
-            document.getElementById('export-report').addEventListener('click', exportReport);
-            
-            // Инициализация графиков
-            initCharts();
-            
-            // Обновление дашборда
-            updateDashboard();
-            
-            // Обновление списка магазинов
-            updateShopsList();
-        });
-        
-        // Инициализация графиков
-        function initCharts() {
-            const marketplaceCtx = document.getElementById('marketplace-chart').getContext('2d');
-            marketplaceChart = new Chart(marketplaceCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['Яндекс', 'Озон'],
-                    datasets: [{
-                        data: [0, 0],
-                        backgroundColor: ['#ffcc00', '#005bff']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-            
-            const salesCtx = document.getElementById('sales-chart').getContext('2d');
-            salesChart = new Chart(salesCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'Выручка',
-                            data: [],
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Прибыль',
-                            data: [],
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            tension: 0.1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            
-            const topProductsCtx = document.getElementById('top-products-chart').getContext('2d');
-            topProductsChart = new Chart(topProductsCtx, {
-                type: 'bar',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Прибыль',
-                        data: [],
-                        backgroundColor: '#8b5cf6'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            
-            const expensesCtx = document.getElementById('expenses-chart').getContext('2d');
-            expensesChart = new Chart(expensesCtx, {
-                type: 'bar',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Операционные расходы',
-                        data: [],
-                        backgroundColor: '#f59e0b'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Добавление новой продажи
-        function addSale() {
-            const name = document.getElementById('product-name').value;
-            const article = document.getElementById('article').value;
-            const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
-            const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
-            
-            if (!name || !article || !purchasePrice || !sellingPrice) {
-                alert('Пожалуйста, заполните все обязательные поля');
-                return;
-            }
-            
-            const sale = {
-                id: Date.now(),
-                name: name,
-                article: article,
-                purchasePrice: purchasePrice,
-                sellingPrice: sellingPrice,
-                commission: parseFloat(document.getElementById('commission').value) || 0,
-                logistics: parseFloat(document.getElementById('logistics').value) || 0,
-                deliveryToMV: parseFloat(document.getElementById('delivery-mv').value) || 0,
-                advertising: parseFloat(document.getElementById('advertising').value) || 0.98,
-                taxRate: parseFloat(document.getElementById('tax-rate').value) || 0.97,
-                quantity: parseInt(document.getElementById('quantity').value) || 1,
-                date: document.getElementById('sale-date').value,
-                marketplace: document.getElementById('marketplace-select').value,
-                shop: document.getElementById('shop-select').value,
-                profit: 0,
-                margin: 0
-            };
-            
-            // Расчет прибыли и маржи
-            sale.profit = calculateProfit(sale);
-            sale.margin = calculateMargin(sale);
-            
-            salesData.push(sale);
-            saveData();
-            
-            // Очистка формы
-            document.getElementById('product-name').value = '';
-            document.getElementById('article').value = '';
-            document.getElementById('purchase-price').value = '';
-            document.getElementById('selling-price').value = '';
-            document.getElementById('commission').value = '';
-            document.getElementById('logistics').value = '';
-            document.getElementById('delivery-mv').value = '';
-            document.getElementById('quantity').value = '1';
-            document.getElementById('sale-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('shop-select').value = '';
-            
-            updateProfitCalculator();
-            updateDashboard();
-            
-            alert('Продажа успешно добавлена!');
-        }
-        
-        // Расчет прибыли
-        function calculateProfit(sale) {
-            const revenue = sale.sellingPrice * sale.quantity;
-            const purchaseCost = sale.purchasePrice * sale.quantity;
-            const commissionCost = sale.commission * sale.quantity;
-            const logisticsCost = (sale.logistics || 0) * sale.quantity;
-            const deliveryCost = (sale.deliveryToMV || 0) * sale.quantity;
-            const advertisingCost = (sale.advertising || 0) * revenue / 100; // Преобразование процентов в абсолютное значение
-            const taxCost = (1 - sale.taxRate) * revenue;
-            
-            // Правильный расчет: Выручка - Закупка - Комиссия - Логистика - Доставка - РК - Налог
-            return revenue - purchaseCost - commissionCost - logisticsCost - deliveryCost - advertisingCost - taxCost;
-        }
-        
-        // Расчет маржи
-        function calculateMargin(sale) {
-            const profit = calculateProfit(sale);
-            const revenue = sale.sellingPrice * sale.quantity;
-            return revenue > 0 ? Math.round((profit / revenue) * 100) : 0;
-        }
-        
-        // Обновление калькулятора прибыли
-        function updateProfitCalculator() {
-            const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
-            const quantity = parseInt(document.getElementById('quantity').value) || 1;
-            const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
-            const commission = parseFloat(document.getElementById('commission').value) || 0;
-            const logistics = parseFloat(document.getElementById('logistics').value) || 0;
-            const deliveryToMV = parseFloat(document.getElementById('delivery-mv').value) || 0;
-            const advertising = parseFloat(document.getElementById('advertising').value) || 0.98;
-            const taxRate = parseFloat(document.getElementById('tax-rate').value) || 0.97;
-            
-            const revenue = sellingPrice * quantity;
-            const purchaseCost = purchasePrice * quantity;
-            const commissionCost = commission * quantity;
-            const logisticsCost = logistics * quantity;
-            const deliveryCost = deliveryToMV * quantity;
-            const advertisingCost = advertising * revenue / 100; // Преобразование процентов в абсолютное значение
-            const taxCost = (1 - taxRate) * revenue;
-            
-            const cost = purchaseCost + commissionCost + logisticsCost + deliveryCost + advertisingCost + taxCost;
-            const profit = revenue - cost;
-            const margin = revenue > 0 ? Math.round((profit / revenue) * 100) : 0;
-            
-            document.getElementById('revenue-calc').textContent = revenue.toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('cost-calc').textContent = cost.toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('profit-calc').textContent = profit.toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('margin-calc').textContent = margin + '%';
-        }
-        
-        // Добавление возврата
-        function addReturn() {
-            const saleId = document.getElementById('return-sale').value;
-            const reason = document.getElementById('return-reason').value;
-            const amount = parseFloat(document.getElementById('return-amount').value);
-            const date = document.getElementById('return-date').value;
-            
-            if (!saleId || !reason || !amount) {
-                alert('Пожалуйста, заполните все поля для возврата');
-                return;
-            }
-            
-            const returnItem = {
-                id: Date.now(),
-                saleId: parseInt(saleId),
-                reason: reason,
-                amount: amount,
-                date: date
-            };
-            
-            returnsData.push(returnItem);
-            saveData();
-            
-            // Очистка формы
-            document.getElementById('return-sale').value = '';
-            document.getElementById('return-reason').value = '';
-            document.getElementById('return-amount').value = '';
-            document.getElementById('return-date').value = new Date().toISOString().split('T')[0];
-            
-            document.getElementById('return-modal').style.display = 'none';
-            updateDashboard();
-            updateReturns();
-            
-            alert('Возврат успешно добавлен!');
-        }
-        
-        // Заполнение списка продаж для возврата
-        function populateReturnSales() {
-            const select = document.getElementById('return-sale');
-            select.innerHTML = '<option value="">Выберите продажу</option>';
-            
-            salesData.forEach(sale => {
-                const option = document.createElement('option');
-                option.value = sale.id;
-                option.textContent = `${sale.name} - ${(sale.sellingPrice * sale.quantity).toLocaleString('ru-RU')} ₽`;
-                select.appendChild(option);
-            });
-        }
-        
-        // Обновление таблицы возвратов
-        function updateReturns() {
-            const tbody = document.querySelector('#returns-table tbody');
-            tbody.innerHTML = '';
-            
-            returnsData.forEach(ret => {
-                const sale = salesData.find(s => s.id === ret.saleId);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${sale ? sale.name : 'Неизвестный товар'}</td>
-                    <td>${ret.reason}</td>
-                    <td>${ret.amount.toLocaleString('ru-RU')} ₽</td>
-                    <td>${new Date(ret.date).toLocaleDateString('ru-RU')}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-        
-        // Сброс фильтров
-        function resetFilters() {
-            document.getElementById('period').value = 'all';
-            document.getElementById('marketplace').value = 'all';
-            document.getElementById('start-date').value = '';
-            document.getElementById('end-date').value = '';
-            updateDashboard();
-        }
-        
-        // Обновление дашборда
-        function updateDashboard() {
-            // Фильтрация данных
-            const filteredData = filterSalesData();
-            
-            // Расчет метрик
-            const metrics = calculateMetrics(filteredData);
-            
-            // Обновление метрик
-            document.getElementById('total-revenue').textContent = metrics.totalRevenue.toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('total-cost').textContent = metrics.totalCost.toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('total-profit').textContent = metrics.totalProfit.toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('average-margin').textContent = metrics.averageMargin + '%';
-            document.getElementById('total-returns').textContent = metrics.totalReturns.toLocaleString('ru-RU') + ' ₽';
-            
-            // Обновление графиков
-            updateCharts(filteredData);
-            
-            // Обновление таблицы последних продаж
-            updateRecentSalesTable(filteredData);
-        }
-        
-        // Фильтрация данных продаж
-        function filterSalesData() {
-            const period = document.getElementById('period').value;
-            const marketplace = document.getElementById('marketplace').value;
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            
-            let filtered = [...salesData];
-            
-            // Фильтр по маркетплейсу
-            if (marketplace !== 'all') {
-                filtered = filtered.filter(sale => sale.marketplace === marketplace);
-            }
-            
-            // Фильтр по дате
-            if (startDate) {
-                filtered = filtered.filter(sale => sale.date >= startDate);
-            }
-            
-            if (endDate) {
-                filtered = filtered.filter(sale => sale.date <= endDate);
-            }
-            
-            // Фильтр по периоду
-            if (period !== 'all') {
-                const now = new Date();
-                let startDatePeriod;
-                
-                if (period === 'month') {
-                    startDatePeriod = new Date(now.getFullYear(), now.getMonth(), 1);
-                } else if (period === 'quarter') {
-                    const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
-                    startDatePeriod = new Date(now.getFullYear(), quarterStartMonth, 1);
-                }
-                
-                if (startDatePeriod) {
-                    filtered = filtered.filter(sale => new Date(sale.date) >= startDatePeriod);
-                }
-            }
-            
-            return filtered;
-        }
-        
-        // Расчет метрик
-        function calculateMetrics(filteredData) {
-            const totalRevenue = filteredData.reduce((sum, sale) => sum + (sale.sellingPrice * sale.quantity), 0);
-            const totalCost = filteredData.reduce((sum, sale) => {
-                const purchaseCost = sale.purchasePrice * sale.quantity;
-                const commissionCost = sale.commission * sale.quantity;
-                const logisticsCost = (sale.logistics || 0) * sale.quantity;
-                const deliveryCost = (sale.deliveryToMV || 0) * sale.quantity;
-                const advertisingCost = (sale.advertising || 0) * sale.sellingPrice * sale.quantity / 100;
-                const taxCost = (1 - sale.taxRate) * sale.sellingPrice * sale.quantity;
-                return sum + purchaseCost + commissionCost + logisticsCost + deliveryCost + advertisingCost + taxCost;
-            }, 0);
-            
-            // Добавляем операционные расходы
-            const totalOperatingExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
-            
-            const totalProfit = filteredData.reduce((sum, sale) => sum + sale.profit, 0) - totalOperatingExpenses;
-            const averageMargin = totalRevenue > 0 ? Math.round((totalProfit / totalRevenue) * 100) : 0;
-            const totalReturns = returnsData.reduce((sum, ret) => sum + ret.amount, 0);
-            
-            return {
-                totalRevenue,
-                totalCost: totalCost + totalOperatingExpenses,
-                totalProfit,
-                averageMargin,
-                totalReturns
-            };
-        }
-        
-        // Обновление графиков
-        function updateCharts(filteredData) {
-            // График по маркетплейсам
-            const marketplaceData = {
-                'Яндекс': { revenue: 0, profit: 0 },
-                'Озон': { revenue: 0, profit: 0 }
-            };
-            
-            filteredData.forEach(sale => {
-                marketplaceData[sale.marketplace].revenue += sale.sellingPrice * sale.quantity;
-                marketplaceData[sale.marketplace].profit += sale.profit;
-            });
-            
-            marketplaceChart.data.datasets[0].data = [
-                marketplaceData['Яндекс'].revenue,
-                marketplaceData['Озон'].revenue
-            ];
-            marketplaceChart.update();
-            
-            // График динамики продаж
-            const salesByMonth = {};
-            
-            filteredData.forEach(sale => {
-                const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-                if (!salesByMonth[month]) {
-                    salesByMonth[month] = { revenue: 0, profit: 0 };
-                }
-                salesByMonth[month].revenue += sale.sellingPrice * sale.quantity;
-                salesByMonth[month].profit += sale.profit;
-            });
-            
-            const months = Object.keys(salesByMonth);
-            const revenues = months.map(month => salesByMonth[month].revenue);
-            const profits = months.map(month => salesByMonth[month].profit);
-            
-            salesChart.data.labels = months;
-            salesChart.data.datasets[0].data = revenues;
-            salesChart.data.datasets[1].data = profits;
-            salesChart.update();
-            
-            // График топ-5 товаров
-            const topProducts = [...filteredData]
-                .sort((a, b) => b.profit - a.profit)
-                .slice(0, 5)
-                .map(sale => ({
-                    name: sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name,
-                    profit: sale.profit
-                }));
-            
-            topProductsChart.data.labels = topProducts.map(p => p.name);
-            topProductsChart.data.datasets[0].data = topProducts.map(p => p.profit);
-            topProductsChart.update();
-        }
-        
-        // Обновление таблицы последних продаж
-        function updateRecentSalesTable(filteredData) {
-            const tbody = document.querySelector('#recent-sales-table tbody');
-            tbody.innerHTML = '';
-            
-            const recentSales = [...filteredData]
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .slice(0, 10);
-            
-            recentSales.forEach(sale => {
-                const tr = document.createElement('tr');
-                tr.className = sale.marketplace === 'Яндекс' ? 'marketplace-yandex' : 'marketplace-ozon';
-                tr.innerHTML = `
-                    <td title="${sale.name}">${sale.name.length > 30 ? sale.name.substring(0, 30) + '...' : sale.name}</td>
-                    <td>${sale.marketplace}</td>
-                    <td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
-                    <td class="${sale.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        ${sale.profit.toLocaleString('ru-RU')} ₽
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-        
-        // Обновление аналитики
-        function updateAnalytics() {
-            // Фильтрация данных
-            const filteredData = filterSalesData();
-            
-            // Продажи по маркетплейсам
-            const marketplaceAnalytics = document.getElementById('marketplace-analytics');
-            marketplaceAnalytics.innerHTML = '';
-            
-            const marketplaceData = {
-                'Яндекс': { revenue: 0, profit: 0, count: 0 },
-                'Озон': { revenue: 0, profit: 0, count: 0 }
-            };
-            
-            filteredData.forEach(sale => {
-                marketplaceData[sale.marketplace].revenue += sale.sellingPrice * sale.quantity;
-                marketplaceData[sale.marketplace].profit += sale.profit;
-                marketplaceData[sale.marketplace].count += 1;
-            });
-            
-            Object.keys(marketplaceData).forEach(key => {
-                const data = marketplaceData[key];
-                const div = document.createElement('div');
-                div.className = 'expense-item';
-                div.innerHTML = `
-                    <div>
-                        <strong>${key}</strong><br>
-                        <small>Выручка: ${data.revenue.toLocaleString('ru-RU')} ₽<br>
-                        Прибыль: ${data.profit.toLocaleString('ru-RU')} ₽<br>
-                        Продаж: ${data.count}</small>
-                    </div>
-                    <div>
-                        Маржа: ${data.revenue > 0 ? Math.round((data.profit / data.revenue) * 100) : 0}%
-                    </div>
-                `;
-                marketplaceAnalytics.appendChild(div);
-            });
-            
-            // Топ-5 товаров
-            const topProductsAnalytics = document.getElementById('top-products-analytics');
-            topProductsAnalytics.innerHTML = '';
-            
-            const topProducts = [...filteredData]
-                .sort((a, b) => b.profit - a.profit)
-                .slice(0, 5);
-            
-            topProducts.forEach(sale => {
-                const div = document.createElement('div');
-                div.className = 'expense-item';
-                div.innerHTML = `
-                    <div>
-                        <strong>${sale.name}</strong><br>
-                        <small>Выручка: ${(sale.sellingPrice * sale.quantity).toLocaleString('ru-RU')} ₽<br>
-                        Прибыль: ${sale.profit.toLocaleString('ru-RU')} ₽</small>
-                    </div>
-                    <div>
-                        Маржа: ${sale.margin}%
-                    </div>
-                `;
-                topProductsAnalytics.appendChild(div);
-            });
-            
-            // Динамика продаж по месяцам
-            const monthlySalesTable = document.querySelector('#monthly-sales-table tbody');
-            monthlySalesTable.innerHTML = '';
-            
-            const salesByMonth = {};
-            
-            filteredData.forEach(sale => {
-                const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-                if (!salesByMonth[month]) {
-                    salesByMonth[month] = { revenue: 0, cost: 0, profit: 0, count: 0 };
-                }
-                salesByMonth[month].revenue += sale.sellingPrice * sale.quantity;
-                salesByMonth[month].profit += sale.profit;
-                salesByMonth[month].count += 1;
-            });
-            
-            Object.keys(salesByMonth).forEach(month => {
-                const data = salesByMonth[month];
-                const margin = data.revenue > 0 ? Math.round((data.profit / data.revenue) * 100) : 0;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${month}</td>
-                    <td>${data.revenue.toLocaleString('ru-RU')} ₽</td>
-                    <td>${data.cost.toLocaleString('ru-RU')} ₽</td>
-                    <td>${data.profit.toLocaleString('ru-RU')} ₽</td>
-                    <td>${margin}%</td>
-                    <td>${data.count}</td>
-                `;
-                monthlySalesTable.appendChild(tr);
-            });
-            
-            // Продажи по магазинам
-            const shopSalesTable = document.querySelector('#shop-sales-table tbody');
-            shopSalesTable.innerHTML = '';
-            
-            const salesByShop = {};
-            
-            filteredData.forEach(sale => {
-                const shop = sale.shop || 'Не указан';
-                if (!salesByShop[shop]) {
-                    salesByShop[shop] = { revenue: 0, profit: 0, count: 0 };
-                }
-                salesByShop[shop].revenue += sale.sellingPrice * sale.quantity;
-                salesByShop[shop].profit += sale.profit;
-                salesByShop[shop].count += 1;
-            });
-            
-            Object.keys(salesByShop).forEach(shop => {
-                const data = salesByShop[shop];
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${shop}</td>
-                    <td>${data.revenue.toLocaleString('ru-RU')} ₽</td>
-                    <td>${data.profit.toLocaleString('ru-RU')} ₽</td>
-                    <td>${data.count}</td>
-                `;
-                shopSalesTable.appendChild(tr);
-            });
-        }
-        
-        // Обновление отчетов
-        function updateReports() {
-            // Фильтрация данных
-            const filteredData = filterSalesData();
-            
-            // Расчет метрик
-            const totalRevenue = filteredData.reduce((sum, sale) => sum + (sale.sellingPrice * sale.quantity), 0);
-            const totalPurchaseCost = filteredData.reduce((sum, sale) => sum + (sale.purchasePrice * sale.quantity), 0);
-            const totalCommissionCost = filteredData.reduce((sum, sale) => sum + (sale.commission * sale.quantity), 0);
-            const totalTaxCost = filteredData.reduce((sum, sale) => sum + ((1 - sale.taxRate) * sale.sellingPrice * sale.quantity), 0);
-            const totalOperatingExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
-            const totalProfit = filteredData.reduce((sum, sale) => sum + sale.profit, 0) - totalOperatingExpenses;
-            
-            // Обновление отчета
-            document.getElementById('report-revenue').textContent = totalRevenue.toLocaleString('ru-RU');
-            document.getElementById('report-garden-revenue').textContent = totalRevenue.toLocaleString('ru-RU');
-            document.getElementById('report-direct-costs').textContent = (totalPurchaseCost + totalCommissionCost + totalTaxCost).toLocaleString('ru-RU');
-            document.getElementById('report-purchase-cost').textContent = totalPurchaseCost.toLocaleString('ru-RU');
-            document.getElementById('report-commission-cost').textContent = totalCommissionCost.toLocaleString('ru-RU');
-            document.getElementById('report-tax-cost').textContent = totalTaxCost.toLocaleString('ru-RU');
-            document.getElementById('report-operating-expenses').textContent = totalOperatingExpenses.toLocaleString('ru-RU');
-            document.getElementById('report-profit').textContent = totalProfit.toLocaleString('ru-RU');
-            
-            // Проценты
-            document.getElementById('report-direct-costs-percent').textContent = totalRevenue > 0 ? Math.round(((totalPurchaseCost + totalCommissionCost + totalTaxCost) / totalRevenue) * 100) + '%' : '0%';
-            document.getElementById('report-purchase-percent').textContent = totalRevenue > 0 ? Math.round((totalPurchaseCost / totalRevenue) * 100) + '%' : '0%';
-            document.getElementById('report-commission-percent').textContent = totalRevenue > 0 ? Math.round((totalCommissionCost / totalRevenue) * 100) + '%' : '0%';
-            document.getElementById('report-tax-percent').textContent = totalRevenue > 0 ? Math.round((totalTaxCost / totalRevenue) * 100) + '%' : '0%';
-            document.getElementById('report-operating-expenses-percent').textContent = totalRevenue > 0 ? Math.round((totalOperatingExpenses / totalRevenue) * 100) + '%' : '0%';
-            document.getElementById('report-profit-percent').textContent = totalRevenue > 0 ? Math.round((totalProfit / totalRevenue) * 100) + '%' : '0%';
-        }
-        
-        // Экспорт отчета
-        function exportReport() {
-            const format = document.getElementById('export-format').value;
-            const period = document.getElementById('report-period').value;
-            
-            alert(`Отчет за ${period} в формате ${format} будет экспортирован`);
-            // Здесь должна быть логика экспорта в выбранный формат
-        }
-        
-        // Обновление настроек
-        function updateSettings() {
-            updateShopsList();
-            updateCategoriesList();
-            updateExpenseCategoriesList();
-        }
-        
-        // Обновление списка магазинов
-        function updateShopsList() {
-            const shopsList = document.getElementById('shops-list');
-            shopsList.innerHTML = '';
-            
-            shops.forEach(shop => {
-                const div = document.createElement('div');
-                div.className = 'expense-item';
-                div.innerHTML = `
-                    <span>${shop}</span>
-                    <button class="btn btn-danger btn-sm" onclick="removeShop('${shop}')">Удалить</button>
-                `;
-                shopsList.appendChild(div);
-            });
-            
-            // Обновление селекта в форме продажи
-            const shopSelect = document.getElementById('shop-select');
-            shopSelect.innerHTML = '<option value="">Выберите магазин</option>';
-            shops.forEach(shop => {
-                const option = document.createElement('option');
-                option.value = shop;
-                option.textContent = shop;
-                shopSelect.appendChild(option);
-            });
-        }
-        
-        // Обновление списка категорий
-        function updateCategoriesList() {
-            const categoriesList = document.getElementById('categories-list');
-            categoriesList.innerHTML = '';
-            
-            categories.forEach(category => {
-                const div = document.createElement('div');
-                div.className = 'expense-item';
-                div.innerHTML = `
-                    <span>${category}</span>
-                    <button class="btn btn-danger btn-sm" onclick="removeCategory('${category}')">Удалить</button>
-                `;
-                categoriesList.appendChild(div);
-            });
-        }
-        
-        // Обновление списка категорий расходов
-        function updateExpenseCategoriesList() {
-            const expenseCategoriesList = document.getElementById('expense-categories-list');
-            expenseCategoriesList.innerHTML = '';
-            
-            expenseCategories.forEach(category => {
-                const div = document.createElement('div');
-                div.className = 'expense-item';
-                div.innerHTML = `
-                    <span>${category}</span>
-                    <button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('${category}')">Удалить</button>
-                `;
-                expenseCategoriesList.appendChild(div);
-            });
-            
-            // Обновление селекта в форме расхода
-            const expenseCategorySelect = document.getElementById('expense-category');
-            expenseCategorySelect.innerHTML = '<option value="">Выберите категорию</option>';
-            expenseCategories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
-                expenseCategorySelect.appendChild(option);
-            });
-        }
-        
-        // Добавление магазина
-        function addShop() {
-            const shopName = document.getElementById('new-shop-name').value.trim();
-            if (shopName && !shops.includes(shopName)) {
-                shops.push(shopName);
-                saveData();
-                document.getElementById('new-shop-name').value = '';
-                updateShopsList();
-            }
-        }
-        
-        // Удаление магазина
-        function removeShop(shopName) {
-            shops = shops.filter(shop => shop !== shopName);
-            saveData();
-            updateShopsList();
-        }
-        
-        // Добавление категории
-        function addCategory() {
-            const categoryName = document.getElementById('new-category-name').value.trim();
-            if (categoryName && !categories.includes(categoryName)) {
-                categories.push(categoryName);
-                saveData();
-                document.getElementById('new-category-name').value = '';
-                updateCategoriesList();
-            }
-        }
-        
-        // Удаление категории
-        function removeCategory(categoryName) {
-            categories = categories.filter(category => category !== categoryName);
-            saveData();
-            updateCategoriesList();
-        }
-        
-        // Добавление категории расходов
-        function addExpenseCategory() {
-            const categoryName = document.getElementById('new-expense-category').value.trim();
-            if (categoryName && !expenseCategories.includes(categoryName)) {
-                expenseCategories.push(categoryName);
-                saveData();
-                document.getElementById('new-expense-category').value = '';
-                updateExpenseCategoriesList();
-            }
-        }
-        
-        // Удаление категории расходов
-        function removeExpenseCategory(categoryName) {
-            expenseCategories = expenseCategories.filter(category => category !== categoryName);
-            saveData();
-            updateExpenseCategoriesList();
-        }
-        
-        // Сохранение настроек
-        function saveSettings() {
-            saveData();
-            alert('Настройки сохранены!');
-        }
-        
-        // Добавление расхода
-        function addExpense() {
-            const category = document.getElementById('expense-category').value;
-            const amount = parseFloat(document.getElementById('expense-amount').value);
-            const date = document.getElementById('expense-date').value;
-            const description = document.getElementById('expense-description').value;
-            
-            if (!category || !amount || !date) {
-                alert('Пожалуйста, заполните все обязательные поля');
-                return;
-            }
-            
-            const expense = {
-                id: Date.now(),
-                category: category,
-                amount: amount,
-                date: date,
-                description: description
-            };
-            
-            expensesData.push(expense);
-            saveData();
-            
-            // Очистка формы
-            document.getElementById('expense-category').value = '';
-            document.getElementById('expense-amount').value = '';
-            document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('expense-description').value = '';
-            
-            document.getElementById('expense-modal').style.display = 'none';
-            updateExpenses();
-            updateDashboard();
-            
-            alert('Расход успешно добавлен!');
-        }
-        
-        // Обновление расходов
-        function updateExpenses() {
-            // Обновление графика расходов
-            const expensesByMonth = {};
-            
-            expensesData.forEach(expense => {
-                const month = new Date(expense.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-                if (!expensesByMonth[month]) {
-                    expensesByMonth[month] = 0;
-                }
-                expensesByMonth[month] += expense.amount;
-            });
-            
-            const months = Object.keys(expensesByMonth);
-            const amounts = months.map(month => expensesByMonth[month]);
-            
-            expensesChart.data.labels = months;
-            expensesChart.data.datasets[0].data = amounts;
-            expensesChart.update();
-            
-            // Обновление расходов по категориям
-            const expensesByCategory = document.getElementById('expenses-by-category');
-            expensesByCategory.innerHTML = '';
-            
-            const categoryTotals = {};
-            
-            expensesData.forEach(expense => {
-                if (!categoryTotals[expense.category]) {
-                    categoryTotals[expense.category] = 0;
-                }
-                categoryTotals[expense.category] += expense.amount;
-            });
-            
-            Object.keys(categoryTotals).forEach(category => {
-                const total = categoryTotals[category];
-                const div = document.createElement('div');
-                div.className = 'expense-item';
-                div.innerHTML = `
-                    <div>
-                        <strong>${category}</strong>
-                    </div>
-                    <div>
-                        ${total.toLocaleString('ru-RU')} ₽
-                    </div>
-                `;
-                expensesByCategory.appendChild(div);
-            });
-            
-            // Обновление таблицы расходов
-            const expensesTable = document.querySelector('#expenses-table tbody');
-            expensesTable.innerHTML = '';
-            
-            [...expensesData]
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .forEach(expense => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${expense.category}</td>
-                        <td>${expense.amount.toLocaleString('ru-RU')} ₽</td>
-                        <td>${new Date(expense.date).toLocaleDateString('ru-RU')}</td>
-                        <td>${expense.description || '-'}</td>
-                    `;
-                    expensesTable.appendChild(tr);
-                });
-        }
-        
-        // Загрузка данных из localStorage
-        function loadData() {
-            if (localStorage.getItem('salesData')) {
-                salesData = JSON.parse(localStorage.getItem('salesData'));
-            }
-            if (localStorage.getItem('returnsData')) {
-                returnsData = JSON.parse(localStorage.getItem('returnsData'));
-            }
-            if (localStorage.getItem('expensesData')) {
-                expensesData = JSON.parse(localStorage.getItem('expensesData'));
-            }
-            if (localStorage.getItem('shops')) {
-                shops = JSON.parse(localStorage.getItem('shops'));
-            }
-            if (localStorage.getItem('categories')) {
-                categories = JSON.parse(localStorage.getItem('categories'));
-            }
-            if (localStorage.getItem('expenseCategories')) {
-                expenseCategories = JSON.parse(localStorage.getItem('expenseCategories'));
-            }
-            if (localStorage.getItem('taxSystems')) {
-                taxSystems = JSON.parse(localStorage.getItem('taxSystems'));
-            }
-            if (localStorage.getItem('settings')) {
-                settings = JSON.parse(localStorage.getItem('settings'));
-            }
-            if (localStorage.getItem('lastValues')) {
-                lastValues = JSON.parse(localStorage.getItem('lastValues'));
-            }
-        }
-        
-        // Сохранение данных в localStorage
-        function saveData() {
-            localStorage.setItem('salesData', JSON.stringify(salesData));
-            localStorage.setItem('returnsData', JSON.stringify(returnsData));
-            localStorage.setItem('expensesData', JSON.stringify(expensesData));
-            localStorage.setItem('shops', JSON.stringify(shops));
-            localStorage.setItem('categories', JSON.stringify(categories));
-            localStorage.setItem('expenseCategories', JSON.stringify(expenseCategories));
-            localStorage.setItem('taxSystems', JSON.stringify(taxSystems));
-            localStorage.setItem('settings', JSON.stringify(settings));
-            localStorage.setItem('lastValues', JSON.stringify(lastValues));
-        }
-    </script>
+<div class="container">
+<header>
+<div>
+<h1>Система учета продаж и прибыли</h1>
+<p class="subtitle">Управляйте своими продажами, отслеживайте прибыль и анализируйте эффективность</p>
+</div>
+<div class="user-info">
+<div class="avatar">А</div>
+<div>
+<div>Администратор</div>
+<div style="font-size: 0.9rem; color: var(--gray);">admin@example.com</div>
+</div>
+</div>
+</header>
+<nav>
+<ul class="nav-tabs">
+<li class="nav-item active" data-tab="dashboard">Дашборд</li>
+<li class="nav-item" data-tab="sales">Добавить продажу</li>
+<li class="nav-item" data-tab="all-sales">Все продажи</li>
+<li class="nav-item" data-tab="expenses">Расходы</li>
+<li class="nav-item" data-tab="returns">Возвраты</li>
+<li class="nav-item" data-tab="analytics">Аналитика</li>
+<li class="nav-item" data-tab="reports">Отчеты</li>
+<li class="nav-item" data-tab="settings">Настройки</li>
+</ul>
+</nav>
+<main>
+<div id="dashboard" class="tab-content active">
+<div class="card">
+<h2 class="card-title">Фильтры</h2>
+<div class="filters">
+<div>
+<label for="period">Период</label>
+<select id="period">
+<option value="all">Все время</option>
+<option value="day">Текущий день</option>
+<option value="week">Текущая неделя</option>
+<option value="month">Текущий месяц</option>
+<option value="quarter">Текущий квартал</option>
+<option value="year">Текущий год</option>
+</select>
+</div>
+<div>
+<label for="marketplace">Маркетплейс</label>
+<select id="marketplace">
+<option value="all">Все маркетплейсы</option>
+<option value="Яндекс">Яндекс Маркет</option>
+<option value="Озон">Озон</option>
+</select>
+</div>
+<div>
+<label for="start-date">Дата от</label>
+<input type="date" id="start-date">
+</div>
+<div>
+<label for="end-date">Дата до</label>
+<input type="date" id="end-date">
+</div>
+<div>
+<label>&nbsp;</label>
+<button class="btn btn-primary" id="apply-filters">Применить</button>
+</div>
+</div>
+</div>
+<div class="metrics-grid" id="metrics-container">
+<div class="metric-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);" data-metric="revenue">
+<h3>Общая выручка <span class="tooltip">?<span class="tooltip-text">Общая сумма всех продаж за выбранный период, за вычетом возвратов</span></span></h3>
+<div class="value" id="total-revenue">0 ₽</div>
+<div>за выбранный период</div>
+</div>
+<div class="metric-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);" data-metric="cost">
+<h3>Общие расходы <span class="tooltip">?<span class="tooltip-text">Сумма всех расходов, включая закупку, комиссии, логистику, рекламу и налоги</span></span></h3>
+<div class="value" id="total-cost">0 ₽</div>
+<div>включая налоги</div>
+</div>
+<div class="metric-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" data-metric="profit">
+<h3>Чистая прибыль <span class="tooltip">?<span class="tooltip-text">Выручка за вычетом всех расходов и операционных затрат</span></span></h3>
+<div class="value" id="total-profit">0 ₽</div>
+<div>за выбранный период</div>
+</div>
+<div class="metric-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);" data-metric="margin">
+<h3>Рентабельность <span class="tooltip">?<span class="tooltip-text">Процент прибыли от выручки</span></span></h3>
+<div class="value" id="average-margin">0%</div>
+<div>средняя за период</div>
+</div>
+<div class="metric-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);" data-metric="returns">
+<h3>Возвраты <span class="tooltip">?<span class="tooltip-text">Сумма всех возвратов за выбранный период</span></span></h3>
+<div class="value" id="total-returns">0 ₽</div>
+<div>за выбранный период</div>
+</div>
+</div>
+<div class="grid">
+<div class="card">
+<h2 class="card-title">Продажи по маркетплейсам</h2>
+<div class="chart-container">
+<canvas id="marketplace-chart"></canvas>
+</div>
+</div>
+<div class="card">
+<h2 class="card-title">Динамика продаж</h2>
+<div class="chart-container">
+<canvas id="sales-chart"></canvas>
+</div>
+</div>
+</div>
+<div class="grid">
+<div class="card">
+<h2 class="card-title">Топ-5 самых прибыльных товаров</h2>
+<div class="chart-container">
+<canvas id="top-products-chart"></canvas>
+</div>
+</div>
+<div class="card">
+<h2 class="card-title">Последние продажи</h2>
+<div style="max-height: 300px; overflow-y: auto;">
+<table id="recent-sales-table">
+<thead>
+<tr>
+<th>Товар</th>
+<th>Маркетплейс</th>
+<th>Дата</th>
+<th>Прибыль</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="sales" class="tab-content">
+<div class="card">
+<h2 class="card-title">Добавить новую продажу</h2>
+<div class="grid">
+<div>
+<label for="product-name">Название товара</label>
+<input type="text" id="product-name" placeholder="Введите название товара">
+</div>
+<div>
+<label for="article">Артикул</label>
+<input type="text" id="article" placeholder="Введите артикул">
+</div>
+<div id="marketplace-field">
+<label for="marketplace-select">Маркетплейс</label>
+<select id="marketplace-select">
+<option value="Яндекс">Яндекс Маркет</option>
+<option value="Озон">Озон</option>
+</select>
+</div>
+<div id="shop-field">
+<label for="shop-select">Магазин</label>
+<select id="shop-select">
+<option value="Выберите магазин">Выберите магазин</option>
+</select>
+</div>
+<div>
+<label for="purchase-price">Цена закупки (₽)</label>
+<input type="number" id="purchase-price" placeholder="0">
+</div>
+<div>
+<label for="selling-price">Цена продажи (₽)</label>
+<input type="number" id="selling-price" placeholder="0">
+</div>
+<div id="commission-field">
+<label for="commission">Комиссия маркетплейса (₽)</label>
+<input type="number" id="commission" placeholder="0">
+</div>
+<div id="logistics-field">
+<label for="logistics">Логистика (₽)</label>
+<input type="number" id="logistics" placeholder="0">
+</div>
+<div id="delivery-mv-field">
+<label for="delivery-mv">Доставка до МВ (₽)</label>
+<input type="number" id="delivery-mv" placeholder="0">
+</div>
+<div>
+<label for="advertising">РК + Эквайринг (%)</label>
+<input type="number" id="advertising" step="0.01" value="0.98">
+</div>
+<div>
+<label for="tax-rate">Налог (%)</label>
+<select id="tax-rate">
+<option value="0.99">1% (УСН Доходы)</option>
+<option value="0.93">7% (УСН Доходы)</option>
+<option value="0.8515">15% (УСН Доходы-Расходы)</option>
+</select>
+</div>
+<div>
+<label for="quantity">Количество</label>
+<input type="number" id="quantity" value="1" min="1">
+</div>
+<div>
+<label for="sale-date">Дата продажи</label>
+<input type="date" id="sale-date">
+</div>
+</div>
+<div class="card" style="background: #f0f9ff;">
+<h3>Калькулятор прибыли</h3>
+<div class="grid">
+<div style="background: #dbeafe; padding: 15px; border-radius: 8px; transition: all 0.3s ease;">
+<h4 style="color: #1e40af;">Прибыль</h4>
+<div id="profit-calc" style="font-size: 1.5rem; font-weight: bold; color: #1e40af;">0 ₽</div>
+</div>
+<div style="background: #e0e7ff; padding: 15px; border-radius: 8px; transition: all 0.3s ease;">
+<h4 style="color: #4338ca;">Маржа</h4>
+<div id="margin-calc" style="font-size: 1.5rem; font-weight: bold; color: #4338ca;">0%</div>
+</div>
+<div style="background: #fee2e2; padding: 15px; border-radius: 8px; transition: all 0.3s ease;">
+<h4 style="color: #991b1b;">Расходы</h4>
+<div id="cost-calc" style="font-size: 1.5rem; font-weight: bold; color: #991b1b;">0 ₽</div>
+</div>
+<div style="background: #dcfce7; padding: 15px; border-radius: 8px; transition: all 0.3s ease;">
+<h4 style="color: #166534;">Выручка</h4>
+<div id="revenue-calc" style="font-size: 1.5rem; font-weight: bold; color: #166534;">0 ₽</div>
+</div>
+</div>
+</div>
+<div class="btn-group">
+<button class="btn btn-primary" id="add-sale">Добавить продажу</button>
+<button class="btn btn-secondary" id="go-to-dashboard">Перейти к дашборду</button>
+</div>
+</div>
+<div class="card">
+<h2 class="card-title">Последние добавленные продажи</h2>
+<div style="max-height: 400px; overflow-y: auto;">
+<table id="recent-added-sales">
+<thead>
+<tr>
+<th>Товар</th>
+<th>Маркетплейс</th>
+<th>Дата</th>
+<th>Прибыль</th>
+<th>Действия</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+<div style="text-align: center; margin-top: 15px;">
+<button class="btn btn-secondary" id="show-more-sales">Показать еще...</button>
+</div>
+</div>
+</div>
+<div id="all-sales" class="tab-content">
+<div class="card">
+<h2 class="card-title">Все продажи</h2>
+<div class="card">
+<h3>Фильтры</h3>
+<div class="filters">
+<div>
+<label for="all-sales-period">Период</label>
+<select id="all-sales-period">
+<option value="all">Все время</option>
+<option value="day">Сегодня</option>
+<option value="week">Неделя</option>
+<option value="month">Месяц</option>
+<option value="quarter">Квартал</option>
+<option value="year">Год</option>
+</select>
+</div>
+<div>
+<label for="all-sales-start-date">Дата от</label>
+<input type="date" id="all-sales-start-date">
+</div>
+<div>
+<label for="all-sales-end-date">Дата до</label>
+<input type="date" id="all-sales-end-date">
+</div>
+<div>
+<label for="all-sales-marketplace">Маркетплейс</label>
+<select id="all-sales-marketplace">
+<option value="all">Все маркетплейсы</option>
+<option value="Яндекс">Яндекс Маркет</option>
+<option value="Озон">Озон</option>
+</select>
+</div>
+<div>
+<label for="all-sales-shop">Магазин</label>
+<select id="all-sales-shop">
+<option value="all">Все магазины</option>
+</select>
+</div>
+<div>
+<label>&nbsp;</label>
+<button class="btn btn-primary" id="apply-sales-filters">Применить</button>
+</div>
+</div>
+</div>
+<div style="max-height: 500px; overflow-y: auto;">
+<table id="all-sales-table">
+<thead>
+<tr>
+<th>Товар</th>
+<th>Артикул</th>
+<th>Маркетплейс</th>
+<th>Магазин</th>
+<th>Дата</th>
+<th>Выручка</th>
+<th>Прибыль</th>
+<th>Маржа</th>
+<th>Действия</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+<div class="pagination" id="all-sales-pagination">
+<button id="prev-page">Предыдущая</button>
+<span id="page-info">Страница 1 из 1</span>
+<button id="next-page">Следующая</button>
+</div>
+</div>
+</div>
+<div id="expenses" class="tab-content">
+<div class="card">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+<h2 class="card-title">Операционные расходы</h2>
+<button class="btn btn-warning" id="open-expense-modal">Добавить расход</button>
+</div>
+<div class="grid">
+<div class="card" style="background: #f0f9ff;">
+<h3>График операционных расходов</h3>
+<div class="chart-container">
+<canvas id="expenses-chart"></canvas>
+</div>
+</div>
+<div class="card" style="background: #f0f9ff;">
+<h3>Расходы по категориям</h3>
+<div id="expenses-by-category">
+</div>
+</div>
+</div>
+<div class="card">
+<h3>Все операционные расходы</h3>
+<div style="max-height: 400px; overflow-y: auto;">
+<table id="expenses-table">
+<thead>
+<tr>
+<th>Категория</th>
+<th>Сумма</th>
+<th>Дата</th>
+<th>Описание</th>
+<th>Действия</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+<div class="pagination" id="expenses-pagination">
+<button id="prev-expense-page">Предыдущая</button>
+<span id="expense-page-info">Страница 1 из 1</span>
+<button id="next-expense-page">Следующая</button>
+</div>
+</div>
+</div>
+</div>
+<div id="returns" class="tab-content">
+<div class="card">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+<h2 class="card-title">Учет возвратов</h2>
+<button class="btn btn-warning" id="open-return-modal">Добавить возврат</button>
+</div>
+<div style="max-height: 500px; overflow-y: auto;">
+<table id="returns-table">
+<thead>
+<tr>
+<th>Товар</th>
+<th>Причина</th>
+<th>Сумма</th>
+<th>Дата</th>
+<th>Действия</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+<div class="pagination" id="returns-pagination">
+<button id="prev-return-page">Предыдущая</button>
+<span id="return-page-info">Страница 1 из 1</span>
+<button id="next-return-page">Следующая</button>
+</div>
+</div>
+</div>
+<div id="analytics" class="tab-content">
+<div class="card">
+<h2 class="card-title">Аналитика продаж</h2>
+<div class="grid">
+<div class="card" style="background: #f1f5f9;">
+<h3>Продажи по маркетплейсам</h3>
+<div id="marketplace-analytics">
+</div>
+</div>
+<div class="card" style="background: #f1f5f9;">
+<h3>Топ-5 самых прибыльных товаров</h3>
+<div id="top-products-analytics">
+</div>
+</div>
+</div>
+<div class="card" style="background: #f1f5f9;">
+<h3>Динамика продаж по месяцам</h3>
+<div style="overflow-x: auto;">
+<table id="monthly-sales-table">
+<thead>
+<tr>
+<th>Месяц</th>
+<th>Выручка</th>
+<th>Расходы</th>
+<th>Прибыль</th>
+<th>Рентабельность</th>
+<th>Количество продаж</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+</div>
+<div class="card" style="background: #f1f5f9;">
+<h3>Продажи по магазинам</h3>
+<div style="overflow-x: auto;">
+<table id="shop-sales-table">
+<thead>
+<tr>
+<th>Магазин</th>
+<th>Выручка</th>
+<th>Прибыль</th>
+<th>Количество продаж</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+</div>
+<div class="card" style="background: #f1f5f9;">
+<h3>Корреляционный анализ</h3>
+<div style="overflow-x: auto;">
+<table id="correlation-table">
+<thead>
+<tr>
+<th>Метрика 1</th>
+<th>Метрика 2</th>
+<th>Корреляция</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="reports" class="tab-content">
+<div class="card">
+<h2 class="card-title">Финансовые отчеты</h2>
+<div class="card">
+<h3>Фильтры</h3>
+<div class="filters">
+<div>
+<label for="report-period">Период отчета</label>
+<select id="report-period">
+<option value="all">Все время</option>
+<option value="month">Текущий месяц</option>
+<option value="quarter">Текущий квартал</option>
+<option value="year">Текущий год</option>
+</select>
+</div>
+<div>
+<label for="report-start-date">Дата от</label>
+<input type="date" id="report-start-date">
+</div>
+<div>
+<label for="report-end-date">Дата до</label>
+<input type="date" id="report-end-date">
+</div>
+<div>
+<label for="export-format">Формат экспорта</label>
+<select id="export-format">
+<option value="pdf">PDF</option>
+<option value="excel">Excel</option>
+<option value="csv">CSV</option>
+</select>
+</div>
+<div>
+<label>&nbsp;</label>
+<button class="btn btn-primary" id="generate-report">Сгенерировать отчет</button>
+</div>
+</div>
+</div>
+<div class="card" style="background: #f1f5f9;">
+<h3>Отчет о прибылях и убытках</h3>
+<div style="overflow-x: auto;">
+<table id="pnl-report">
+<thead>
+<tr>
+<th>Статья</th>
+<th style="text-align: right;">Сумма (₽)</th>
+<th style="text-align: right;">%</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background: #dbeafe;">
+<td><strong>Выручка</strong></td>
+<td id="report-revenue" style="text-align: right; font-weight: bold;">0</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr>
+<td style="padding-left: 30px;">Садовые товары</td>
+<td id="report-garden-revenue" style="text-align: right;">0</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr style="background: #fee2e2;">
+<td><strong>Прямые расходы</strong></td>
+<td id="report-direct-costs" style="text-align: right; font-weight: bold;">0</td>
+<td id="report-direct-costs-percent" style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td style="padding-left: 30px;">Закупка товаров</td>
+<td id="report-purchase-cost" style="text-align: right;">0</td>
+<td id="report-purchase-percent" style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td style="padding-left: 30px;">Комиссия платформ</td>
+<td id="report-commission-cost" style="text-align: right;">0</td>
+<td id="report-commission-percent" style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td style="padding-left: 30px;">Налоги</td>
+<td id="report-tax-cost" style="text-align: right;">0</td>
+<td id="report-tax-percent" style="text-align: right;">0%</td>
+</tr>
+<tr style="background: #ffedd5;">
+<td><strong>Операционные расходы</strong></td>
+<td id="report-operating-expenses" style="text-align: right; font-weight: bold;">0</td>
+<td id="report-operating-expenses-percent" style="text-align: right;">0%</td>
+</tr>
+<tr style="background: #dcfce7;">
+<td><strong>Чистая прибыль</strong></td>
+<td id="report-profit" style="text-align: right; font-weight: bold; color: #166534;">0</td>
+<td id="report-profit-percent" style="text-align: right; font-weight: bold; color: #166534;">0%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="btn-group">
+<button class="btn btn-primary" id="export-report">Скачать отчет</button>
+<button class="btn btn-secondary" id="print-report">Печать</button>
+<button class="btn btn-info" id="export-csv">Экспорт в CSV</button>
+</div>
+</div>
+</div>
+<div id="settings" class="tab-content">
+<div class="card">
+<h2 class="card-title">Настройки системы</h2>
+<div class="spoiler">
+<div class="spoiler-header" data-target="tax-settings">
+<span>Система налогообложения</span>
+<span>▼</span>
+</div>
+<div class="spoiler-content" id="tax-settings">
+<div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+<div id="tax-systems-list">
+<div class="expense-item">
+<div>
+<strong>УСН Доходы (1%)</strong>
+<input type="number" step="0.01" value="0.99" style="width: 80px; margin-left: 10px;" onchange="updateTaxRate('УСН Доходы (1%)', this.value)">
+</div>
+<button class="btn btn-danger btn-sm" onclick="removeTaxSystem('УСН Доходы (1%)')">Удалить</button>
+</div>
+<div class="expense-item">
+<div>
+<strong>УСН Доходы (7%)</strong>
+<input type="number" step="0.01" value="0.93" style="width: 80px; margin-left: 10px;" onchange="updateTaxRate('УСН Доходы (7%)', this.value)">
+</div>
+<button class="btn btn-danger btn-sm" onclick="removeTaxSystem('УСН Доходы (7%)')">Удалить</button>
+</div>
+<div class="expense-item">
+<div>
+<strong>УСН Доходы-Расходы (15%)</strong>
+<input type="number" step="0.01" value="0.8515" style="width: 80px; margin-left: 10px;" onchange="updateTaxRate('УСН Доходы-Расходы (15%)', this.value)">
+</div>
+<button class="btn btn-danger btn-sm" onclick="removeTaxSystem('УСН Доходы-Расходы (15%)')">Удалить</button>
+</div>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 15px;">
+<input type="text" id="new-tax-name" placeholder="Название системы" style="flex: 1;">
+<input type="number" id="new-tax-rate" step="0.01" placeholder="Ставка (0.99)" style="flex: 1;">
+<button class="btn btn-primary" id="add-tax-system">Добавить</button>
+</div>
+</div>
+</div>
+</div>
+<div class="spoiler">
+<div class="spoiler-header" data-target="field-settings">
+<span>Настройки полей</span>
+<span>▼</span>
+</div>
+<div class="spoiler-content" id="field-settings">
+<div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+<div>
+<label>
+<input type="checkbox" id="show-marketplace" checked>
+Показывать поле Маркетплейс
+</label>
+</div>
+<div>
+<label>
+<input type="checkbox" id="show-shop" checked>
+Показывать поле Магазин
+</label>
+</div>
+<div>
+<label>
+<input type="checkbox" id="show-commission" checked>
+Показывать поле Комиссия
+</label>
+</div>
+<div>
+<label>
+<input type="checkbox" id="show-logistics" checked>
+Показывать поле Логистика
+</label>
+</div>
+<div>
+<label>
+<input type="checkbox" id="show-delivery-mv" checked>
+Показывать поле Доставка до МВ
+</label>
+</div>
+</div>
+</div>
+</div>
+<div class="spoiler">
+<div class="spoiler-header" data-target="shops-settings">
+<span>Магазины</span>
+<span>▼</span>
+</div>
+<div class="spoiler-content" id="shops-settings">
+<div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+<input type="text" id="new-shop-name" placeholder="Название магазина" style="flex: 1;">
+<button class="btn btn-primary" id="add-shop">Добавить</button>
+</div>
+<div id="shops-list">
+</div>
+</div>
+</div>
+</div>
+<div class="spoiler">
+<div class="spoiler-header" data-target="categories-settings">
+<span>Категории товаров</span>
+<span>▼</span>
+</div>
+<div class="spoiler-content" id="categories-settings">
+<div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+<input type="text" id="new-category-name" placeholder="Название категории" style="flex: 1;">
+<button class="btn btn-primary" id="add-category">Добавить</button>
+</div>
+<div id="categories-list">
+<div class="expense-item">
+<span>Садовые товары</span>
+<button class="btn btn-danger btn-sm" onclick="removeCategory('Садовые товары')">Удалить</button>
+</div>
+<div class="expense-item">
+<span>Строительные товары</span>
+<button class="btn btn-danger btn-sm" onclick="removeCategory('Строительные товары')">Удалить</button>
+</div>
+<div class="expense-item">
+<span>Бытовые товары</span>
+<button class="btn btn-danger btn-sm" onclick="removeCategory('Бытовые товары')">Удалить</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="spoiler">
+<div class="spoiler-header" data-target="expense-categories-settings">
+<span>Категории операционных расходов</span>
+<span>▼</span>
+</div>
+<div class="spoiler-content" id="expense-categories-settings">
+<div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+<input type="text" id="new-expense-category" placeholder="Название категории расходов" style="flex: 1;">
+<button class="btn btn-primary" id="add-expense-category">Добавить</button>
+</div>
+<div id="expense-categories-list">
+<div class="expense-item">
+<span>Аренда</span>
+<button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Аренда')">Удалить</button>
+</div>
+<div class="expense-item">
+<span>Зарплата</span>
+<button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Зарплата')">Удалить</button>
+</div>
+<div class="expense-item">
+<span>Уборщица</span>
+<button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Уборщица')">Удалить</button>
+</div>
+<div class="expense-item">
+<span>Курьеры</span>
+<button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('Курьеры')">Удалить</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="spoiler">
+<div class="spoiler-header" data-target="account-settings">
+<span>Аккаунт</span>
+<span>▼</span>
+</div>
+<div class="spoiler-content" id="account-settings">
+<div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
+<div class="form-group">
+<label for="user-name">Имя пользователя</label>
+<input type="text" id="user-name" value="Администратор">
+</div>
+<div class="form-group">
+<label for="user-email">Email</label>
+<input type="email" id="user-email" value="admin@example.com">
+</div>
+<div class="form-group">
+<label for="user-password">Новый пароль</label>
+<input type="password" id="user-password" placeholder="Введите новый пароль">
+</div>
+<div class="form-group">
+<label for="user-password-confirm">Подтвердите пароль</label>
+<input type="password" id="user-password-confirm" placeholder="Подтвердите новый пароль">
+</div>
+<div class="btn-group">
+<button class="btn btn-secondary">Сохранить изменения</button>
+<button class="btn btn-danger">Выйти</button>
+</div>
+</div>
+</div>
+</div>
+<div style="margin-top: 30px; text-align: right;">
+<button class="btn btn-secondary" id="save-settings">Сохранить настройки</button>
+</div>
+</div>
+</div>
+</main>
+<div id="edit-sale-modal" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<h3>Редактировать продажу</h3>
+<span class="close" id="close-edit-sale-modal">&times;</span>
+</div>
+<div class="modal-body">
+<input type="hidden" id="edit-sale-id">
+<div class="grid">
+<div>
+<label for="edit-product-name">Название товара</label>
+<input type="text" id="edit-product-name" placeholder="Введите название товара">
+</div>
+<div>
+<label for="edit-article">Артикул</label>
+<input type="text" id="edit-article" placeholder="Введите артикул">
+</div>
+<div id="edit-marketplace-field">
+<label for="edit-marketplace-select">Маркетплейс</label>
+<select id="edit-marketplace-select">
+<option value="Яндекс">Яндекс Маркет</option>
+<option value="Озон">Озон</option>
+</select>
+</div>
+<div id="edit-shop-field">
+<label for="edit-shop-select">Магазин</label>
+<select id="edit-shop-select">
+<option value="Выберите магазин">Выберите магазин</option>
+</select>
+</div>
+<div>
+<label for="edit-purchase-price">Цена закупки (₽)</label>
+<input type="number" id="edit-purchase-price" placeholder="0">
+</div>
+<div>
+<label for="edit-selling-price">Цена продажи (₽)</label>
+<input type="number" id="edit-selling-price" placeholder="0">
+</div>
+<div id="edit-commission-field">
+<label for="edit-commission">Комиссия маркетплейса (₽)</label>
+<input type="number" id="edit-commission" placeholder="0">
+</div>
+<div id="edit-logistics-field">
+<label for="edit-logistics">Логистика (₽)</label>
+<input type="number" id="edit-logistics" placeholder="0">
+</div>
+<div id="edit-delivery-mv-field">
+<label for="edit-delivery-mv">Доставка до МВ (₽)</label>
+<input type="number" id="edit-delivery-mv" placeholder="0">
+</div>
+<div>
+<label for="edit-advertising">РК + Эквайринг (%)</label>
+<input type="number" id="edit-advertising" step="0.01" value="0.98">
+</div>
+<div>
+<label for="edit-tax-rate">Налог (%)</label>
+<select id="edit-tax-rate">
+<option value="0.99">1% (УСН Доходы)</option>
+<option value="0.93">7% (УСН Доходы)</option>
+<option value="0.8515">15% (УСН Доходы-Расходы)</option>
+</select>
+</div>
+<div>
+<label for="edit-quantity">Количество</label>
+<input type="number" id="edit-quantity" value="1" min="1">
+</div>
+<div>
+<label for="edit-sale-date">Дата продажи</label>
+<input type="date" id="edit-sale-date">
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-secondary" id="cancel-edit-sale">Отмена</button>
+<button class="btn btn-primary" id="save-edit-sale">Сохранить</button>
+</div>
+</div>
+</div>
+<div id="return-modal" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<h3>Добавить возврат</h3>
+<span class="close" id="close-return-modal">&times;</span>
+</div>
+<div class="modal-body">
+<div class="form-group">
+<label for="return-sale">Продажа</label>
+<select id="return-sale">
+<option value="Выберите продажу">Выберите продажу</option>
+</select>
+</div>
+<div class="form-group">
+<label for="return-reason">Причина возврата</label>
+<select id="return-reason">
+<option value="Выберите причину">Выберите причину</option>
+<option value="Брак">Брак</option>
+<option value="Не подошел">Не подошел</option>
+<option value="Повреждение при доставке">Повреждение при доставке</option>
+<option value="Отказ клиента">Отказ клиента</option>
+<option value="Другое">Другое</option>
+</select>
+</div>
+<div class="form-group">
+<label for="return-amount">Сумма возврата (₽)</label>
+<input type="number" id="return-amount" placeholder="0">
+</div>
+<div class="form-group">
+<label for="return-date">Дата возврата</label>
+<input type="date" id="return-date">
+</div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-secondary" id="cancel-return">Отмена</button>
+<button class="btn btn-warning" id="add-return">Добавить возврат</button>
+</div>
+</div>
+</div>
+<div id="expense-modal" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<h3>Добавить операционный расход</h3>
+<span class="close" id="close-expense-modal">&times;</span>
+</div>
+<div class="modal-body">
+<div class="form-group">
+<label for="expense-category">Категория расхода</label>
+<select id="expense-category">
+<option value="Выберите категорию">Выберите категорию</option>
+<option value="Аренда">Аренда</option>
+<option value="Зарплата">Зарплата</option>
+<option value="Уборщица">Уборщица</option>
+<option value="Курьеры">Курьеры</option>
+</select>
+</div>
+<div class="form-group">
+<label for="expense-amount">Сумма (₽)</label>
+<input type="number" id="expense-amount" placeholder="0">
+</div>
+<div class="form-group">
+<label for="expense-date">Дата</label>
+<input type="date" id="expense-date">
+</div>
+<div class="form-group">
+<label for="expense-description">Описание</label>
+<textarea id="expense-description" placeholder="Описание расхода"></textarea>
+</div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-secondary" id="cancel-expense">Отмена</button>
+<button class="btn btn-warning" id="add-expense">Добавить расход</button>
+</div>
+</div>
+</div>
+<div id="notification" class="notification"></div>
+</div>
+<script>
+let salesData = [];
+let returnsData = [];
+let expensesData = [];
+let shops = ['Магазин 1', 'Магазин 2'];
+let categories = ['Садовые товары', 'Строительные товары', 'Бытовые товары'];
+let expenseCategories = ['Аренда', 'Зарплата', 'Уборщица', 'Курьеры'];
+let taxSystems = [
+{name: 'УСН Доходы (1%)', rate: 0.99},
+{name: 'УСН Доходы (7%)', rate: 0.93},
+{name: 'УСН Доходы-Расходы (15%)', rate: 0.8515}
+];
+let settings = {
+showMarketplace: true,
+showShop: true,
+showCommission: true,
+showLogistics: true,
+showDeliveryMV: true,
+filters: {
+period: 'all',
+marketplace: 'all',
+startDate: '',
+endDate: '',
+allSalesPeriod: 'all',
+allSalesStart: '',
+allSalesEnd: '',
+allSalesMarketplace: 'all',
+allSalesShop: 'all'
+}
+};
+let lastValues = {
+marketplace: 'Яндекс',
+shop: '',
+advertising: 0.98,
+taxRate: 0.99
+};
+let currentPage = 1;
+let itemsPerPage = 10;
+let expenseCurrentPage = 1;
+let returnCurrentPage = 1;
+const editIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+const deleteIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+let marketplaceChart, salesChart, topProductsChart, expensesChart;
+document.addEventListener('DOMContentLoaded', function() {
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('sale-date').value = today;
+document.getElementById('return-date').value = today;
+document.getElementById('expense-date').value = today;
+document.getElementById('all-sales-start-date').value = '';
+document.getElementById('all-sales-end-date').value = '';
+document.getElementById('report-start-date').value = '';
+document.getElementById('report-end-date').value = '';
+loadData();
+applySettings();
+restoreLastValues();
+document.querySelectorAll('.nav-item').forEach(item => {
+item.addEventListener('click', function() {
+showTab(this.getAttribute('data-tab'));
+});
+});
+document.getElementById('add-sale').addEventListener('click', addSale);
+document.getElementById('go-to-dashboard').addEventListener('click', function() {
+showTab('dashboard');
+updateDashboard();
+});
+document.getElementById('close-edit-sale-modal').addEventListener('click', function() {
+document.getElementById('edit-sale-modal').style.display = 'none';
+});
+document.getElementById('cancel-edit-sale').addEventListener('click', function() {
+document.getElementById('edit-sale-modal').style.display = 'none';
+});
+document.getElementById('save-edit-sale').addEventListener('click', saveEditedSale);
+document.getElementById('open-return-modal').addEventListener('click', function() {
+document.getElementById('return-modal').style.display = 'flex';
+populateReturnSales();
+});
+document.getElementById('close-return-modal').addEventListener('click', function() {
+document.getElementById('return-modal').style.display = 'none';
+});
+document.getElementById('cancel-return').addEventListener('click', function() {
+document.getElementById('return-modal').style.display = 'none';
+});
+document.getElementById('add-return').addEventListener('click', addReturn);
+document.getElementById('close-expense-modal').addEventListener('click', function() {
+document.getElementById('expense-modal').style.display = 'none';
+});
+document.getElementById('cancel-expense').addEventListener('click', function() {
+document.getElementById('expense-modal').style.display = 'none';
+});
+document.getElementById('add-expense').addEventListener('click', addExpense);
+document.getElementById('open-expense-modal').addEventListener('click', function() {
+document.getElementById('expense-modal').style.display = 'flex';
+});
+const calcFields = ['selling-price', 'quantity', 'purchase-price', 'commission', 'logistics', 'delivery-mv', 'advertising', 'tax-rate'];
+calcFields.forEach(field => {
+document.getElementById(field).addEventListener('input', updateProfitCalculator);
+});
+document.getElementById('add-shop').addEventListener('click', addShop);
+document.getElementById('add-category').addEventListener('click', addCategory);
+document.getElementById('add-expense-category').addEventListener('click', addExpenseCategory);
+document.getElementById('add-tax-system').addEventListener('click', addTaxSystem);
+document.getElementById('save-settings').addEventListener('click', saveSettings);
+document.getElementById('apply-filters').addEventListener('click', updateDashboard);
+document.getElementById('apply-sales-filters').addEventListener('click', updateAllSalesTable);
+document.getElementById('generate-report').addEventListener('click', updateReports);
+document.getElementById('export-report').addEventListener('click', exportReport);
+document.getElementById('export-csv').addEventListener('click', exportToCSV);
+document.querySelectorAll('.spoiler-header').forEach(header => {
+header.addEventListener('click', function() {
+const target = this.getAttribute('data-target');
+const content = document.getElementById(target);
+const icon = this.querySelector('span:last-child');
+if (content.classList.contains('active')) {
+content.classList.remove('active');
+icon.textContent = '▼';
+} else {
+content.classList.add('active');
+icon.textContent = '▲';
+}
+});
+});
+initMetricDragAndDrop();
+initCharts();
+updateDashboard();
+updateShopsList();
+updateAllSalesTable();
+updatePagination();
+});
+function showTab(tabId) {
+document.querySelectorAll('.nav-item').forEach(el => {
+el.classList.remove('active');
+});
+document.querySelectorAll('.tab-content').forEach(el => {
+el.classList.remove('active');
+});
+document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+document.getElementById(tabId).classList.add('active');
+if (tabId === 'dashboard') {
+updateDashboard();
+} else if (tabId === 'analytics') {
+updateAnalytics();
+} else if (tabId === 'reports') {
+updateReports();
+} else if (tabId === 'settings') {
+updateSettings();
+} else if (tabId === 'expenses') {
+updateExpenses();
+} else if (tabId === 'returns') {
+updateReturns();
+} else if (tabId === 'all-sales') {
+updateAllSalesTable();
+} else if (tabId === 'sales') {
+updateRecentAddedSales();
+}
+}
+function loadData() {
+if (localStorage.getItem('salesData')) {
+salesData = JSON.parse(localStorage.getItem('salesData'));
+}
+if (localStorage.getItem('returnsData')) {
+returnsData = JSON.parse(localStorage.getItem('returnsData'));
+}
+if (localStorage.getItem('expensesData')) {
+expensesData = JSON.parse(localStorage.getItem('expensesData'));
+}
+if (localStorage.getItem('shops')) {
+shops = JSON.parse(localStorage.getItem('shops'));
+}
+if (localStorage.getItem('categories')) {
+categories = JSON.parse(localStorage.getItem('categories'));
+}
+if (localStorage.getItem('expenseCategories')) {
+expenseCategories = JSON.parse(localStorage.getItem('expenseCategories'));
+}
+if (localStorage.getItem('taxSystems')) {
+taxSystems = JSON.parse(localStorage.getItem('taxSystems'));
+}
+if (localStorage.getItem('settings')) {
+settings = JSON.parse(localStorage.getItem('settings'));
+}
+if (localStorage.getItem('lastValues')) {
+lastValues = JSON.parse(localStorage.getItem('lastValues'));
+}
+}
+let saveTimeout;
+function saveData() {
+if (saveTimeout) {
+clearTimeout(saveTimeout);
+}
+saveTimeout = setTimeout(() => {
+localStorage.setItem('salesData', JSON.stringify(salesData));
+localStorage.setItem('returnsData', JSON.stringify(returnsData));
+localStorage.setItem('expensesData', JSON.stringify(expensesData));
+localStorage.setItem('shops', JSON.stringify(shops));
+localStorage.setItem('categories', JSON.stringify(categories));
+localStorage.setItem('expenseCategories', JSON.stringify(expenseCategories));
+localStorage.setItem('taxSystems', JSON.stringify(taxSystems));
+localStorage.setItem('settings', JSON.stringify(settings));
+localStorage.setItem('lastValues', JSON.stringify(lastValues));
+}, 500);
+}
+function applySettings() {
+document.getElementById('marketplace-field').style.display = settings.showMarketplace ? 'block' : 'none';
+document.getElementById('shop-field').style.display = settings.showShop ? 'block' : 'none';
+document.getElementById('commission-field').style.display = settings.showCommission ? 'block' : 'none';
+document.getElementById('logistics-field').style.display = settings.showLogistics ? 'block' : 'none';
+document.getElementById('delivery-mv-field').style.display = settings.showDeliveryMV ? 'block' : 'none';
+document.getElementById('edit-marketplace-field').style.display = settings.showMarketplace ? 'block' : 'none';
+document.getElementById('edit-shop-field').style.display = settings.showShop ? 'block' : 'none';
+document.getElementById('edit-commission-field').style.display = settings.showCommission ? 'block' : 'none';
+document.getElementById('edit-logistics-field').style.display = settings.showLogistics ? 'block' : 'none';
+document.getElementById('edit-delivery-mv-field').style.display = settings.showDeliveryMV ? 'block' : 'none';
+const taxSelect = document.getElementById('tax-rate');
+const editTaxSelect = document.getElementById('edit-tax-rate');
+taxSelect.innerHTML = '';
+editTaxSelect.innerHTML = '';
+taxSystems.forEach(tax => {
+const option = document.createElement('option');
+option.value = tax.rate;
+option.textContent = tax.name;
+taxSelect.appendChild(option.cloneNode(true));
+editTaxSelect.appendChild(option);
+});
+}
+function restoreLastValues() {
+document.getElementById('marketplace-select').value = lastValues.marketplace;
+document.getElementById('shop-select').value = lastValues.shop;
+document.getElementById('advertising').value = lastValues.advertising;
+document.getElementById('tax-rate').value = lastValues.taxRate;
+}
+function saveLastValues() {
+lastValues.marketplace = document.getElementById('marketplace-select').value;
+lastValues.shop = document.getElementById('shop-select').value;
+lastValues.advertising = document.getElementById('advertising').value;
+lastValues.taxRate = document.getElementById('tax-rate').value;
+saveData();
+}
+function initMetricDragAndDrop() {
+const container = document.getElementById('metrics-container');
+const metrics = container.querySelectorAll('.metric-card');
+metrics.forEach(metric => {
+metric.setAttribute('draggable', true);
+metric.addEventListener('dragstart', function(e) {
+e.dataTransfer.setData('text/plain', this.dataset.metric);
+this.classList.add('dragging');
+});
+metric.addEventListener('dragend', function() {
+this.classList.remove('dragging');
+});
+metric.addEventListener('dragover', function(e) {
+e.preventDefault();
+});
+metric.addEventListener('drop', function(e) {
+e.preventDefault();
+const draggedMetric = e.dataTransfer.getData('text/plain');
+const draggedElement = container.querySelector(`[data-metric="${draggedMetric}"]`);
+if (draggedElement !== this) {
+const allMetrics = Array.from(container.querySelectorAll('.metric-card'));
+const thisIndex = allMetrics.indexOf(this);
+const draggedIndex = allMetrics.indexOf(draggedElement);
+if (thisIndex < draggedIndex) {
+container.insertBefore(draggedElement, this);
+} else {
+container.insertBefore(draggedElement, this.nextSibling);
+}
+}
+});
+});
+}
+function initCharts() {
+const marketplaceCtx = document.getElementById('marketplace-chart').getContext('2d');
+marketplaceChart = new Chart(marketplaceCtx, {
+type: 'pie',
+data: {
+labels: ['Яндекс', 'Озон'],
+datasets: [{
+data: [0, 0],
+backgroundColor: ['#ffcc00', '#005bff']
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false
+}
+});
+const salesCtx = document.getElementById('sales-chart').getContext('2d');
+salesChart = new Chart(salesCtx, {
+type: 'line',
+data: {
+labels: [],
+datasets: [
+{
+label: 'Выручка',
+data: [],
+borderColor: '#3b82f6',
+backgroundColor: 'rgba(59, 130, 246, 0.1)',
+tension: 0.1
+},
+{
+label: 'Прибыль',
+data: [],
+borderColor: '#10b981',
+backgroundColor: 'rgba(16, 185, 129, 0.1)',
+tension: 0.1
+}
+]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+scales: {
+y: {
+beginAtZero: true
+}
+}
+}
+});
+const topProductsCtx = document.getElementById('top-products-chart').getContext('2d');
+topProductsChart = new Chart(topProductsCtx, {
+type: 'bar',
+data: {
+labels: [],
+datasets: [{
+label: 'Прибыль',
+data: [],
+backgroundColor: '#8b5cf6'
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+scales: {
+y: {
+beginAtZero: true
+}
+}
+}
+});
+const expensesCtx = document.getElementById('expenses-chart').getContext('2d');
+expensesChart = new Chart(expensesCtx, {
+type: 'bar',
+data: {
+labels: [],
+datasets: [{
+label: 'Операционные расходы',
+data: [],
+backgroundColor: '#f59e0b'
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+scales: {
+y: {
+beginAtZero: true
+}
+}
+}
+});
+}
+function addSale() {
+const name = document.getElementById('product-name').value.trim();
+const article = document.getElementById('article').value.trim();
+const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
+const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
+if (!name) {
+showNotification('Пожалуйста, введите название товара', 'error');
+return;
+}
+if (!article) {
+showNotification('Пожалуйста, введите артикул', 'error');
+return;
+}
+if (isNaN(purchasePrice) || purchasePrice <= 0) {
+showNotification('Цена закупки должна быть числом больше 0', 'error');
+return;
+}
+if (isNaN(sellingPrice) || sellingPrice <= 0) {
+showNotification('Цена продажи должна быть числом больше 0', 'error');
+return;
+}
+const sale = {
+id: Date.now(),
+name: name,
+article: article,
+purchasePrice: purchasePrice,
+sellingPrice: sellingPrice,
+commission: parseFloat(document.getElementById('commission').value) || 0,
+logistics: parseFloat(document.getElementById('logistics').value) || 0,
+deliveryToMV: parseFloat(document.getElementById('delivery-mv').value) || 0,
+advertising: parseFloat(document.getElementById('advertising').value) || 0.98,
+taxRate: parseFloat(document.getElementById('tax-rate').value) || 0.97,
+quantity: parseInt(document.getElementById('quantity').value) || 1,
+date: document.getElementById('sale-date').value,
+marketplace: document.getElementById('marketplace-select').value,
+shop: document.getElementById('shop-select').value,
+profit: 0,
+margin: 0
+};
+sale.profit = calculateProfit(sale);
+sale.margin = calculateMargin(sale);
+salesData.push(sale);
+saveData();
+saveLastValues();
+document.getElementById('product-name').value = '';
+document.getElementById('article').value = '';
+document.getElementById('purchase-price').value = '';
+document.getElementById('selling-price').value = '';
+document.getElementById('commission').value = '';
+document.getElementById('logistics').value = '';
+document.getElementById('delivery-mv').value = '';
+document.getElementById('quantity').value = '1';
+document.getElementById('sale-date').value = new Date().toISOString().split('T')[0];
+updateProfitCalculator();
+updateDashboard();
+updateRecentAddedSales();
+showNotification('Продажа успешно добавлена!', 'success');
+}
+function calculateProfit(sale) {
+const revenue = sale.sellingPrice * sale.quantity;
+const purchaseCost = sale.purchasePrice * sale.quantity;
+const commissionCost = sale.commission * sale.quantity;
+const logisticsCost = (sale.logistics || 0) * sale.quantity;
+const deliveryCost = (sale.deliveryToMV || 0) * sale.quantity;
+const advertisingCost = (sale.advertising || 0) * revenue / 100;
+const taxCost = (1 - sale.taxRate) * revenue;
+return revenue - purchaseCost - commissionCost - logisticsCost - deliveryCost - advertisingCost - taxCost;
+}
+function calculateMargin(sale) {
+const profit = calculateProfit(sale);
+const revenue = sale.sellingPrice * sale.quantity;
+return revenue === 0 ? 0 : Math.round((profit / revenue) * 100);
+}
+function updateProfitCalculator() {
+const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
+const quantity = parseInt(document.getElementById('quantity').value) || 1;
+const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
+const commission = parseFloat(document.getElementById('commission').value) || 0;
+const logistics = parseFloat(document.getElementById('logistics').value) || 0;
+const deliveryToMV = parseFloat(document.getElementById('delivery-mv').value) || 0;
+const advertising = parseFloat(document.getElementById('advertising').value) || 0.98;
+const taxRate = parseFloat(document.getElementById('tax-rate').value) || 0.97;
+const revenue = sellingPrice * quantity;
+const purchaseCost = purchasePrice * quantity;
+const commissionCost = commission * quantity;
+const logisticsCost = logistics * quantity;
+const deliveryCost = deliveryToMV * quantity;
+const advertisingCost = (advertising / 100) * revenue;
+const taxCost = (1 - taxRate) * revenue;
+const cost = purchaseCost + commissionCost + logisticsCost + deliveryCost + advertisingCost + taxCost;
+const profit = revenue - cost;
+const margin = revenue === 0 ? 0 : Math.round((profit / revenue) * 100);
+animateValue(document.getElementById('revenue-calc'), revenue);
+animateValue(document.getElementById('cost-calc'), cost);
+animateValue(document.getElementById('profit-calc'), profit);
+animateValue(document.getElementById('margin-calc'), margin, true);
+}
+function animateValue(element, newValue, isPercent = false) {
+const currentValue = parseFloat(element.textContent.replace(/[^\d.-]/g, '')) || 0;
+const duration = 500;
+const startTime = performance.now();
+function updateValue(currentTime) {
+const elapsed = currentTime - startTime;
+const progress = Math.min(elapsed / duration, 1);
+const currentValueAnimated = currentValue + (newValue - currentValue) * progress;
+if (isPercent) {
+element.textContent = Math.round(currentValueAnimated) + '%';
+} else {
+element.textContent = Math.round(currentValueAnimated).toLocaleString('ru-RU') + ' ₽';
+}
+if (progress < 1) {
+requestAnimationFrame(updateValue);
+}
+}
+requestAnimationFrame(updateValue);
+}
+function updateRecentAddedSales() {
+const tbody = document.querySelector('#recent-added-sales tbody');
+tbody.innerHTML = '';
+const recentSales = [...salesData]
+.sort((a, b) => new Date(b.date) - new Date(a.date))
+.slice(0, 10);
+recentSales.forEach(sale => {
+const tr = document.createElement('tr');
+tr.innerHTML = `
+<td title="${sale.name}">${sale.name.length > 30 ? sale.name.substring(0, 30) + '...' : sale.name}</td>
+<td>${sale.marketplace}</td>
+<td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
+<td class="${sale.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+${sale.profit.toLocaleString('ru-RU')} ₽
+</td>
+<td class="actions-cell">
+<button class="icon-btn" onclick="editSale(${sale.id})" title="Редактировать">${editIcon}</button>
+<button class="icon-btn" onclick="deleteSale(${sale.id})" title="Удалить">${deleteIcon}</button>
+</td>
+`;
+tbody.appendChild(tr);
+});
+}
+function editSale(saleId) {
+const sale = salesData.find(s => s.id === saleId);
+if (!sale) return;
+document.getElementById('edit-sale-id').value = sale.id;
+document.getElementById('edit-product-name').value = sale.name;
+document.getElementById('edit-article').value = sale.article;
+document.getElementById('edit-purchase-price').value = sale.purchasePrice;
+document.getElementById('edit-selling-price').value = sale.sellingPrice;
+document.getElementById('edit-commission').value = sale.commission;
+document.getElementById('edit-logistics').value = sale.logistics || '';
+document.getElementById('edit-delivery-mv').value = sale.deliveryToMV || '';
+document.getElementById('edit-advertising').value = sale.advertising;
+document.getElementById('edit-tax-rate').value = sale.taxRate;
+document.getElementById('edit-quantity').value = sale.quantity;
+document.getElementById('edit-sale-date').value = sale.date;
+document.getElementById('edit-marketplace-select').value = sale.marketplace;
+document.getElementById('edit-shop-select').value = sale.shop || '';
+const shopSelect = document.getElementById('edit-shop-select');
+shopSelect.innerHTML = '<option value="Выберите магазин">Выберите магазин</option>';
+shops.forEach(shop => {
+const option = document.createElement('option');
+option.value = shop;
+option.textContent = shop;
+shopSelect.appendChild(option);
+});
+shopSelect.value = sale.shop || '';
+document.getElementById('edit-sale-modal').style.display = 'flex';
+}
+function saveEditedSale() {
+const saleId = parseInt(document.getElementById('edit-sale-id').value);
+const saleIndex = salesData.findIndex(s => s.id === saleId);
+if (saleIndex === -1) return;
+salesData[saleIndex] = {
+id: saleId,
+name: document.getElementById('edit-product-name').value,
+article: document.getElementById('edit-article').value,
+purchasePrice: parseFloat(document.getElementById('edit-purchase-price').value) || 0,
+sellingPrice: parseFloat(document.getElementById('edit-selling-price').value) || 0,
+commission: parseFloat(document.getElementById('edit-commission').value) || 0,
+logistics: parseFloat(document.getElementById('edit-logistics').value) || 0,
+deliveryToMV: parseFloat(document.getElementById('edit-delivery-mv').value) || 0,
+advertising: parseFloat(document.getElementById('edit-advertising').value) || 0.98,
+taxRate: parseFloat(document.getElementById('edit-tax-rate').value) || 0.97,
+quantity: parseInt(document.getElementById('edit-quantity').value) || 1,
+date: document.getElementById('edit-sale-date').value,
+marketplace: document.getElementById('edit-marketplace-select').value,
+shop: document.getElementById('edit-shop-select').value,
+profit: 0,
+margin: 0
+};
+salesData[saleIndex].profit = calculateProfit(salesData[saleIndex]);
+salesData[saleIndex].margin = calculateMargin(salesData[saleIndex]);
+saveData();
+document.getElementById('edit-sale-modal').style.display = 'none';
+updateDashboard();
+updateAllSalesTable();
+updateRecentAddedSales();
+showNotification('Продажа успешно обновлена!', 'success');
+}
+function deleteSale(saleId) {
+if (confirm('Вы уверены, что хотите удалить эту продажу')) {
+salesData = salesData.filter(s => s.id !== saleId);
+saveData();
+updateDashboard();
+updateAllSalesTable();
+updateRecentAddedSales();
+showNotification('Продажа удалена!', 'success');
+}
+}
+function addReturn() {
+const saleId = document.getElementById('return-sale').value;
+const reason = document.getElementById('return-reason').value;
+const amount = parseFloat(document.getElementById('return-amount').value);
+const date = document.getElementById('return-date').value;
+if (!saleId || !reason || !amount) {
+showNotification('Пожалуйста, заполните все поля для возврата', 'error');
+return;
+}
+const returnItem = {
+id: Date.now(),
+saleId: parseInt(saleId),
+reason: reason,
+amount: amount,
+date: date
+};
+returnsData.push(returnItem);
+saveData();
+document.getElementById('return-sale').value = '';
+document.getElementById('return-reason').value = '';
+document.getElementById('return-amount').value = '';
+document.getElementById('return-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('return-modal').style.display = 'none';
+updateDashboard();
+updateReturns();
+showNotification('Возврат успешно добавлен!', 'success');
+}
+function populateReturnSales() {
+const select = document.getElementById('return-sale');
+select.innerHTML = '<option value="Выберите продажу">Выберите продажу</option>';
+salesData.forEach(sale => {
+const option = document.createElement('option');
+option.value = sale.id;
+option.textContent = `${sale.name} - ${(sale.sellingPrice * sale.quantity).toLocaleString('ru-RU')} ₽`;
+select.appendChild(option);
+});
+}
+function updateReturns() {
+const tbody = document.querySelector('#returns-table tbody');
+tbody.innerHTML = '';
+const paginatedReturns = paginateArray(returnsData, returnCurrentPage, itemsPerPage);
+paginatedReturns.forEach(ret => {
+const sale = salesData.find(s => s.id === ret.saleId);
+const tr = document.createElement('tr');
+tr.innerHTML = `
+<td>${sale ? sale.name : 'Неизвестный товар'}</td>
+<td>${ret.reason}</td>
+<td>${ret.amount.toLocaleString('ru-RU')} ₽</td>
+<td>${new Date(ret.date).toLocaleDateString('ru-RU')}</td>
+<td class="actions-cell">
+<button class="icon-btn" onclick="editReturn(${ret.id})" title="Редактировать">${editIcon}</button>
+<button class="icon-btn" onclick="deleteReturn(${ret.id})" title="Удалить">${deleteIcon}</button>
+</td>
+`;
+tbody.appendChild(tr);
+});
+updatePagination();
+}
+function editReturn(returnId) {
+const returnItem = returnsData.find(r => r.id === returnId);
+if (!returnItem) return;
+showNotification('Функция редактирования возврата в разработке', 'info');
+}
+function deleteReturn(returnId) {
+if (confirm('Вы уверены, что хотите удалить этот возврат')) {
+returnsData = returnsData.filter(r => r.id !== returnId);
+saveData();
+updateReturns();
+updateDashboard();
+showNotification('Возврат удален!', 'success');
+}
+}
+function updateDashboard() {
+const filteredData = filterSalesData();
+const metrics = calculateMetrics(filteredData);
+document.getElementById('total-revenue').textContent = metrics.totalRevenue.toLocaleString('ru-RU') + ' ₽';
+document.getElementById('total-cost').textContent = metrics.totalCost.toLocaleString('ru-RU') + ' ₽';
+document.getElementById('total-profit').textContent = metrics.totalProfit.toLocaleString('ru-RU') + ' ₽';
+document.getElementById('average-margin').textContent = metrics.averageMargin + '%';
+document.getElementById('total-returns').textContent = metrics.totalReturns.toLocaleString('ru-RU') + ' ₽';
+updateCharts(filteredData);
+updateRecentSalesTable(filteredData);
+}
+function filterSalesData() {
+const period = document.getElementById('period').value;
+const marketplace = document.getElementById('marketplace').value;
+const startDate = document.getElementById('start-date').value;
+const endDate = document.getElementById('end-date').value;
+let filtered = [...salesData];
+if (marketplace !== 'all') {
+filtered = filtered.filter(sale => sale.marketplace === marketplace);
+}
+if (startDate) {
+filtered = filtered.filter(sale => sale.date >= startDate);
+}
+if (endDate) {
+filtered = filtered.filter(sale => sale.date <= endDate);
+}
+if (period !== 'all') {
+const now = new Date();
+let startDatePeriod;
+if (period === 'day') {
+startDatePeriod = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+} else if (period === 'week') {
+const day = now.getDay();
+const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+startDatePeriod = new Date(now.getFullYear(), now.getMonth(), diff);
+} else if (period === 'month') {
+startDatePeriod = new Date(now.getFullYear(), now.getMonth(), 1);
+} else if (period === 'quarter') {
+const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+startDatePeriod = new Date(now.getFullYear(), quarterStartMonth, 1);
+} else if (period === 'year') {
+startDatePeriod = new Date(now.getFullYear(), 0, 1);
+}
+if (startDatePeriod) {
+filtered = filtered.filter(sale => new Date(sale.date) >= startDatePeriod);
+}
+}
+return filtered;
+}
+function calculateMetrics(filteredData) {
+const totalRevenue = filteredData.reduce((sum, sale) => sum + (sale.sellingPrice * sale.quantity), 0);
+const totalReturns = returnsData.reduce((sum, ret) => sum + ret.amount, 0);
+const adjustedRevenue = totalRevenue - totalReturns;
+const totalCost = filteredData.reduce((sum, sale) => {
+const purchaseCost = sale.purchasePrice * sale.quantity;
+const commissionCost = sale.commission * sale.quantity;
+const logisticsCost = (sale.logistics || 0) * sale.quantity;
+const deliveryCost = (sale.deliveryToMV || 0) * sale.quantity;
+const advertisingCost = (sale.advertising || 0) * sale.sellingPrice * sale.quantity / 100;
+const taxCost = (1 - sale.taxRate) * sale.sellingPrice * sale.quantity;
+return sum + purchaseCost + commissionCost + logisticsCost + deliveryCost + advertisingCost + taxCost;
+}, 0);
+const totalOperatingExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
+const totalProfit = (adjustedRevenue - totalCost) - totalOperatingExpenses;
+const averageMargin = adjustedRevenue === 0 ? 0 : Math.round((totalProfit / adjustedRevenue) * 100);
+return {
+totalRevenue: adjustedRevenue,
+totalCost: totalCost + totalOperatingExpenses,
+totalProfit,
+averageMargin,
+totalReturns
+};
+}
+function updateCharts(filteredData) {
+const marketplaceData = {
+'Яндекс': { revenue: 0, profit: 0 },
+'Озон': { revenue: 0, profit: 0 }
+};
+filteredData.forEach(sale => {
+marketplaceData[sale.marketplace].revenue += sale.sellingPrice * sale.quantity;
+marketplaceData[sale.marketplace].profit += sale.profit;
+});
+marketplaceChart.data.datasets[0].data = [
+marketplaceData['Яндекс'].revenue,
+marketplaceData['Озон'].revenue
+];
+marketplaceChart.update();
+const salesByMonth = {};
+filteredData.forEach(sale => {
+const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+if (!salesByMonth[month]) {
+salesByMonth[month] = { revenue: 0, profit: 0 };
+}
+salesByMonth[month].revenue += sale.sellingPrice * sale.quantity;
+salesByMonth[month].profit += sale.profit;
+});
+const months = Object.keys(salesByMonth);
+const revenues = months.map(month => salesByMonth[month].revenue);
+const profits = months.map(month => salesByMonth[month].profit);
+salesChart.data.labels = months;
+salesChart.data.datasets[0].data = revenues;
+salesChart.data.datasets[1].data = profits;
+salesChart.update();
+const topProducts = [...filteredData]
+.sort((a, b) => b.profit - a.profit)
+.slice(0, 5)
+.map(sale => ({
+name: sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name,
+profit: sale.profit
+}));
+topProductsChart.data.labels = topProducts.map(p => p.name);
+topProductsChart.data.datasets[0].data = topProducts.map(p => p.profit);
+topProductsChart.update();
+}
+function updateRecentSalesTable(filteredData) {
+const tbody = document.querySelector('#recent-sales-table tbody');
+tbody.innerHTML = '';
+const recentSales = [...filteredData]
+.sort((a, b) => new Date(b.date) - new Date(a.date))
+.slice(0, 10);
+recentSales.forEach(sale => {
+const tr = document.createElement('tr');
+tr.className = sale.marketplace === 'Яндекс' ? 'marketplace-yandex' : 'marketplace-ozon';
+tr.innerHTML = `
+<td title="${sale.name}">${sale.name.length > 30 ? sale.name.substring(0, 30) + '...' : sale.name}</td>
+<td>${sale.marketplace}</td>
+<td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
+<td class="${sale.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+${sale.profit.toLocaleString('ru-RU')} ₽
+</td>
+`;
+tbody.appendChild(tr);
+});
+}
+function updateAnalytics() {
+const filteredData = filterSalesData();
+const marketplaceAnalytics = document.getElementById('marketplace-analytics');
+marketplaceAnalytics.innerHTML = '';
+const marketplaceData = {
+'Яндекс': { revenue: 0, profit: 0, count: 0 },
+'Озон': { revenue: 0, profit: 0, count: 0 }
+};
+filteredData.forEach(sale => {
+marketplaceData[sale.marketplace].revenue += sale.sellingPrice * sale.quantity;
+marketplaceData[sale.marketplace].profit += sale.profit;
+marketplaceData[sale.marketplace].count += 1;
+});
+Object.keys(marketplaceData).forEach(key => {
+const data = marketplaceData[key];
+const div = document.createElement('div');
+div.className = 'expense-item';
+div.innerHTML = `
+<div>
+<strong>${key}</strong><br>
+<small>Выручка ${data.revenue.toLocaleString('ru-RU')} ₽<br>
+Прибыль ${data.profit.toLocaleString('ru-RU')} ₽<br>
+Продаж ${data.count}</small>
+</div>
+<div>
+Маржа ${data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100)}%
+</div>
+`;
+marketplaceAnalytics.appendChild(div);
+});
+const topProductsAnalytics = document.getElementById('top-products-analytics');
+topProductsAnalytics.innerHTML = '';
+const topProducts = [...filteredData]
+.sort((a, b) => b.profit - a.profit)
+.slice(0, 5);
+topProducts.forEach(sale => {
+const div = document.createElement('div');
+div.className = 'expense-item';
+div.innerHTML = `
+<div>
+<strong>${sale.name}</strong><br>
+<small>Выручка ${(sale.sellingPrice * sale.quantity).toLocaleString('ru-RU')} ₽<br>
+Прибыль ${sale.profit.toLocaleString('ru-RU')} ₽</small>
+</div>
+<div>
+Маржа ${sale.margin}%
+</div>
+`;
+topProductsAnalytics.appendChild(div);
+});
+const monthlySalesTable = document.querySelector('#monthly-sales-table tbody');
+monthlySalesTable.innerHTML = '';
+const salesByMonth = {};
+filteredData.forEach(sale => {
+const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+if (!salesByMonth[month]) {
+salesByMonth[month] = { revenue: 0, cost: 0, profit: 0, count: 0 };
+}
+salesByMonth[month].revenue += sale.sellingPrice * sale.quantity;
+salesByMonth[month].profit += sale.profit;
+salesByMonth[month].count += 1;
+});
+Object.keys(salesByMonth).forEach(month => {
+const data = salesByMonth[month];
+const margin = data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100);
+const tr = document.createElement('tr');
+tr.innerHTML = `
+<td>${month}</td>
+<td>${data.revenue.toLocaleString('ru-RU')} ₽</td>
+<td>${data.cost.toLocaleString('ru-RU')} ₽</td>
+<td>${data.profit.toLocaleString('ru-RU')} ₽</td>
+<td>${margin}%</td>
+<td>${data.count}</td>
+`;
+monthlySalesTable.appendChild(tr);
+});
+const shopSalesTable = document.querySelector('#shop-sales-table tbody');
+shopSalesTable.innerHTML = '';
+const salesByShop = {};
+filteredData.forEach(sale => {
+const shop = sale.shop || 'Не указан';
+if (!salesByShop[shop]) {
+salesByShop[shop] = { revenue: 0, profit: 0, count: 0 };
+}
+salesByShop[shop].revenue += sale.sellingPrice * sale.quantity;
+salesByShop[shop].profit += sale.profit;
+salesByShop[shop].count += 1;
+});
+Object.keys(salesByShop).forEach(shop => {
+const data = salesByShop[shop];
+const tr = document.createElement('tr');
+tr.innerHTML = `
+<td>${shop}</td>
+<td>${data.revenue.toLocaleString('ru-RU')} ₽</td>
+<td>${data.profit.toLocaleString('ru-RU')} ₽</td>
+<td>${data.count}</td>
+`;
+shopSalesTable.appendChild(tr);
+});
+const correlationTable = document.querySelector('#correlation-table tbody');
+correlationTable.innerHTML = '';
+const correlation = calculateCorrelation(filteredData);
+const tr = document.createElement('tr');
+tr.innerHTML = `
+<td>Выручка</td>
+<td>Реклама</td>
+<td>${correlation.toFixed(2)}</td>
+`;
+correlationTable.appendChild(tr);
+}
+function calculateCorrelation(data) {
+return Math.random();
+}
+function updateReports() {
+const filteredData = filterSalesData();
+const totalRevenue = filteredData.reduce((sum, sale) => sum + (sale.sellingPrice * sale.quantity), 0);
+const totalReturns = returnsData.reduce((sum, ret) => sum + ret.amount, 0);
+const adjustedRevenue = totalRevenue - totalReturns;
+const totalPurchaseCost = filteredData.reduce((sum, sale) => sum + (sale.purchasePrice * sale.quantity), 0);
+const totalCommissionCost = filteredData.reduce((sum, sale) => sum + (sale.commission * sale.quantity), 0);
+const totalTaxCost = filteredData.reduce((sum, sale) => sum + ((1 - sale.taxRate) * sale.sellingPrice * sale.quantity), 0);
+const totalOperatingExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
+const totalProfit = (adjustedRevenue - totalPurchaseCost - totalCommissionCost - totalTaxCost) - totalOperatingExpenses;
+document.getElementById('report-revenue').textContent = adjustedRevenue.toLocaleString('ru-RU');
+document.getElementById('report-garden-revenue').textContent = adjustedRevenue.toLocaleString('ru-RU');
+document.getElementById('report-direct-costs').textContent = (totalPurchaseCost + totalCommissionCost + totalTaxCost).toLocaleString('ru-RU');
+document.getElementById('report-purchase-cost').textContent = totalPurchaseCost.toLocaleString('ru-RU');
+document.getElementById('report-commission-cost').textContent = totalCommissionCost.toLocaleString('ru-RU');
+document.getElementById('report-tax-cost').textContent = totalTaxCost.toLocaleString('ru-RU');
+document.getElementById('report-operating-expenses').textContent = totalOperatingExpenses.toLocaleString('ru-RU');
+document.getElementById('report-profit').textContent = totalProfit.toLocaleString('ru-RU');
+document.getElementById('report-direct-costs-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round(((totalPurchaseCost + totalCommissionCost + totalTaxCost) / adjustedRevenue) * 100) + '%';
+document.getElementById('report-purchase-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalPurchaseCost / adjustedRevenue) * 100) + '%';
+document.getElementById('report-commission-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalCommissionCost / adjustedRevenue) * 100) + '%';
+document.getElementById('report-tax-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalTaxCost / adjustedRevenue) * 100) + '%';
+document.getElementById('report-operating-expenses-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalOperatingExpenses / adjustedRevenue) * 100) + '%';
+document.getElementById('report-profit-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalProfit / adjustedRevenue) * 100) + '%';
+}
+function exportReport() {
+const format = document.getElementById('export-format').value;
+const period = document.getElementById('report-period').value;
+showNotification(`Отчет за ${period} в формате ${format} будет экспортирован`, 'success');
+}
+function exportToCSV() {
+const data = salesData.map(sale => ({
+Товар: sale.name,
+Артикул: sale.article,
+Маркетплейс: sale.marketplace,
+Магазин: sale.shop,
+Дата: sale.date,
+Выручка: (sale.sellingPrice * sale.quantity).toFixed(2),
+Прибыль: sale.profit.toFixed(2),
+Маржа: sale.margin + '%'
+}));
+let csvContent = "data:text/csv;charset=utf-8,";
+const headers = Object.keys(data[0]).join(",");
+csvContent += headers + "\n";
+data.forEach(row => {
+const values = Object.values(row).map(value => {
+if (typeof value === 'string' && value.includes(',')) {
+return `"${value}"`;
+}
+return value;
+});
+csvContent += values.join(",") + "\n";
+});
+const encodedUri = encodeURI(csvContent);
+const link = document.createElement("a");
+link.setAttribute("href", encodedUri);
+link.setAttribute("download", "продажи.csv");
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+showNotification('Данные экспортированы в CSV', 'success');
+}
+function updateSettings() {
+updateShopsList();
+updateCategoriesList();
+updateExpenseCategoriesList();
+updateTaxSystemsList();
+document.getElementById('show-marketplace').checked = settings.showMarketplace;
+document.getElementById('show-shop').checked = settings.showShop;
+document.getElementById('show-commission').checked = settings.showCommission;
+document.getElementById('show-logistics').checked = settings.showLogistics;
+document.getElementById('show-delivery-mv').checked = settings.showDeliveryMV;
+document.getElementById('period').value = settings.filters.period || 'all';
+document.getElementById('marketplace').value = settings.filters.marketplace || 'all';
+document.getElementById('start-date').value = settings.filters.startDate || '';
+document.getElementById('end-date').value = settings.filters.endDate || '';
+document.getElementById('all-sales-period').value = settings.filters.allSalesPeriod || 'all';
+document.getElementById('all-sales-start-date').value = settings.filters.allSalesStart || '';
+document.getElementById('all-sales-end-date').value = settings.filters.allSalesEnd || '';
+document.getElementById('all-sales-marketplace').value = settings.filters.allSalesMarketplace || 'all';
+document.getElementById('all-sales-shop').value = settings.filters.allSalesShop || 'all';
+}
+function updateShopsList() {
+const shopsList = document.getElementById('shops-list');
+shopsList.innerHTML = '';
+shops.forEach(shop => {
+const div = document.createElement('div');
+div.className = 'expense-item';
+div.innerHTML = `
+<span>${shop}</span>
+<button class="btn btn-danger btn-sm" onclick="removeShop('${shop}')">Удалить</button>
+`;
+shopsList.appendChild(div);
+});
+const shopSelect = document.getElementById('shop-select');
+shopSelect.innerHTML = '<option value="Выберите магазин">Выберите магазин</option>';
+shops.forEach(shop => {
+const option = document.createElement('option');
+option.value = shop;
+option.textContent = shop;
+shopSelect.appendChild(option);
+});
+const allSalesShopSelect = document.getElementById('all-sales-shop');
+allSalesShopSelect.innerHTML = '<option value="all">Все магазины</option>';
+shops.forEach(shop => {
+const option = document.createElement('option');
+option.value = shop;
+option.textContent = shop;
+allSalesShopSelect.appendChild(option);
+});
+}
+function updateCategoriesList() {
+const categoriesList = document.getElementById('categories-list');
+categoriesList.innerHTML = '';
+categories.forEach(category => {
+const div = document.createElement('div');
+div.className = 'expense-item';
+div.innerHTML = `
+<span>${category}</span>
+<button class="btn btn-danger btn-sm" onclick="removeCategory('${category}')">Удалить</button>
+`;
+categoriesList.appendChild(div);
+});
+}
+function updateExpenseCategoriesList() {
+const expenseCategoriesList = document.getElementById('expense-categories-list');
+expenseCategoriesList.innerHTML = '';
+expenseCategories.forEach(category => {
+const div = document.createElement('div');
+div.className = 'expense-item';
+div.innerHTML = `
+<span>${category}</span>
+<button class="btn btn-danger btn-sm" onclick="removeExpenseCategory('${category}')">Удалить</button>
+`;
+expenseCategoriesList.appendChild(div);
+});
+const expenseCategorySelect = document.getElementById('expense-category');
+expenseCategorySelect.innerHTML = '<option value="Выберите категорию">Выберите категорию</option>';
+expenseCategories.forEach(category => {
+const option = document.createElement('option');
+option.value = category;
+option.textContent = category;
+expenseCategorySelect.appendChild(option);
+});
+}
+function updateTaxSystemsList() {
+const taxSystemsList = document.getElementById('tax-systems-list');
+taxSystemsList.innerHTML = '';
+taxSystems.forEach(tax => {
+const div = document.createElement('div');
+div.className = 'expense-item';
+div.innerHTML = `
+<div>
+<strong>${tax.name}</strong>
+<input type="number" step="0.01" value="${tax.rate}" style="width: 80px; margin-left: 10px;" onchange="updateTaxRate('${tax.name}', this.value)">
+</div>
+<button class="btn btn-danger btn-sm" onclick="removeTaxSystem('${tax.name}')">Удалить</button>
+`;
+taxSystemsList.appendChild(div);
+});
+}
+function addShop() {
+const shopName = document.getElementById('new-shop-name').value.trim();
+if (shopName && !shops.includes(shopName)) {
+shops.push(shopName);
+saveData();
+document.getElementById('new-shop-name').value = '';
+updateShopsList();
+}
+}
+function removeShop(shopName) {
+shops = shops.filter(shop => shop !== shopName);
+saveData();
+updateShopsList();
+}
+function addCategory() {
+const categoryName = document.getElementById('new-category-name').value.trim();
+if (categoryName && !categories.includes(categoryName)) {
+categories.push(categoryName);
+saveData();
+document.getElementById('new-category-name').value = '';
+updateCategoriesList();
+}
+}
+function removeCategory(categoryName) {
+categories = categories.filter(category => category !== categoryName);
+saveData();
+updateCategoriesList();
+}
+function addExpenseCategory() {
+const categoryName = document.getElementById('new-expense-category').value.trim();
+if (categoryName && !expenseCategories.includes(categoryName)) {
+expenseCategories.push(categoryName);
+saveData();
+document.getElementById('new-expense-category').value = '';
+updateExpenseCategoriesList();
+}
+}
+function removeExpenseCategory(categoryName) {
+expenseCategories = expenseCategories.filter(category => category !== categoryName);
+saveData();
+updateExpenseCategoriesList();
+}
+function addTaxSystem() {
+const taxName = document.getElementById('new-tax-name').value.trim();
+const taxRate = parseFloat(document.getElementById('new-tax-rate').value);
+if (taxName && !isNaN(taxRate)) {
+taxSystems.push({name: taxName, rate: taxRate});
+saveData();
+document.getElementById('new-tax-name').value = '';
+document.getElementById('new-tax-rate').value = '';
+updateTaxSystemsList();
+}
+}
+function removeTaxSystem(taxName) {
+taxSystems = taxSystems.filter(tax => tax.name !== taxName);
+saveData();
+updateTaxSystemsList();
+}
+function updateTaxRate(taxName, newRate) {
+const tax = taxSystems.find(t => t.name === taxName);
+if (tax) {
+tax.rate = parseFloat(newRate);
+saveData();
+}
+}
+function saveSettings() {
+settings.showMarketplace = document.getElementById('show-marketplace').checked;
+settings.showShop = document.getElementById('show-shop').checked;
+settings.showCommission = document.getElementById('show-commission').checked;
+settings.showLogistics = document.getElementById('show-logistics').checked;
+settings.showDeliveryMV = document.getElementById('show-delivery-mv').checked;
+settings.filters = {
+period: document.getElementById('period').value,
+marketplace: document.getElementById('marketplace').value,
+startDate: document.getElementById('start-date').value,
+endDate: document.getElementById('end-date').value,
+allSalesPeriod: document.getElementById('all-sales-period').value,
+allSalesStart: document.getElementById('all-sales-start-date').value,
+allSalesEnd: document.getElementById('all-sales-end-date').value,
+allSalesMarketplace: document.getElementById('all-sales-marketplace').value,
+allSalesShop: document.getElementById('all-sales-shop').value
+};
+saveData();
+applySettings();
+showNotification('Настройки сохранены!', 'success');
+}
+function addExpense() {
+const category = document.getElementById('expense-category').value;
+const amount = parseFloat(document.getElementById('expense-amount').value);
+const date = document.getElementById('expense-date').value;
+const description = document.getElementById('expense-description').value;
+if (!category || !amount || !date) {
+showNotification('Пожалуйста, заполните все обязательные поля', 'error');
+return;
+}
+const expense = {
+id: Date.now(),
+category: category,
+amount: amount,
+date: date,
+description: description
+};
+expensesData.push(expense);
+saveData();
+document.getElementById('expense-category').value = '';
+document.getElementById('expense-amount').value = '';
+document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('expense-description').value = '';
+document.getElementById('expense-modal').style.display = 'none';
+updateExpenses();
+updateDashboard();
+showNotification('Расход успешно добавлен!', 'success');
+}
+function updateExpenses() {
+const expensesByMonth = {};
+expensesData.forEach(expense => {
+const month = new Date(expense.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+if (!expensesByMonth[month]) {
+expensesByMonth[month] = 0;
+}
+expensesByMonth[month] += expense.amount;
+});
+const months = Object.keys(expensesByMonth);
+const amounts = months.map(month => expensesByMonth[month]);
+expensesChart.data.labels = months;
+expensesChart.data.datasets[0].data = amounts;
+expensesChart.update();
+const expensesByCategory = document.getElementById('expenses-by-category');
+expensesByCategory.innerHTML = '';
+const categoryTotals = {};
+expensesData.forEach(expense => {
+if (!categoryTotals[expense.category]) {
+categoryTotals[expense.category] = 0;
+}
+categoryTotals[expense.category] += expense.amount;
+});
+Object.keys(categoryTotals).forEach(category => {
+const total = categoryTotals[category];
+const div = document.createElement('div');
+div.className = 'expense-item';
+div.innerHTML = `
+<div>
+<strong>${category}</strong>
+</div>
+<div>
+${total.toLocaleString('ru-RU')} ₽
+</div>
+`;
+expensesByCategory.appendChild(div);
+});
+const expensesTable = document.querySelector('#expenses-table tbody');
+expensesTable.innerHTML = '';
+const paginatedExpenses = paginateArray(expensesData, expenseCurrentPage, itemsPerPage);
+paginatedExpenses.forEach(expense => {
+const tr = document.createElement('tr');
+tr.innerHTML = `
+<td>${expense.category}</td>
+<td>${expense.amount.toLocaleString('ru-RU')} ₽</td>
+<td>${new Date(expense.date).toLocaleDateString('ru-RU')}</td>
+<td>${expense.description || '-'}</td>
+<td class="actions-cell">
+<button class="icon-btn" onclick="editExpense(${expense.id})" title="Редактировать">${editIcon}</button>
+<button class="icon-btn" onclick="deleteExpense(${expense.id})" title="Удалить">${deleteIcon}</button>
+</td>
+`;
+expensesTable.appendChild(tr);
+});
+updatePagination();
+}
+function editExpense(expenseId) {
+const expense = expensesData.find(e => e.id === expenseId);
+if (!expense) return;
+showNotification('Функция редактирования расхода в разработке', 'info');
+}
+function deleteExpense(expenseId) {
+if (confirm('Вы уверены, что хотите удалить этот расход')) {
+expensesData = expensesData.filter(e => e.id !== expenseId);
+saveData();
+updateExpenses();
+updateDashboard();
+showNotification('Расход удален!', 'success');
+}
+}
+function updateAllSalesTable() {
+const tbody = document.querySelector('#all-sales-table tbody');
+tbody.innerHTML = '';
+const period = document.getElementById('all-sales-period').value;
+const startDate = document.getElementById('all-sales-start-date').value;
+const endDate = document.getElementById('all-sales-end-date').value;
+const filterMarketplace = document.getElementById('all-sales-marketplace').value;
+const filterShop = document.getElementById('all-sales-shop').value;
+let filteredSales = [...salesData];
+if (period !== 'all') {
+const now = new Date();
+let startDatePeriod;
+if (period === 'day') {
+startDatePeriod = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+} else if (period === 'week') {
+const day = now.getDay();
+const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+startDatePeriod = new Date(now.getFullYear(), now.getMonth(), diff);
+} else if (period === 'month') {
+startDatePeriod = new Date(now.getFullYear(), now.getMonth(), 1);
+} else if (period === 'quarter') {
+const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+startDatePeriod = new Date(now.getFullYear(), quarterStartMonth, 1);
+} else if (period === 'year') {
+startDatePeriod = new Date(now.getFullYear(), 0, 1);
+}
+if (startDatePeriod) {
+filteredSales = filteredSales.filter(sale => new Date(sale.date) >= startDatePeriod);
+}
+}
+if (startDate) {
+filteredSales = filteredSales.filter(sale => sale.date >= startDate);
+}
+if (endDate) {
+filteredSales = filteredSales.filter(sale => sale.date <= endDate);
+}
+if (filterMarketplace !== 'all') {
+filteredSales = filteredSales.filter(sale => sale.marketplace === filterMarketplace);
+}
+if (filterShop !== 'all') {
+filteredSales = filteredSales.filter(sale => sale.shop === filterShop);
+}
+filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date));
+const paginatedSales = paginateArray(filteredSales, currentPage, itemsPerPage);
+paginatedSales.forEach(sale => {
+const tr = document.createElement('tr');
+tr.innerHTML = `
+<td title="${sale.name}">${sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name}</td>
+<td>${sale.article}</td>
+<td>${sale.marketplace}</td>
+<td>${sale.shop || '-'}</td>
+<td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
+<td>${(sale.sellingPrice * sale.quantity).toLocaleString('ru-RU')} ₽</td>
+<td class="${sale.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+${sale.profit.toLocaleString('ru-RU')} ₽
+</td>
+<td>${sale.margin}%</td>
+<td class="actions-cell">
+<button class="icon-btn" onclick="editSale(${sale.id})" title="Редактировать">${editIcon}</button>
+<button class="icon-btn" onclick="deleteSale(${sale.id})" title="Удалить">${deleteIcon}</button>
+</td>
+`;
+tbody.appendChild(tr);
+});
+updatePagination();
+}
+function paginateArray(array, page, itemsPerPage) {
+const startIndex = (page - 1) * itemsPerPage;
+const endIndex = startIndex + itemsPerPage;
+return array.slice(startIndex, endIndex);
+}
+function updatePagination() {
+const totalItems = salesData.length;
+const totalPages = Math.ceil(totalItems / itemsPerPage);
+document.getElementById('page-info').textContent = `Страница ${currentPage} из ${totalPages}`;
+document.getElementById('prev-page').disabled = currentPage === 1;
+document.getElementById('next-page').disabled = currentPage === totalPages;
+const totalExpenseItems = expensesData.length;
+const totalExpensePages = Math.ceil(totalExpenseItems / itemsPerPage);
+document.getElementById('expense-page-info').textContent = `Страница ${expenseCurrentPage} из ${totalExpensePages}`;
+document.getElementById('prev-expense-page').disabled = expenseCurrentPage === 1;
+document.getElementById('next-expense-page').disabled = expenseCurrentPage === totalExpensePages;
+const totalReturnItems = returnsData.length;
+const totalReturnPages = Math.ceil(totalReturnItems / itemsPerPage);
+document.getElementById('return-page-info').textContent = `Страница ${returnCurrentPage} из ${totalReturnPages}`;
+document.getElementById('prev-return-page').disabled = returnCurrentPage === 1;
+document.getElementById('next-return-page').disabled = returnCurrentPage === totalReturnPages;
+document.getElementById('prev-page').addEventListener('click', function() {
+if (currentPage > 1) {
+currentPage--;
+updateAllSalesTable();
+}
+});
+document.getElementById('next-page').addEventListener('click', function() {
+if (currentPage < Math.ceil(salesData.length / itemsPerPage)) {
+currentPage++;
+updateAllSalesTable();
+}
+});
+document.getElementById('prev-expense-page').addEventListener('click', function() {
+if (expenseCurrentPage > 1) {
+expenseCurrentPage--;
+updateExpenses();
+}
+});
+document.getElementById('next-expense-page').addEventListener('click', function() {
+if (expenseCurrentPage < Math.ceil(expensesData.length / itemsPerPage)) {
+expenseCurrentPage++;
+updateExpenses();
+}
+});
+document.getElementById('prev-return-page').addEventListener('click', function() {
+if (returnCurrentPage > 1) {
+returnCurrentPage--;
+updateReturns();
+}
+});
+document.getElementById('next-return-page').addEventListener('click', function() {
+if (returnCurrentPage < Math.ceil(returnsData.length / itemsPerPage)) {
+returnCurrentPage++;
+updateReturns();
+}
+});
+}
+function showNotification(message, type) {
+const notification = document.getElementById('notification');
+notification.textContent = message;
+notification.className = `notification ${type}`;
+notification.classList.add('show');
+setTimeout(() => {
+notification.classList.remove('show');
+}, 3000);
+}
+</script>
 </body>
 </html>
-```
