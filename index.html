@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Система учета продаж и прибыли</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Подключение Supabase -->
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
 :root {
 --primary: #3b82f6;
@@ -437,78 +435,6 @@ background: var(--primary);
 color: white;
 border-color: var(--primary);
 }
-/* Стили для страницы входа */
-.auth-container {
-max-width: 400px;
-margin: 100px auto;
-padding: 40px;
-background: white;
-border-radius: 12px;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-.auth-title {
-text-align: center;
-margin-bottom: 30px;
-color: var(--dark);
-font-size: 1.8rem;
-}
-.auth-form .form-group {
-margin-bottom: 20px;
-}
-.auth-form input {
-width: 100%;
-padding: 12px;
-border: 1px solid var(--border);
-border-radius: 8px;
-font-size: 1rem;
-}
-.auth-form .btn {
-width: 100%;
-margin-top: 10px;
-}
-.auth-form .form-footer {
-text-align: center;
-margin-top: 20px;
-}
-.auth-form .form-footer a {
-color: var(--primary);
-text-decoration: none;
-}
-.auth-form .form-footer a:hover {
-text-decoration: underline;
-}
-/* Стили для админ-панели */
-.admin-panel {
-background: #f8fafc;
-border: 1px solid var(--border);
-border-radius: 8px;
-padding: 20px;
-margin-top: 20px;
-}
-.admin-panel h3 {
-margin-bottom: 20px;
-color: var(--dark);
-}
-.user-list {
-margin-top: 20px;
-}
-.user-list-item {
-display: flex;
-justify-content: space-between;
-align-items: center;
-padding: 15px;
-background: white;
-margin-bottom: 10px;
-border-radius: 8px;
-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-.user-list-item strong {
-color: var(--dark);
-}
-.user-list-item span {
-color: var(--gray);
-font-size: 0.9rem;
-}
 @media (max-width: 768px) {
 .metrics-grid {
 grid-template-columns: 1fr;
@@ -523,36 +449,18 @@ flex-wrap: nowrap;
 </style>
 </head>
 <body>
-<div id="auth-container" class="auth-container">
-<h2 class="auth-title">Вход в систему</h2>
-<form id="auth-form" class="auth-form">
-<div class="form-group">
-<label for="email">Email</label>
-<input type="email" id="email" placeholder="Введите ваш email" required>
-</div>
-<div class="form-group">
-<label for="password">Пароль</label>
-<input type="password" id="password" placeholder="Введите ваш пароль" required>
-</div>
-<button type="submit" class="btn btn-primary">Войти</button>
-<div class="form-footer">
-<a href="#" id="forgot-password">Забыли пароль?</a>
-</div>
-</form>
-</div>
-<div id="main-app" class="container" style="display: none;">
+<div class="container">
 <header>
 <div>
 <h1>Система учета продаж и прибыли</h1>
 <p class="subtitle">Управляйте своими продажами, отслеживайте прибыль и анализируйте эффективность</p>
 </div>
 <div class="user-info">
-<div class="avatar" id="user-avatar">А</div>
+<div class="avatar">А</div>
 <div>
-<div id="user-role">Администратор</div>
-<div style="font-size: 0.9rem; color: var(--gray);" id="user-email-display">admin@example.com</div>
+<div>Администратор</div>
+<div style="font-size: 0.9rem; color: var(--gray);">admin@example.com</div>
 </div>
-<button class="btn btn-danger" id="logout-btn" style="margin-left: 20px;">Выйти</button>
 </div>
 </header>
 <nav>
@@ -565,7 +473,6 @@ flex-wrap: nowrap;
 <li class="nav-item" data-tab="analytics">Аналитика</li>
 <li class="nav-item" data-tab="reports">Отчеты</li>
 <li class="nav-item" data-tab="settings">Настройки</li>
-<li class="nav-item" data-tab="admin-panel" id="admin-panel-tab" style="display: none;">Админ-панель</li>
 </ul>
 </nav>
 <main>
@@ -1280,41 +1187,14 @@ flex-wrap: nowrap;
 <input type="password" id="user-password-confirm" placeholder="Подтвердите новый пароль">
 </div>
 <div class="btn-group">
-<button class="btn btn-secondary" id="save-account-settings">Сохранить изменения</button>
+<button class="btn btn-secondary">Сохранить изменения</button>
+<button class="btn btn-danger">Выйти</button>
 </div>
 </div>
 </div>
 </div>
 <div style="margin-top: 30px; text-align: right;">
 <button class="btn btn-secondary" id="save-settings">Сохранить настройки</button>
-</div>
-</div>
-</div>
-<div id="admin-panel" class="tab-content">
-<div class="card">
-<h2 class="card-title">Админ-панель</h2>
-<div class="admin-panel">
-<h3>Управление пользователями</h3>
-<div class="form-group">
-<label for="new-user-email">Email нового пользователя</label>
-<input type="email" id="new-user-email" placeholder="Введите email" required>
-</div>
-<div class="form-group">
-<label for="new-user-password">Пароль</label>
-<input type="password" id="new-user-password" placeholder="Введите пароль" required>
-</div>
-<div class="form-group">
-<label for="new-user-role">Роль</label>
-<select id="new-user-role">
-<option value="admin">Администратор</option>
-<option value="user">Сотрудник</option>
-<option value="viewer">Наблюдатель</option>
-</select>
-</div>
-<button class="btn btn-primary" id="create-user">Создать пользователя</button>
-<div class="user-list" id="user-list">
-<!-- Список пользователей будет здесь -->
-</div>
 </div>
 </div>
 </div>
@@ -1475,92 +1355,60 @@ flex-wrap: nowrap;
 <div id="notification" class="notification"></div>
 </div>
 <script>
-// Инициализация Supabase
-// ЗАМЕНИТЕ ЭТИ ЗНАЧЕНИЯ НА ВАШИ ИЗ ПРОЕКТА SUPABASE
-const supabaseUrl = 'https://lwbtbxzgypzqhtofscof.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3YnRieHpneXB6cWh0b2ZzY29mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMDU1MDYsImV4cCI6MjA3Mzc4MTUwNn0.LRV4q9QptG9S_hqH-Ekoe6G9E-vKbSGQwZjlMMvQTpc';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-// Глобальные переменные
-let currentUser = null;
-let salesData = []; // Инициализируем как пустой массив
-let returnsData = []; // Инициализируем как пустой массив
-let expensesData = []; // Инициализируем как пустой массив
+let salesData = [];
+let returnsData = [];
+let expensesData = [];
 let shops = ['Магазин 1', 'Магазин 2'];
 let categories = ['Садовые товары', 'Строительные товары', 'Бытовые товары'];
 let expenseCategories = ['Аренда', 'Зарплата', 'Уборщица', 'Курьеры'];
 let taxSystems = [
-    {name: 'УСН Доходы (1%)', rate: 0.99},
-    {name: 'УСН Доходы (7%)', rate: 0.93},
-    {name: 'УСН Доходы-Расходы (15%)', rate: 0.8515}
+{name: 'УСН Доходы (1%)', rate: 0.99},
+{name: 'УСН Доходы (7%)', rate: 0.93},
+{name: 'УСН Доходы-Расходы (15%)', rate: 0.8515}
 ];
 let settings = {
-    showMarketplace: true,
-    showShop: true,
-    showCommission: true,
-    showLogistics: true,
-    showDeliveryMV: true,
-    filters: {
-        period: 'all',
-        marketplace: 'all',
-        startDate: '',
-        endDate: '',
-        allSalesPeriod: 'all',
-        allSalesStart: '',
-        allSalesEnd: '',
-        allSalesMarketplace: 'all',
-        allSalesShop: 'all'
-    }
+showMarketplace: true,
+showShop: true,
+showCommission: true,
+showLogistics: true,
+showDeliveryMV: true,
+filters: {
+period: 'all',
+marketplace: 'all',
+startDate: '',
+endDate: '',
+allSalesPeriod: 'all',
+allSalesStart: '',
+allSalesEnd: '',
+allSalesMarketplace: 'all',
+allSalesShop: 'all'
+}
 };
 let lastValues = {
-    marketplace: 'Яндекс',
-    shop: '',
-    advertising: 0.98,
-    taxRate: 0.99
+marketplace: 'Яндекс',
+shop: '',
+advertising: 0.98,
+taxRate: 0.99
 };
 let currentPage = 1;
 let itemsPerPage = 10;
 let expenseCurrentPage = 1;
 let returnCurrentPage = 1;
-const editIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-const deleteIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+const editIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+const deleteIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 let marketplaceChart, salesChart, topProductsChart, expensesChart;
-// Обработчики событий
-document.addEventListener('DOMContentLoaded', async function() {
-// Проверяем, есть ли уже авторизованный пользователь
-const { data: { user }, error: authError } = await supabase.auth.getUser();
-if (authError) {
-    console.error('Ошибка при проверке аутентификации:', authError);
-}
-if (user) {
-    await handleSuccessfulLogin(user);
-} else {
-    document.getElementById('auth-container').style.display = 'block';
-    document.getElementById('main-app').style.display = 'none';
-}
-// Обработчик формы входа
-document.getElementById('auth-form').addEventListener('submit', async function(e) {
-e.preventDefault();
-const email = document.getElementById('email').value;
-const password = document.getElementById('password').value;
-const { data, error } = await supabase.auth.signInWithPassword({
-email: email,
-password: password
-});
-if (error) {
-showNotification('Ошибка входа: ' + error.message, 'error');
-} else {
-await handleSuccessfulLogin(data.user);
-}
-});
-// Обработчик выхода
-document.getElementById('logout-btn').addEventListener('click', async function() {
-await supabase.auth.signOut();
-currentUser = null;
-document.getElementById('auth-container').style.display = 'block';
-document.getElementById('main-app').style.display = 'none';
-showNotification('Вы успешно вышли из системы', 'success');
-});
-// Остальные обработчики событий
+document.addEventListener('DOMContentLoaded', function() {
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('sale-date').value = today;
+document.getElementById('return-date').value = today;
+document.getElementById('expense-date').value = today;
+document.getElementById('all-sales-start-date').value = '';
+document.getElementById('all-sales-end-date').value = '';
+document.getElementById('report-start-date').value = '';
+document.getElementById('report-end-date').value = '';
+loadData();
+applySettings();
+restoreLastValues();
 document.querySelectorAll('.nav-item').forEach(item => {
 item.addEventListener('click', function() {
 showTab(this.getAttribute('data-tab'));
@@ -1596,6 +1444,9 @@ document.getElementById('cancel-expense').addEventListener('click', function() {
 document.getElementById('expense-modal').style.display = 'none';
 });
 document.getElementById('add-expense').addEventListener('click', addExpense);
+document.getElementById('open-expense-modal').addEventListener('click', function() {
+document.getElementById('expense-modal').style.display = 'flex';
+});
 const calcFields = ['selling-price', 'quantity', 'purchase-price', 'commission', 'logistics', 'delivery-mv', 'advertising', 'tax-rate'];
 calcFields.forEach(field => {
 document.getElementById(field).addEventListener('input', updateProfitCalculator);
@@ -1624,102 +1475,50 @@ icon.textContent = '▲';
 }
 });
 });
-document.getElementById('save-account-settings').addEventListener('click', saveAccountSettings);
-document.getElementById('create-user').addEventListener('click', createUser);
-// Инициализация
 initMetricDragAndDrop();
 initCharts();
-const today = new Date().toISOString().split('T')[0];
-document.getElementById('sale-date').value = today;
-document.getElementById('return-date').value = today;
-document.getElementById('expense-date').value = today;
-restoreLastValues();
-});
-// Функция для обработки успешного входа
-async function handleSuccessfulLogin(user) {
-currentUser = user;
-document.getElementById('auth-container').style.display = 'none';
-document.getElementById('main-app').style.display = 'block';
-document.getElementById('user-email-display').textContent = currentUser.email;
-document.getElementById('user-avatar').textContent = currentUser.email.charAt(0).toUpperCase();
-// Получаем роль пользователя из JWT-токена
-const userRole = user.user_metadata?.role || 'user';
-document.getElementById('user-role').textContent = getRoleDisplayName(userRole);
-// Показываем/скрываем админ-панель
-if (userRole === 'admin') {
-document.getElementById('admin-panel-tab').style.display = 'block';
-loadAllUsers();
-} else {
-document.getElementById('admin-panel-tab').style.display = 'none';
-}
-// Загружаем данные пользователя
-await loadData();
-applySettings();
 updateDashboard();
-showNotification('Добро пожаловать!', 'success');
+updateShopsList();
+updateAllSalesTable();
+updatePagination();
+});
+function showTab(tabId) {
+document.querySelectorAll('.nav-item').forEach(el => {
+el.classList.remove('active');
+});
+document.querySelectorAll('.tab-content').forEach(el => {
+el.classList.remove('active');
+});
+document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+document.getElementById(tabId).classList.add('active');
+if (tabId === 'dashboard') {
+updateDashboard();
+} else if (tabId === 'analytics') {
+updateAnalytics();
+} else if (tabId === 'reports') {
+updateReports();
+} else if (tabId === 'settings') {
+updateSettings();
+} else if (tabId === 'expenses') {
+updateExpenses();
+} else if (tabId === 'returns') {
+updateReturns();
+} else if (tabId === 'all-sales') {
+updateAllSalesTable();
+} else if (tabId === 'sales') {
+updateRecentAddedSales();
 }
-// Функция для получения отображаемого названия роли
-function getRoleDisplayName(role) {
-switch(role) {
-case 'admin':
-return 'Администратор';
-case 'user':
-return 'Сотрудник';
-case 'viewer':
-return 'Наблюдатель';
-default:
-return 'Пользователь';
 }
+function loadData() {
+if (localStorage.getItem('salesData')) {
+salesData = JSON.parse(localStorage.getItem('salesData'));
 }
-// Функция для загрузки данных пользователя
-async function loadData() {
-// Загружаем продажи
-let {  sales, error: salesError } = await supabase
-.from('sales')
-.select('*')
-.order('date', { ascending: false });
-if (salesError) {
-console.error('Ошибка загрузки продаж:', salesError);
-showNotification('Ошибка загрузки данных продаж', 'error');
-return;
+if (localStorage.getItem('returnsData')) {
+returnsData = JSON.parse(localStorage.getItem('returnsData'));
 }
-// Если пользователь не админ, фильтруем по его ID
-if (currentUser && getRoleFromToken() !== 'admin') {
-sales = sales.filter(sale => sale.user_id === currentUser.id);
+if (localStorage.getItem('expensesData')) {
+expensesData = JSON.parse(localStorage.getItem('expensesData'));
 }
-salesData = sales || [];
-// Загружаем возвраты
-let {  returns, error: returnsError } = await supabase
-.from('returns')
-.select('*')
-.order('date', { ascending: false });
-if (returnsError) {
-console.error('Ошибка загрузки возвратов:', returnsError);
-showNotification('Ошибка загрузки данных возвратов', 'error');
-return;
-}
-// Если пользователь не админ, фильтруем по его продажам
-if (currentUser && getRoleFromToken() !== 'admin') {
-const userSaleIds = salesData.map(sale => sale.id);
-returns = returns.filter(ret => userSaleIds.includes(ret.sale_id));
-}
-returnsData = returns || [];
-// Загружаем расходы
-let {  expenses, error: expensesError } = await supabase
-.from('expenses')
-.select('*')
-.order('date', { ascending: false });
-if (expensesError) {
-console.error('Ошибка загрузки расходов:', expensesError);
-showNotification('Ошибка загрузки данных расходов', 'error');
-return;
-}
-// Если пользователь не админ, фильтруем по его ID
-if (currentUser && getRoleFromToken() !== 'admin') {
-expenses = expenses.filter(expense => expense.user_id === currentUser.id);
-}
-expensesData = expenses || [];
-// Загружаем локальные настройки
 if (localStorage.getItem('shops')) {
 shops = JSON.parse(localStorage.getItem('shops'));
 }
@@ -1738,108 +1537,24 @@ settings = JSON.parse(localStorage.getItem('settings'));
 if (localStorage.getItem('lastValues')) {
 lastValues = JSON.parse(localStorage.getItem('lastValues'));
 }
-// Обновляем интерфейс
-applySettings();
-restoreLastValues();
-updateShopsList();
-updateCategoriesList();
-updateExpenseCategoriesList();
-updateTaxSystemsList();
 }
-// Функция для получения роли из JWT-токена
-function getRoleFromToken() {
-if (!currentUser) return null;
-return currentUser.user_metadata?.role || 'user';
+let saveTimeout;
+function saveData() {
+if (saveTimeout) {
+clearTimeout(saveTimeout);
 }
-// Функция для сохранения настроек аккаунта
-async function saveAccountSettings() {
-const userName = document.getElementById('user-name').value;
-const userEmail = document.getElementById('user-email').value;
-const userPassword = document.getElementById('user-password').value;
-const userPasswordConfirm = document.getElementById('user-password-confirm').value;
-if (userPassword && userPassword !== userPasswordConfirm) {
-showNotification('Пароли не совпадают', 'error');
-return;
+saveTimeout = setTimeout(() => {
+localStorage.setItem('salesData', JSON.stringify(salesData));
+localStorage.setItem('returnsData', JSON.stringify(returnsData));
+localStorage.setItem('expensesData', JSON.stringify(expensesData));
+localStorage.setItem('shops', JSON.stringify(shops));
+localStorage.setItem('categories', JSON.stringify(categories));
+localStorage.setItem('expenseCategories', JSON.stringify(expenseCategories));
+localStorage.setItem('taxSystems', JSON.stringify(taxSystems));
+localStorage.setItem('settings', JSON.stringify(settings));
+localStorage.setItem('lastValues', JSON.stringify(lastValues));
+}, 500);
 }
-if (userPassword) {
-const { data, error } = await supabase.auth.updateUser({
-password: userPassword
-});
-if (error) {
-showNotification('Ошибка обновления пароля: ' + error.message, 'error');
-return;
-}
-}
-showNotification('Настройки аккаунта сохранены', 'success');
-}
-// Функция для создания нового пользователя (только для админа)
-async function createUser() {
-const email = document.getElementById('new-user-email').value;
-const password = document.getElementById('new-user-password').value;
-const role = document.getElementById('new-user-role').value;
-if (!email || !password) {
-showNotification('Пожалуйста, заполните все поля', 'error');
-return;
-}
-// Создаем пользователя через Supabase Auth
-const {  authData, error: authError } = await supabase.auth.admin.createUser({
-email: email,
-password: password,
-email_confirm: true
-});
-if (authError) {
-showNotification('Ошибка создания пользователя: ' + authError.message, 'error');
-return;
-}
-// Создаем запись в таблице users с ролью
-const {  userData, error: userError } = await supabase
-.from('users')
-.insert([
-{ id: authData.user.id, email: email, role: role }
-]);
-if (userError) {
-showNotification('Ошибка сохранения роли пользователя: ' + userError.message, 'error');
-return;
-}
-// Обновляем JWT-токен, чтобы добавить роль
-const { error: updateError } = await supabase.auth.admin.updateUserById(authData.user.id, {
-app_metadata: { role: role }
-});
-if (updateError) {
-showNotification('Ошибка обновления метаданных: ' + updateError.message, 'error');
-return;
-}
-showNotification('Пользователь успешно создан!', 'success');
-document.getElementById('new-user-email').value = '';
-document.getElementById('new-user-password').value = '';
-loadAllUsers();
-}
-// Функция для загрузки всех пользователей (только для админа)
-async function loadAllUsers() {
-    const {  users, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
-    if (error) {
-        console.error('Ошибка загрузки пользователей:', error);
-        showNotification('Ошибка загрузки списка пользователей', 'error');
-        return;
-    }
-    // Убедимся, что users — это массив
-    const userList = users || [];
-    const userListContainer = document.getElementById('user-list');
-    userListContainer.innerHTML = '';
-    userList.forEach(user => {
-        const div = document.createElement('div');
-        div.className = 'user-list-item';
-        div.innerHTML = `
-            <strong>${user.email}</strong>
-            <span>Роль: ${getRoleDisplayName(user.role)}</span>
-        `;
-        userListContainer.appendChild(div);
-    });
-}
-// Остальные функции (как в оригинальном коде, с адаптацией для Supabase)
 function applySettings() {
 document.getElementById('marketplace-field').style.display = settings.showMarketplace ? 'block' : 'none';
 document.getElementById('shop-field').style.display = settings.showShop ? 'block' : 'none';
@@ -1999,92 +1714,77 @@ beginAtZero: true
 }
 });
 }
-async function addSale() {
-    const name = document.getElementById('product-name').value.trim();
-    const article = document.getElementById('article').value.trim();
-    const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
-    const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
-    if (!name) {
-        showNotification('Пожалуйста, введите название товара', 'error');
-        return;
-    }
-    if (!article) {
-        showNotification('Пожалуйста, введите артикул', 'error');
-        return;
-    }
-    if (isNaN(purchasePrice) || purchasePrice <= 0) {
-        showNotification('Цена закупки должна быть числом больше 0', 'error');
-        return;
-    }
-    if (isNaN(sellingPrice) || sellingPrice <= 0) {
-        showNotification('Цена продажи должна быть числом больше 0', 'error');
-        return;
-    }
-    const sale = {
-        name: name,
-        article: article,
-        purchase_price: purchasePrice,
-        selling_price: sellingPrice,
-        commission: parseFloat(document.getElementById('commission').value) || 0,
-        logistics: parseFloat(document.getElementById('logistics').value) || 0,
-        delivery_to_mv: parseFloat(document.getElementById('delivery-mv').value) || 0,
-        advertising: parseFloat(document.getElementById('advertising').value) || 0.98,
-        tax_rate: parseFloat(document.getElementById('tax-rate').value) || 0.97,
-        quantity: parseInt(document.getElementById('quantity').value) || 1,
-        date: document.getElementById('sale-date').value,
-        marketplace: document.getElementById('marketplace-select').value,
-        shop: document.getElementById('shop-select').value,
-        user_id: currentUser.id
-    };
-    // Рассчитываем прибыль и маржу
-    const profit = calculateProfit(sale);
-    const margin = calculateMargin(sale);
-    sale.profit = profit;
-    sale.margin = margin;
-    // Сохраняем в Supabase
-    const { data, error } = await supabase
-        .from('sales')
-        .insert([sale])
-        .select()
-        .single();
-    if (error) {
-        showNotification('Ошибка добавления продажи: ' + error.message, 'error');
-        return;
-    }
-    // Добавляем в локальный массив ТОЛЬКО если data существует
-    if (data) {
-        salesData.push(data);
-        saveLastValues();
-        document.getElementById('product-name').value = '';
-        document.getElementById('article').value = '';
-        document.getElementById('purchase-price').value = '';
-        document.getElementById('selling-price').value = '';
-        document.getElementById('commission').value = '';
-        document.getElementById('logistics').value = '';
-        document.getElementById('delivery-mv').value = '';
-        document.getElementById('quantity').value = '1';
-        document.getElementById('sale-date').value = new Date().toISOString().split('T')[0];
-        updateProfitCalculator();
-        updateDashboard();
-        updateRecentAddedSales();
-        showNotification('Продажа успешно добавлена!', 'success');
-    } else {
-        showNotification('Ошибка: данные продажи не были получены', 'error');
-    }
+function addSale() {
+const name = document.getElementById('product-name').value.trim();
+const article = document.getElementById('article').value.trim();
+const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
+const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
+if (!name) {
+showNotification('Пожалуйста, введите название товара', 'error');
+return;
+}
+if (!article) {
+showNotification('Пожалуйста, введите артикул', 'error');
+return;
+}
+if (isNaN(purchasePrice) || purchasePrice <= 0) {
+showNotification('Цена закупки должна быть числом больше 0', 'error');
+return;
+}
+if (isNaN(sellingPrice) || sellingPrice <= 0) {
+showNotification('Цена продажи должна быть числом больше 0', 'error');
+return;
+}
+const sale = {
+id: Date.now(),
+name: name,
+article: article,
+purchasePrice: purchasePrice,
+sellingPrice: sellingPrice,
+commission: parseFloat(document.getElementById('commission').value) || 0,
+logistics: parseFloat(document.getElementById('logistics').value) || 0,
+deliveryToMV: parseFloat(document.getElementById('delivery-mv').value) || 0,
+advertising: parseFloat(document.getElementById('advertising').value) || 0.98,
+taxRate: parseFloat(document.getElementById('tax-rate').value) || 0.97,
+quantity: parseInt(document.getElementById('quantity').value) || 1,
+date: document.getElementById('sale-date').value,
+marketplace: document.getElementById('marketplace-select').value,
+shop: document.getElementById('shop-select').value,
+profit: 0,
+margin: 0
+};
+sale.profit = calculateProfit(sale);
+sale.margin = calculateMargin(sale);
+salesData.push(sale);
+saveData();
+saveLastValues();
+document.getElementById('product-name').value = '';
+document.getElementById('article').value = '';
+document.getElementById('purchase-price').value = '';
+document.getElementById('selling-price').value = '';
+document.getElementById('commission').value = '';
+document.getElementById('logistics').value = '';
+document.getElementById('delivery-mv').value = '';
+document.getElementById('quantity').value = '1';
+document.getElementById('sale-date').value = new Date().toISOString().split('T')[0];
+updateProfitCalculator();
+updateDashboard();
+updateRecentAddedSales();
+showNotification('Продажа успешно добавлена!', 'success');
 }
 function calculateProfit(sale) {
-const revenue = sale.selling_price * sale.quantity;
-const purchaseCost = sale.purchase_price * sale.quantity;
+const revenue = sale.sellingPrice * sale.quantity;
+const purchaseCost = sale.purchasePrice * sale.quantity;
 const commissionCost = sale.commission * sale.quantity;
 const logisticsCost = (sale.logistics || 0) * sale.quantity;
-const deliveryCost = (sale.delivery_to_mv || 0) * sale.quantity;
+const deliveryCost = (sale.deliveryToMV || 0) * sale.quantity;
 const advertisingCost = (sale.advertising || 0) * revenue / 100;
-const taxCost = (1 - sale.tax_rate) * revenue;
+const taxCost = (1 - sale.taxRate) * revenue;
 return revenue - purchaseCost - commissionCost - logisticsCost - deliveryCost - advertisingCost - taxCost;
 }
 function calculateMargin(sale) {
 const profit = calculateProfit(sale);
-const revenue = sale.selling_price * sale.quantity;
+const revenue = sale.sellingPrice * sale.quantity;
 return revenue === 0 ? 0 : Math.round((profit / revenue) * 100);
 }
 function updateProfitCalculator() {
@@ -2153,19 +1853,19 @@ ${sale.profit.toLocaleString('ru-RU')} ₽
 tbody.appendChild(tr);
 });
 }
-async function editSale(saleId) {
+function editSale(saleId) {
 const sale = salesData.find(s => s.id === saleId);
 if (!sale) return;
 document.getElementById('edit-sale-id').value = sale.id;
 document.getElementById('edit-product-name').value = sale.name;
 document.getElementById('edit-article').value = sale.article;
-document.getElementById('edit-purchase-price').value = sale.purchase_price;
-document.getElementById('edit-selling-price').value = sale.selling_price;
+document.getElementById('edit-purchase-price').value = sale.purchasePrice;
+document.getElementById('edit-selling-price').value = sale.sellingPrice;
 document.getElementById('edit-commission').value = sale.commission;
 document.getElementById('edit-logistics').value = sale.logistics || '';
-document.getElementById('edit-delivery-mv').value = sale.delivery_to_mv || '';
+document.getElementById('edit-delivery-mv').value = sale.deliveryToMV || '';
 document.getElementById('edit-advertising').value = sale.advertising;
-document.getElementById('edit-tax-rate').value = sale.tax_rate;
+document.getElementById('edit-tax-rate').value = sale.taxRate;
 document.getElementById('edit-quantity').value = sale.quantity;
 document.getElementById('edit-sale-date').value = sale.date;
 document.getElementById('edit-marketplace-select').value = sale.marketplace;
@@ -2181,66 +1881,48 @@ shopSelect.appendChild(option);
 shopSelect.value = sale.shop || '';
 document.getElementById('edit-sale-modal').style.display = 'flex';
 }
-async function saveEditedSale() {
+function saveEditedSale() {
 const saleId = parseInt(document.getElementById('edit-sale-id').value);
 const saleIndex = salesData.findIndex(s => s.id === saleId);
 if (saleIndex === -1) return;
-const updatedSale = {
+salesData[saleIndex] = {
+id: saleId,
 name: document.getElementById('edit-product-name').value,
 article: document.getElementById('edit-article').value,
-purchase_price: parseFloat(document.getElementById('edit-purchase-price').value) || 0,
-selling_price: parseFloat(document.getElementById('edit-selling-price').value) || 0,
+purchasePrice: parseFloat(document.getElementById('edit-purchase-price').value) || 0,
+sellingPrice: parseFloat(document.getElementById('edit-selling-price').value) || 0,
 commission: parseFloat(document.getElementById('edit-commission').value) || 0,
 logistics: parseFloat(document.getElementById('edit-logistics').value) || 0,
-delivery_to_mv: parseFloat(document.getElementById('edit-delivery-mv').value) || 0,
+deliveryToMV: parseFloat(document.getElementById('edit-delivery-mv').value) || 0,
 advertising: parseFloat(document.getElementById('edit-advertising').value) || 0.98,
-tax_rate: parseFloat(document.getElementById('edit-tax-rate').value) || 0.97,
+taxRate: parseFloat(document.getElementById('edit-tax-rate').value) || 0.97,
 quantity: parseInt(document.getElementById('edit-quantity').value) || 1,
 date: document.getElementById('edit-sale-date').value,
 marketplace: document.getElementById('edit-marketplace-select').value,
 shop: document.getElementById('edit-shop-select').value,
-user_id: currentUser.id
+profit: 0,
+margin: 0
 };
-// Рассчитываем прибыль и маржу
-updatedSale.profit = calculateProfit(updatedSale);
-updatedSale.margin = calculateMargin(updatedSale);
-// Обновляем в Supabase
-const { data, error } = await supabase
-.from('sales')
-.update(updatedSale)
-.eq('id', saleId)
-.select()
-.single();
-if (error) {
-showNotification('Ошибка обновления продажи: ' + error.message, 'error');
-return;
-}
-// Обновляем локальный массив
-salesData[saleIndex] = data;
+salesData[saleIndex].profit = calculateProfit(salesData[saleIndex]);
+salesData[saleIndex].margin = calculateMargin(salesData[saleIndex]);
+saveData();
 document.getElementById('edit-sale-modal').style.display = 'none';
 updateDashboard();
 updateAllSalesTable();
 updateRecentAddedSales();
 showNotification('Продажа успешно обновлена!', 'success');
 }
-async function deleteSale(saleId) {
+function deleteSale(saleId) {
 if (confirm('Вы уверены, что хотите удалить эту продажу')) {
-const { error } = await supabase
-.from('sales')
-.delete()
-.eq('id', saleId);
-if (error) {
-showNotification('Ошибка удаления продажи: ' + error.message, 'error');
-return;
-}
 salesData = salesData.filter(s => s.id !== saleId);
+saveData();
 updateDashboard();
 updateAllSalesTable();
 updateRecentAddedSales();
 showNotification('Продажа удалена!', 'success');
 }
 }
-async function addReturn() {
+function addReturn() {
 const saleId = document.getElementById('return-sale').value;
 const reason = document.getElementById('return-reason').value;
 const amount = parseFloat(document.getElementById('return-amount').value);
@@ -2250,22 +1932,14 @@ showNotification('Пожалуйста, заполните все поля дл�
 return;
 }
 const returnItem = {
-sale_id: parseInt(saleId),
+id: Date.now(),
+saleId: parseInt(saleId),
 reason: reason,
 amount: amount,
-date: date,
-user_id: currentUser.id
+date: date
 };
-const { data, error } = await supabase
-.from('returns')
-.insert([returnItem])
-.select()
-.single();
-if (error) {
-showNotification('Ошибка добавления возврата: ' + error.message, 'error');
-return;
-}
-returnsData.push(data);
+returnsData.push(returnItem);
+saveData();
 document.getElementById('return-sale').value = '';
 document.getElementById('return-reason').value = '';
 document.getElementById('return-amount').value = '';
@@ -2278,12 +1952,10 @@ showNotification('Возврат успешно добавлен!', 'success');
 function populateReturnSales() {
 const select = document.getElementById('return-sale');
 select.innerHTML = '<option value="Выберите продажу">Выберите продажу</option>';
-// Если пользователь не админ, показываем только его продажи
-const filteredSales = getRoleFromToken() === 'admin' ? salesData : salesData.filter(sale => sale.user_id === currentUser.id);
-filteredSales.forEach(sale => {
+salesData.forEach(sale => {
 const option = document.createElement('option');
 option.value = sale.id;
-option.textContent = `${sale.name} - ${(sale.selling_price * sale.quantity).toLocaleString('ru-RU')} ₽`;
+option.textContent = `${sale.name} - ${(sale.sellingPrice * sale.quantity).toLocaleString('ru-RU')} ₽`;
 select.appendChild(option);
 });
 }
@@ -2292,7 +1964,7 @@ const tbody = document.querySelector('#returns-table tbody');
 tbody.innerHTML = '';
 const paginatedReturns = paginateArray(returnsData, returnCurrentPage, itemsPerPage);
 paginatedReturns.forEach(ret => {
-const sale = salesData.find(s => s.id === ret.sale_id);
+const sale = salesData.find(s => s.id === ret.saleId);
 const tr = document.createElement('tr');
 tr.innerHTML = `
 <td>${sale ? sale.name : 'Неизвестный товар'}</td>
@@ -2313,17 +1985,10 @@ const returnItem = returnsData.find(r => r.id === returnId);
 if (!returnItem) return;
 showNotification('Функция редактирования возврата в разработке', 'info');
 }
-async function deleteReturn(returnId) {
+function deleteReturn(returnId) {
 if (confirm('Вы уверены, что хотите удалить этот возврат')) {
-const { error } = await supabase
-.from('returns')
-.delete()
-.eq('id', returnId);
-if (error) {
-showNotification('Ошибка удаления возврата: ' + error.message, 'error');
-return;
-}
 returnsData = returnsData.filter(r => r.id !== returnId);
+saveData();
 updateReturns();
 updateDashboard();
 showNotification('Возврат удален!', 'success');
@@ -2345,10 +2010,6 @@ const period = document.getElementById('period').value;
 const marketplace = document.getElementById('marketplace').value;
 const startDate = document.getElementById('start-date').value;
 const endDate = document.getElementById('end-date').value;
-// Убедимся, что salesData является массивом
-if (!Array.isArray(salesData)) {
-    salesData = [];
-}
 let filtered = [...salesData];
 if (marketplace !== 'all') {
 filtered = filtered.filter(sale => sale.marketplace === marketplace);
@@ -2383,16 +2044,16 @@ filtered = filtered.filter(sale => new Date(sale.date) >= startDatePeriod);
 return filtered;
 }
 function calculateMetrics(filteredData) {
-const totalRevenue = filteredData.reduce((sum, sale) => sum + (sale.selling_price * sale.quantity), 0);
+const totalRevenue = filteredData.reduce((sum, sale) => sum + (sale.sellingPrice * sale.quantity), 0);
 const totalReturns = returnsData.reduce((sum, ret) => sum + ret.amount, 0);
 const adjustedRevenue = totalRevenue - totalReturns;
 const totalCost = filteredData.reduce((sum, sale) => {
-const purchaseCost = sale.purchase_price * sale.quantity;
+const purchaseCost = sale.purchasePrice * sale.quantity;
 const commissionCost = sale.commission * sale.quantity;
 const logisticsCost = (sale.logistics || 0) * sale.quantity;
-const deliveryCost = (sale.delivery_to_mv || 0) * sale.quantity;
-const advertisingCost = (sale.advertising || 0) * sale.selling_price * sale.quantity / 100;
-const taxCost = (1 - sale.tax_rate) * sale.selling_price * sale.quantity;
+const deliveryCost = (sale.deliveryToMV || 0) * sale.quantity;
+const advertisingCost = (sale.advertising || 0) * sale.sellingPrice * sale.quantity / 100;
+const taxCost = (1 - sale.taxRate) * sale.sellingPrice * sale.quantity;
 return sum + purchaseCost + commissionCost + logisticsCost + deliveryCost + advertisingCost + taxCost;
 }, 0);
 const totalOperatingExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
@@ -2407,59 +2068,45 @@ totalReturns
 };
 }
 function updateCharts(filteredData) {
-    const marketplaceData = {
-        'Яндекс': { revenue: 0, profit: 0 },
-        'Озон': { revenue: 0, profit: 0 }
-    };
-    
-    // Фильтруем данные, оставляя только существующие объекты
-    filteredData = filteredData.filter(sale => sale && typeof sale === 'object');
-    
-    filteredData.forEach(sale => {
-        if (sale.marketplace && marketplaceData[sale.marketplace]) {
-            marketplaceData[sale.marketplace].revenue += (sale.selling_price || 0) * (sale.quantity || 0);
-            marketplaceData[sale.marketplace].profit += sale.profit || 0;
-        }
-    });
-    
-    marketplaceChart.data.datasets[0].data = [
-        marketplaceData['Яндекс'].revenue,
-        marketplaceData['Озон'].revenue
-    ];
-    marketplaceChart.update();
-    
-    const salesByMonth = {};
-    filteredData.forEach(sale => {
-        if (!sale.date) return;
-        const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-        if (!salesByMonth[month]) {
-            salesByMonth[month] = { revenue: 0, profit: 0 };
-        }
-        salesByMonth[month].revenue += (sale.selling_price || 0) * (sale.quantity || 0);
-        salesByMonth[month].profit += sale.profit || 0;
-    });
-    
-    const months = Object.keys(salesByMonth);
-    const revenues = months.map(month => salesByMonth[month].revenue);
-    const profits = months.map(month => salesByMonth[month].profit);
-    
-    salesChart.data.labels = months;
-    salesChart.data.datasets[0].data = revenues;
-    salesChart.data.datasets[1].data = profits;
-    salesChart.update();
-    
-    const topProducts = [...filteredData]
-        .filter(sale => sale && sale.name) // Фильтруем только существующие продажи с именем
-        .sort((a, b) => (b.profit || 0) - (a.profit || 0))
-        .slice(0, 5)
-        .map(sale => ({
-            name: sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name,
-            profit: sale.profit || 0
-        }));
-    
-    topProductsChart.data.labels = topProducts.map(p => p.name);
-    topProductsChart.data.datasets[0].data = topProducts.map(p => p.profit);
-    topProductsChart.update();
+const marketplaceData = {
+'Яндекс': { revenue: 0, profit: 0 },
+'Озон': { revenue: 0, profit: 0 }
+};
+filteredData.forEach(sale => {
+marketplaceData[sale.marketplace].revenue += sale.sellingPrice * sale.quantity;
+marketplaceData[sale.marketplace].profit += sale.profit;
+});
+marketplaceChart.data.datasets[0].data = [
+marketplaceData['Яндекс'].revenue,
+marketplaceData['Озон'].revenue
+];
+marketplaceChart.update();
+const salesByMonth = {};
+filteredData.forEach(sale => {
+const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+if (!salesByMonth[month]) {
+salesByMonth[month] = { revenue: 0, profit: 0 };
+}
+salesByMonth[month].revenue += sale.sellingPrice * sale.quantity;
+salesByMonth[month].profit += sale.profit;
+});
+const months = Object.keys(salesByMonth);
+const revenues = months.map(month => salesByMonth[month].revenue);
+const profits = months.map(month => salesByMonth[month].profit);
+salesChart.data.labels = months;
+salesChart.data.datasets[0].data = revenues;
+salesChart.data.datasets[1].data = profits;
+salesChart.update();
+const topProducts = [...filteredData]
+.sort((a, b) => b.profit - a.profit)
+.slice(0, 5)
+.map(sale => ({
+name: sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name,
+profit: sale.profit
+}));
+topProductsChart.data.labels = topProducts.map(p => p.name);
+topProductsChart.data.datasets[0].data = topProducts.map(p => p.profit);
+topProductsChart.update();
 }
 function updateRecentSalesTable(filteredData) {
 const tbody = document.querySelector('#recent-sales-table tbody');
@@ -2490,7 +2137,7 @@ const marketplaceData = {
 'Озон': { revenue: 0, profit: 0, count: 0 }
 };
 filteredData.forEach(sale => {
-marketplaceData[sale.marketplace].revenue += sale.selling_price * sale.quantity;
+marketplaceData[sale.marketplace].revenue += sale.sellingPrice * sale.quantity;
 marketplaceData[sale.marketplace].profit += sale.profit;
 marketplaceData[sale.marketplace].count += 1;
 });
@@ -2522,7 +2169,7 @@ div.className = 'expense-item';
 div.innerHTML = `
 <div>
 <strong>${sale.name}</strong><br>
-<small>Выручка ${(sale.selling_price * sale.quantity).toLocaleString('ru-RU')} ₽<br>
+<small>Выручка ${(sale.sellingPrice * sale.quantity).toLocaleString('ru-RU')} ₽<br>
 Прибыль ${sale.profit.toLocaleString('ru-RU')} ₽</small>
 </div>
 <div>
@@ -2539,7 +2186,7 @@ const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', 
 if (!salesByMonth[month]) {
 salesByMonth[month] = { revenue: 0, cost: 0, profit: 0, count: 0 };
 }
-salesByMonth[month].revenue += sale.selling_price * sale.quantity;
+salesByMonth[month].revenue += sale.sellingPrice * sale.quantity;
 salesByMonth[month].profit += sale.profit;
 salesByMonth[month].count += 1;
 });
@@ -2565,7 +2212,7 @@ const shop = sale.shop || 'Не указан';
 if (!salesByShop[shop]) {
 salesByShop[shop] = { revenue: 0, profit: 0, count: 0 };
 }
-salesByShop[shop].revenue += sale.selling_price * sale.quantity;
+salesByShop[shop].revenue += sale.sellingPrice * sale.quantity;
 salesByShop[shop].profit += sale.profit;
 salesByShop[shop].count += 1;
 });
@@ -2596,12 +2243,12 @@ return Math.random();
 }
 function updateReports() {
 const filteredData = filterSalesData();
-const totalRevenue = filteredData.reduce((sum, sale) => sum + (sale.selling_price * sale.quantity), 0);
+const totalRevenue = filteredData.reduce((sum, sale) => sum + (sale.sellingPrice * sale.quantity), 0);
 const totalReturns = returnsData.reduce((sum, ret) => sum + ret.amount, 0);
 const adjustedRevenue = totalRevenue - totalReturns;
-const totalPurchaseCost = filteredData.reduce((sum, sale) => sum + (sale.purchase_price * sale.quantity), 0);
+const totalPurchaseCost = filteredData.reduce((sum, sale) => sum + (sale.purchasePrice * sale.quantity), 0);
 const totalCommissionCost = filteredData.reduce((sum, sale) => sum + (sale.commission * sale.quantity), 0);
-const totalTaxCost = filteredData.reduce((sum, sale) => sum + ((1 - sale.tax_rate) * sale.selling_price * sale.quantity), 0);
+const totalTaxCost = filteredData.reduce((sum, sale) => sum + ((1 - sale.taxRate) * sale.sellingPrice * sale.quantity), 0);
 const totalOperatingExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
 const totalProfit = (adjustedRevenue - totalPurchaseCost - totalCommissionCost - totalTaxCost) - totalOperatingExpenses;
 document.getElementById('report-revenue').textContent = adjustedRevenue.toLocaleString('ru-RU');
@@ -2631,13 +2278,13 @@ const data = salesData.map(sale => ({
 Маркетплейс: sale.marketplace,
 Магазин: sale.shop,
 Дата: sale.date,
-Выручка: (sale.selling_price * sale.quantity).toFixed(2),
+Выручка: (sale.sellingPrice * sale.quantity).toFixed(2),
 Прибыль: sale.profit.toFixed(2),
 Маржа: sale.margin + '%'
 }));
-let csvContent = "text/csv;charset=utf-8,";
+let csvContent = "data:text/csv;charset=utf-8,";
 const headers = Object.keys(data[0]).join(",");
-csvContent += headers + "\\r\\n";
+csvContent += headers + "\n";
 data.forEach(row => {
 const values = Object.values(row).map(value => {
 if (typeof value === 'string' && value.includes(',')) {
@@ -2645,7 +2292,7 @@ return `"${value}"`;
 }
 return value;
 });
-csvContent += values.join(",") + "\\r\\n";
+csvContent += values.join(",") + "\n";
 });
 const encodedUri = encodeURI(csvContent);
 const link = document.createElement("a");
@@ -2841,7 +2488,7 @@ saveData();
 applySettings();
 showNotification('Настройки сохранены!', 'success');
 }
-async function addExpense() {
+function addExpense() {
 const category = document.getElementById('expense-category').value;
 const amount = parseFloat(document.getElementById('expense-amount').value);
 const date = document.getElementById('expense-date').value;
@@ -2851,22 +2498,14 @@ showNotification('Пожалуйста, заполните все обязате
 return;
 }
 const expense = {
+id: Date.now(),
 category: category,
 amount: amount,
 date: date,
-description: description,
-user_id: currentUser.id
+description: description
 };
-const { data, error } = await supabase
-.from('expenses')
-.insert([expense])
-.select()
-.single();
-if (error) {
-showNotification('Ошибка добавления расхода: ' + error.message, 'error');
-return;
-}
-expensesData.push(data);
+expensesData.push(expense);
+saveData();
 document.getElementById('expense-category').value = '';
 document.getElementById('expense-amount').value = '';
 document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
@@ -2937,17 +2576,10 @@ const expense = expensesData.find(e => e.id === expenseId);
 if (!expense) return;
 showNotification('Функция редактирования расхода в разработке', 'info');
 }
-async function deleteExpense(expenseId) {
+function deleteExpense(expenseId) {
 if (confirm('Вы уверены, что хотите удалить этот расход')) {
-const { error } = await supabase
-.from('expenses')
-.delete()
-.eq('id', expenseId);
-if (error) {
-showNotification('Ошибка удаления расхода: ' + error.message, 'error');
-return;
-}
 expensesData = expensesData.filter(e => e.id !== expenseId);
+saveData();
 updateExpenses();
 updateDashboard();
 showNotification('Расход удален!', 'success');
@@ -2961,10 +2593,6 @@ const startDate = document.getElementById('all-sales-start-date').value;
 const endDate = document.getElementById('all-sales-end-date').value;
 const filterMarketplace = document.getElementById('all-sales-marketplace').value;
 const filterShop = document.getElementById('all-sales-shop').value;
-// Убедимся, что salesData является массивом
-if (!Array.isArray(salesData)) {
-    salesData = [];
-}
 let filteredSales = [...salesData];
 if (period !== 'all') {
 const now = new Date();
@@ -3009,7 +2637,7 @@ tr.innerHTML = `
 <td>${sale.marketplace}</td>
 <td>${sale.shop || '-'}</td>
 <td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
-<td>${(sale.selling_price * sale.quantity).toLocaleString('ru-RU')} ₽</td>
+<td>${(sale.sellingPrice * sale.quantity).toLocaleString('ru-RU')} ₽</td>
 <td class="${sale.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
 ${sale.profit.toLocaleString('ru-RU')} ₽
 </td>
@@ -3024,37 +2652,21 @@ tbody.appendChild(tr);
 updatePagination();
 }
 function paginateArray(array, page, itemsPerPage) {
-// Убедимся, что array является массивом
-if (!Array.isArray(array)) {
-    return [];
-}
 const startIndex = (page - 1) * itemsPerPage;
 const endIndex = startIndex + itemsPerPage;
 return array.slice(startIndex, endIndex);
 }
 function updatePagination() {
-// Убедимся, что salesData является массивом
-if (!Array.isArray(salesData)) {
-    salesData = [];
-}
 const totalItems = salesData.length;
 const totalPages = Math.ceil(totalItems / itemsPerPage);
 document.getElementById('page-info').textContent = `Страница ${currentPage} из ${totalPages}`;
 document.getElementById('prev-page').disabled = currentPage === 1;
 document.getElementById('next-page').disabled = currentPage === totalPages;
-// Убедимся, что expensesData является массивом
-if (!Array.isArray(expensesData)) {
-    expensesData = [];
-}
 const totalExpenseItems = expensesData.length;
 const totalExpensePages = Math.ceil(totalExpenseItems / itemsPerPage);
 document.getElementById('expense-page-info').textContent = `Страница ${expenseCurrentPage} из ${totalExpensePages}`;
 document.getElementById('prev-expense-page').disabled = expenseCurrentPage === 1;
 document.getElementById('next-expense-page').disabled = expenseCurrentPage === totalExpensePages;
-// Убедимся, что returnsData является массивом
-if (!Array.isArray(returnsData)) {
-    returnsData = [];
-}
 const totalReturnItems = returnsData.length;
 const totalReturnPages = Math.ceil(totalReturnItems / itemsPerPage);
 document.getElementById('return-page-info').textContent = `Страница ${returnCurrentPage} из ${totalReturnPages}`;
@@ -3105,42 +2717,6 @@ notification.classList.add('show');
 setTimeout(() => {
 notification.classList.remove('show');
 }, 3000);
-}
-// Функция для сохранения локальных данных (настройки, магазины и т.д.)
-function saveData() {
-localStorage.setItem('shops', JSON.stringify(shops));
-localStorage.setItem('categories', JSON.stringify(categories));
-localStorage.setItem('expenseCategories', JSON.stringify(expenseCategories));
-localStorage.setItem('taxSystems', JSON.stringify(taxSystems));
-localStorage.setItem('settings', JSON.stringify(settings));
-localStorage.setItem('lastValues', JSON.stringify(lastValues));
-}
-// Функция для отображения вкладок
-function showTab(tabId) {
-document.querySelectorAll('.tab-content').forEach(content => {
-content.classList.remove('active');
-});
-document.querySelectorAll('.nav-item').forEach(item => {
-item.classList.remove('active');
-});
-document.getElementById(tabId).classList.add('active');
-document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
-// Обновляем содержимое вкладки при ее открытии
-if (tabId === 'dashboard') {
-updateDashboard();
-} else if (tabId === 'analytics') {
-updateAnalytics();
-} else if (tabId === 'reports') {
-updateReports();
-} else if (tabId === 'all-sales') {
-updateAllSalesTable();
-} else if (tabId === 'expenses') {
-updateExpenses();
-} else if (tabId === 'returns') {
-updateReturns();
-} else if (tabId === 'sales') {
-updateRecentAddedSales();
-}
 }
 </script>
 </body>
