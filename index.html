@@ -1527,7 +1527,7 @@ let marketplaceChart, salesChart, topProductsChart, expensesChart;
 // Обработчики событий
 document.addEventListener('DOMContentLoaded', async function() {
 // Проверяем, есть ли уже авторизованный пользователь
-const {  { user } } = await supabase.auth.getUser();
+const { data: { user } } = await supabase.auth.getUser();
 if (user) {
 await handleSuccessfulLogin(user);
 } else {
