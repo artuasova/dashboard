@@ -1637,36 +1637,41 @@ restoreLastValues();
 });
 // Функция для обработки успешного входа
 async function handleSuccessfulLogin(user) {
-currentUser = user;
-document.getElementById('auth-container').style.display = 'none';
-document.getElementById('main-app').style.display = 'block';
-document.getElementById('user-email-display').textContent = currentUser.email;
-document.getElementById('user-avatar').textContent = currentUser.email.charAt(0).toUpperCase();
-// Получаем роль пользователя
-const { data: profile, error: profileError } = await supabase
-.from('users')
-.select('role')
-.eq('id', currentUser.id)
-.single();
-if (profileError) {
-console.error('Ошибка получения профиля:', profileError);
-showNotification('Ошибка получения данных пользователя', 'error');
-return;
-}
-const userRole = profile.role;
-document.getElementById('user-role').textContent = getRoleDisplayName(userRole);
-// Показываем/скрываем админ-панель
-if (userRole === 'admin') {
-document.getElementById('admin-panel-tab').style.display = 'block';
-loadAllUsers(); // Загружаем список всех пользователей для админа
-} else {
-document.getElementById('admin-panel-tab').style.display = 'none';
-}
-// Загружаем данные пользователя
-await loadData();
-applySettings();
-updateDashboard();
-showNotification('Добро пожаловать!', 'success');
+    currentUser = user;
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    document.getElementById('user-email-display').textContent = currentUser.email;
+    document.getElementById('user-avatar').textContent = currentUser.email.charAt(0).toUpperCase();
+
+    // Получаем роль пользователя из auth.users
+    const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', currentUser.id)
+        .single();
+
+    if (userError) {
+        console.error('Ошибка получения профиля:', userError);
+        showNotification('Ошибка получения данных пользователя', 'error');
+        return;
+    }
+
+    const userRole = userData.role;
+    document.getElementById('user-role').textContent = getRoleDisplayName(userRole);
+
+    // Показываем/скрываем админ-панель
+    if (userRole === 'admin') {
+        document.getElementById('admin-panel-tab').style.display = 'block';
+        loadAllUsers(); // Загружаем список всех пользователей для админа
+    } else {
+        document.getElementById('admin-panel-tab').style.display = 'none';
+    }
+
+    // Загружаем данные пользователя
+    await loadData();
+    applySettings();
+    updateDashboard();
+    showNotification('Добро пожаловать!', 'success');
 }
 // Функция для получения отображаемого названия роли
 function getRoleDisplayName(role) {
