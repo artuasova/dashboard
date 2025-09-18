@@ -1481,41 +1481,42 @@ const supabaseUrl = 'https://lwbtbxzgypzqhtofscof.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3YnRieHpneXB6cWh0b2ZzY29mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMDU1MDYsImV4cCI6MjA3Mzc4MTUwNn0.LRV4q9QptG9S_hqH-Ekoe6G9E-vKbSGQwZjlMMvQTpc';
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 // Глобальные переменные
+// Глобальные переменные
 let currentUser = null;
-let salesData = [];
-let returnsData = [];
-let expensesData = [];
+let salesData = []; // Инициализируем как пустой массив
+let returnsData = []; // Инициализируем как пустой массив
+let expensesData = []; // Инициализируем как пустой массив
 let shops = ['Магазин 1', 'Магазин 2'];
 let categories = ['Садовые товары', 'Строительные товары', 'Бытовые товары'];
 let expenseCategories = ['Аренда', 'Зарплата', 'Уборщица', 'Курьеры'];
 let taxSystems = [
-{name: 'УСН Доходы (1%)', rate: 0.99},
-{name: 'УСН Доходы (7%)', rate: 0.93},
-{name: 'УСН Доходы-Расходы (15%)', rate: 0.8515}
+    {name: 'УСН Доходы (1%)', rate: 0.99},
+    {name: 'УСН Доходы (7%)', rate: 0.93},
+    {name: 'УСН Доходы-Расходы (15%)', rate: 0.8515}
 ];
 let settings = {
-showMarketplace: true,
-showShop: true,
-showCommission: true,
-showLogistics: true,
-showDeliveryMV: true,
-filters: {
-period: 'all',
-marketplace: 'all',
-startDate: '',
-endDate: '',
-allSalesPeriod: 'all',
-allSalesStart: '',
-allSalesEnd: '',
-allSalesMarketplace: 'all',
-allSalesShop: 'all'
-}
+    showMarketplace: true,
+    showShop: true,
+    showCommission: true,
+    showLogistics: true,
+    showDeliveryMV: true,
+    filters: {
+        period: 'all',
+        marketplace: 'all',
+        startDate: '',
+        endDate: '',
+        allSalesPeriod: 'all',
+        allSalesStart: '',
+        allSalesEnd: '',
+        allSalesMarketplace: 'all',
+        allSalesShop: 'all'
+    }
 };
 let lastValues = {
-marketplace: 'Яндекс',
-shop: '',
-advertising: 0.98,
-taxRate: 0.99
+    marketplace: 'Яндекс',
+    shop: '',
+    advertising: 0.98,
+    taxRate: 0.99
 };
 let currentPage = 1;
 let itemsPerPage = 10;
@@ -1813,26 +1814,32 @@ loadAllUsers();
 }
 // Функция для загрузки всех пользователей (только для админа)
 async function loadAllUsers() {
-const {  users, error } = await supabase
-.from('users')
-.select('*')
-.order('created_at', { ascending: false });
-if (error) {
-console.error('Ошибка загрузки пользователей:', error);
-showNotification('Ошибка загрузки списка пользователей', 'error');
-return;
-}
-const userList = document.getElementById('user-list');
-userList.innerHTML = '';
-users.forEach(user => {
-const div = document.createElement('div');
-div.className = 'user-list-item';
-div.innerHTML = `
-<strong>${user.email}</strong>
-<span>Роль: ${getRoleDisplayName(user.role)}</span>
-`;
-userList.appendChild(div);
-});
+    const { data: users, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error('Ошибка загрузки пользователей:', error);
+        showNotification('Ошибка загрузки списка пользователей', 'error');
+        return;
+    }
+
+    // Убедимся, что users — это массив
+    const userList = users || [];
+    
+    const userListContainer = document.getElementById('user-list');
+    userListContainer.innerHTML = '';
+    
+    userList.forEach(user => {
+        const div = document.createElement('div');
+        div.className = 'user-list-item';
+        div.innerHTML = `
+            <strong>${user.email}</strong>
+            <span>Роль: ${getRoleDisplayName(user.role)}</span>
+        `;
+        userListContainer.appendChild(div);
+    });
 }
 // Остальные функции (как в оригинальном коде, с адаптацией для Supabase)
 function applySettings() {
