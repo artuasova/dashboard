@@ -2000,73 +2000,77 @@ beginAtZero: true
 });
 }
 async function addSale() {
-const name = document.getElementById('product-name').value.trim();
-const article = document.getElementById('article').value.trim();
-const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
-const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
-if (!name) {
-showNotification('Пожалуйста, введите название товара', 'error');
-return;
-}
-if (!article) {
-showNotification('Пожалуйста, введите артикул', 'error');
-return;
-}
-if (isNaN(purchasePrice) || purchasePrice <= 0) {
-showNotification('Цена закупки должна быть числом больше 0', 'error');
-return;
-}
-if (isNaN(sellingPrice) || sellingPrice <= 0) {
-showNotification('Цена продажи должна быть числом больше 0', 'error');
-return;
-}
-const sale = {
-name: name,
-article: article,
-purchase_price: purchasePrice,
-selling_price: sellingPrice,
-commission: parseFloat(document.getElementById('commission').value) || 0,
-logistics: parseFloat(document.getElementById('logistics').value) || 0,
-delivery_to_mv: parseFloat(document.getElementById('delivery-mv').value) || 0,
-advertising: parseFloat(document.getElementById('advertising').value) || 0.98,
-tax_rate: parseFloat(document.getElementById('tax-rate').value) || 0.97,
-quantity: parseInt(document.getElementById('quantity').value) || 1,
-date: document.getElementById('sale-date').value,
-marketplace: document.getElementById('marketplace-select').value,
-shop: document.getElementById('shop-select').value,
-user_id: currentUser.id
-};
-// Рассчитываем прибыль и маржу
-const profit = calculateProfit(sale);
-const margin = calculateMargin(sale);
-sale.profit = profit;
-sale.margin = margin;
-// Сохраняем в Supabase
-const { data, error } = await supabase
-.from('sales')
-.insert([sale])
-.select()
-.single();
-if (error) {
-showNotification('Ошибка добавления продажи: ' + error.message, 'error');
-return;
-}
-// Добавляем в локальный массив
-salesData.push(data);
-saveLastValues();
-document.getElementById('product-name').value = '';
-document.getElementById('article').value = '';
-document.getElementById('purchase-price').value = '';
-document.getElementById('selling-price').value = '';
-document.getElementById('commission').value = '';
-document.getElementById('logistics').value = '';
-document.getElementById('delivery-mv').value = '';
-document.getElementById('quantity').value = '1';
-document.getElementById('sale-date').value = new Date().toISOString().split('T')[0];
-updateProfitCalculator();
-updateDashboard();
-updateRecentAddedSales();
-showNotification('Продажа успешно добавлена!', 'success');
+    const name = document.getElementById('product-name').value.trim();
+    const article = document.getElementById('article').value.trim();
+    const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
+    const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
+    if (!name) {
+        showNotification('Пожалуйста, введите название товара', 'error');
+        return;
+    }
+    if (!article) {
+        showNotification('Пожалуйста, введите артикул', 'error');
+        return;
+    }
+    if (isNaN(purchasePrice) || purchasePrice <= 0) {
+        showNotification('Цена закупки должна быть числом больше 0', 'error');
+        return;
+    }
+    if (isNaN(sellingPrice) || sellingPrice <= 0) {
+        showNotification('Цена продажи должна быть числом больше 0', 'error');
+        return;
+    }
+    const sale = {
+        name: name,
+        article: article,
+        purchase_price: purchasePrice,
+        selling_price: sellingPrice,
+        commission: parseFloat(document.getElementById('commission').value) || 0,
+        logistics: parseFloat(document.getElementById('logistics').value) || 0,
+        delivery_to_mv: parseFloat(document.getElementById('delivery-mv').value) || 0,
+        advertising: parseFloat(document.getElementById('advertising').value) || 0.98,
+        tax_rate: parseFloat(document.getElementById('tax-rate').value) || 0.97,
+        quantity: parseInt(document.getElementById('quantity').value) || 1,
+        date: document.getElementById('sale-date').value,
+        marketplace: document.getElementById('marketplace-select').value,
+        shop: document.getElementById('shop-select').value,
+        user_id: currentUser.id
+    };
+    // Рассчитываем прибыль и маржу
+    const profit = calculateProfit(sale);
+    const margin = calculateMargin(sale);
+    sale.profit = profit;
+    sale.margin = margin;
+    // Сохраняем в Supabase
+    const { data, error } = await supabase
+        .from('sales')
+        .insert([sale])
+        .select()
+        .single();
+    if (error) {
+        showNotification('Ошибка добавления продажи: ' + error.message, 'error');
+        return;
+    }
+    // Добавляем в локальный массив ТОЛЬКО если data существует
+    if (data) {
+        salesData.push(data);
+        saveLastValues();
+        document.getElementById('product-name').value = '';
+        document.getElementById('article').value = '';
+        document.getElementById('purchase-price').value = '';
+        document.getElementById('selling-price').value = '';
+        document.getElementById('commission').value = '';
+        document.getElementById('logistics').value = '';
+        document.getElementById('delivery-mv').value = '';
+        document.getElementById('quantity').value = '1';
+        document.getElementById('sale-date').value = new Date().toISOString().split('T')[0];
+        updateProfitCalculator();
+        updateDashboard();
+        updateRecentAddedSales();
+        showNotification('Продажа успешно добавлена!', 'success');
+    } else {
+        showNotification('Ошибка: данные продажи не были получены', 'error');
+    }
 }
 function calculateProfit(sale) {
 const revenue = sale.selling_price * sale.quantity;
@@ -2403,45 +2407,59 @@ totalReturns
 };
 }
 function updateCharts(filteredData) {
-const marketplaceData = {
-'Яндекс': { revenue: 0, profit: 0 },
-'Озон': { revenue: 0, profit: 0 }
-};
-filteredData.forEach(sale => {
-marketplaceData[sale.marketplace].revenue += sale.selling_price * sale.quantity;
-marketplaceData[sale.marketplace].profit += sale.profit;
-});
-marketplaceChart.data.datasets[0].data = [
-marketplaceData['Яндекс'].revenue,
-marketplaceData['Озон'].revenue
-];
-marketplaceChart.update();
-const salesByMonth = {};
-filteredData.forEach(sale => {
-const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-if (!salesByMonth[month]) {
-salesByMonth[month] = { revenue: 0, profit: 0 };
-}
-salesByMonth[month].revenue += sale.selling_price * sale.quantity;
-salesByMonth[month].profit += sale.profit;
-});
-const months = Object.keys(salesByMonth);
-const revenues = months.map(month => salesByMonth[month].revenue);
-const profits = months.map(month => salesByMonth[month].profit);
-salesChart.data.labels = months;
-salesChart.data.datasets[0].data = revenues;
-salesChart.data.datasets[1].data = profits;
-salesChart.update();
-const topProducts = [...filteredData]
-.sort((a, b) => b.profit - a.profit)
-.slice(0, 5)
-.map(sale => ({
-name: sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name,
-profit: sale.profit
-}));
-topProductsChart.data.labels = topProducts.map(p => p.name);
-topProductsChart.data.datasets[0].data = topProducts.map(p => p.profit);
-topProductsChart.update();
+    const marketplaceData = {
+        'Яндекс': { revenue: 0, profit: 0 },
+        'Озон': { revenue: 0, profit: 0 }
+    };
+    
+    // Фильтруем данные, оставляя только существующие объекты
+    filteredData = filteredData.filter(sale => sale && typeof sale === 'object');
+    
+    filteredData.forEach(sale => {
+        if (sale.marketplace && marketplaceData[sale.marketplace]) {
+            marketplaceData[sale.marketplace].revenue += (sale.selling_price || 0) * (sale.quantity || 0);
+            marketplaceData[sale.marketplace].profit += sale.profit || 0;
+        }
+    });
+    
+    marketplaceChart.data.datasets[0].data = [
+        marketplaceData['Яндекс'].revenue,
+        marketplaceData['Озон'].revenue
+    ];
+    marketplaceChart.update();
+    
+    const salesByMonth = {};
+    filteredData.forEach(sale => {
+        if (!sale.date) return;
+        const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+        if (!salesByMonth[month]) {
+            salesByMonth[month] = { revenue: 0, profit: 0 };
+        }
+        salesByMonth[month].revenue += (sale.selling_price || 0) * (sale.quantity || 0);
+        salesByMonth[month].profit += sale.profit || 0;
+    });
+    
+    const months = Object.keys(salesByMonth);
+    const revenues = months.map(month => salesByMonth[month].revenue);
+    const profits = months.map(month => salesByMonth[month].profit);
+    
+    salesChart.data.labels = months;
+    salesChart.data.datasets[0].data = revenues;
+    salesChart.data.datasets[1].data = profits;
+    salesChart.update();
+    
+    const topProducts = [...filteredData]
+        .filter(sale => sale && sale.name) // Фильтруем только существующие продажи с именем
+        .sort((a, b) => (b.profit || 0) - (a.profit || 0))
+        .slice(0, 5)
+        .map(sale => ({
+            name: sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name,
+            profit: sale.profit || 0
+        }));
+    
+    topProductsChart.data.labels = topProducts.map(p => p.name);
+    topProductsChart.data.datasets[0].data = topProducts.map(p => p.profit);
+    topProductsChart.update();
 }
 function updateRecentSalesTable(filteredData) {
 const tbody = document.querySelector('#recent-sales-table tbody');
