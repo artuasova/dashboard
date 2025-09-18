@@ -1674,7 +1674,7 @@ return 'Пользователь';
 // Функция для загрузки данных пользователя
 async function loadData() {
 // Загружаем продажи
-let { data: sales, error: salesError } = await supabase
+let {  sales, error: salesError } = await supabase
 .from('sales')
 .select('*')
 .order('date', { ascending: false });
@@ -1689,7 +1689,7 @@ sales = sales.filter(sale => sale.user_id === currentUser.id);
 }
 salesData = sales || [];
 // Загружаем возвраты
-let { data: returns, error: returnsError } = await supabase
+let {  returns, error: returnsError } = await supabase
 .from('returns')
 .select('*')
 .order('date', { ascending: false });
@@ -1705,7 +1705,7 @@ returns = returns.filter(ret => userSaleIds.includes(ret.sale_id));
 }
 returnsData = returns || [];
 // Загружаем расходы
-let { data: expenses, error: expensesError } = await supabase
+let {  expenses, error: expensesError } = await supabase
 .from('expenses')
 .select('*')
 .order('date', { ascending: false });
@@ -1782,7 +1782,7 @@ showNotification('Пожалуйста, заполните все поля', 'er
 return;
 }
 // Создаем пользователя через Supabase Auth
-const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+const {  authData, error: authError } = await supabase.auth.admin.createUser({
 email: email,
 password: password,
 email_confirm: true
@@ -1792,7 +1792,7 @@ showNotification('Ошибка создания пользователя: ' + au
 return;
 }
 // Создаем запись в таблице users с ролью
-const { data: userData, error: userError } = await supabase
+const {  userData, error: userError } = await supabase
 .from('users')
 .insert([
 { id: authData.user.id, email: email, role: role }
@@ -1816,7 +1816,7 @@ loadAllUsers();
 }
 // Функция для загрузки всех пользователей (только для админа)
 async function loadAllUsers() {
-    const { data: users, error } = await supabase
+    const {  users, error } = await supabase
         .from('users')
         .select('*')
         .order('created_at', { ascending: false });
