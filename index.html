@@ -1481,7 +1481,6 @@ const supabaseUrl = 'https://lwbtbxzgypzqhtofscof.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3YnRieHpneXB6cWh0b2ZzY29mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMDU1MDYsImV4cCI6MjA3Mzc4MTUwNn0.LRV4q9QptG9S_hqH-Ekoe6G9E-vKbSGQwZjlMMvQTpc';
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 // Глобальные переменные
-// Глобальные переменные
 let currentUser = null;
 let salesData = []; // Инициализируем как пустой массив
 let returnsData = []; // Инициализируем как пустой массив
@@ -1528,12 +1527,15 @@ let marketplaceChart, salesChart, topProductsChart, expensesChart;
 // Обработчики событий
 document.addEventListener('DOMContentLoaded', async function() {
 // Проверяем, есть ли уже авторизованный пользователь
-const { data: { user } } = await supabase.auth.getUser();
+const { data: { user }, error: authError } = await supabase.auth.getUser();
+if (authError) {
+    console.error('Ошибка при проверке аутентификации:', authError);
+}
 if (user) {
-await handleSuccessfulLogin(user);
+    await handleSuccessfulLogin(user);
 } else {
-document.getElementById('auth-container').style.display = 'block';
-document.getElementById('main-app').style.display = 'none';
+    document.getElementById('auth-container').style.display = 'block';
+    document.getElementById('main-app').style.display = 'none';
 }
 // Обработчик формы входа
 document.getElementById('auth-form').addEventListener('submit', async function(e) {
@@ -1641,7 +1643,7 @@ document.getElementById('main-app').style.display = 'block';
 document.getElementById('user-email-display').textContent = currentUser.email;
 document.getElementById('user-avatar').textContent = currentUser.email.charAt(0).toUpperCase();
 // Получаем роль пользователя из JWT-токена
-const userRole = user.user_metadata.role || 'user';
+const userRole = user.user_metadata?.role || 'user';
 document.getElementById('user-role').textContent = getRoleDisplayName(userRole);
 // Показываем/скрываем админ-панель
 if (userRole === 'admin') {
@@ -1672,7 +1674,7 @@ return 'Пользователь';
 // Функция для загрузки данных пользователя
 async function loadData() {
 // Загружаем продажи
-let {  sales, error: salesError } = await supabase
+let { data: sales, error: salesError } = await supabase
 .from('sales')
 .select('*')
 .order('date', { ascending: false });
@@ -1685,9 +1687,9 @@ return;
 if (currentUser && getRoleFromToken() !== 'admin') {
 sales = sales.filter(sale => sale.user_id === currentUser.id);
 }
-salesData = sales;
+salesData = sales || [];
 // Загружаем возвраты
-let {  returns, error: returnsError } = await supabase
+let { data: returns, error: returnsError } = await supabase
 .from('returns')
 .select('*')
 .order('date', { ascending: false });
@@ -1701,9 +1703,9 @@ if (currentUser && getRoleFromToken() !== 'admin') {
 const userSaleIds = salesData.map(sale => sale.id);
 returns = returns.filter(ret => userSaleIds.includes(ret.sale_id));
 }
-returnsData = returns;
+returnsData = returns || [];
 // Загружаем расходы
-let {  expenses, error: expensesError } = await supabase
+let { data: expenses, error: expensesError } = await supabase
 .from('expenses')
 .select('*')
 .order('date', { ascending: false });
@@ -1716,7 +1718,7 @@ return;
 if (currentUser && getRoleFromToken() !== 'admin') {
 expenses = expenses.filter(expense => expense.user_id === currentUser.id);
 }
-expensesData = expenses;
+expensesData = expenses || [];
 // Загружаем локальные настройки
 if (localStorage.getItem('shops')) {
 shops = JSON.parse(localStorage.getItem('shops'));
@@ -1747,7 +1749,7 @@ updateTaxSystemsList();
 // Функция для получения роли из JWT-токена
 function getRoleFromToken() {
 if (!currentUser) return null;
-return currentUser.user_metadata.role || 'user';
+return currentUser.user_metadata?.role || 'user';
 }
 // Функция для сохранения настроек аккаунта
 async function saveAccountSettings() {
@@ -1780,7 +1782,7 @@ showNotification('Пожалуйста, заполните все поля', 'er
 return;
 }
 // Создаем пользователя через Supabase Auth
-const {  authData, error: authError } = await supabase.auth.admin.createUser({
+const { data: authData, error: authError } = await supabase.auth.admin.createUser({
 email: email,
 password: password,
 email_confirm: true
@@ -1790,7 +1792,7 @@ showNotification('Ошибка создания пользователя: ' + au
 return;
 }
 // Создаем запись в таблице users с ролью
-const {  userData, error: userError } = await supabase
+const { data: userData, error: userError } = await supabase
 .from('users')
 .insert([
 { id: authData.user.id, email: email, role: role }
@@ -1818,19 +1820,15 @@ async function loadAllUsers() {
         .from('users')
         .select('*')
         .order('created_at', { ascending: false });
-    
     if (error) {
         console.error('Ошибка загрузки пользователей:', error);
         showNotification('Ошибка загрузки списка пользователей', 'error');
         return;
     }
-
     // Убедимся, что users — это массив
     const userList = users || [];
-    
     const userListContainer = document.getElementById('user-list');
     userListContainer.innerHTML = '';
-    
     userList.forEach(user => {
         const div = document.createElement('div');
         div.className = 'user-list-item';
@@ -2343,6 +2341,10 @@ const period = document.getElementById('period').value;
 const marketplace = document.getElementById('marketplace').value;
 const startDate = document.getElementById('start-date').value;
 const endDate = document.getElementById('end-date').value;
+// Убедимся, что salesData является массивом
+if (!Array.isArray(salesData)) {
+    salesData = [];
+}
 let filtered = [...salesData];
 if (marketplace !== 'all') {
 filtered = filtered.filter(sale => sale.marketplace === marketplace);
@@ -2617,7 +2619,8 @@ const data = salesData.map(sale => ({
 }));
 let csvContent = "text/csv;charset=utf-8,";
 const headers = Object.keys(data[0]).join(",");
-csvContent += headers + "\n";
+csvContent += headers + "
+";
 data.forEach(row => {
 const values = Object.values(row).map(value => {
 if (typeof value === 'string' && value.includes(',')) {
@@ -2625,7 +2628,8 @@ return `"${value}"`;
 }
 return value;
 });
-csvContent += values.join(",") + "\n";
+csvContent += values.join(",") + "
+";
 });
 const encodedUri = encodeURI(csvContent);
 const link = document.createElement("a");
@@ -2941,6 +2945,10 @@ const startDate = document.getElementById('all-sales-start-date').value;
 const endDate = document.getElementById('all-sales-end-date').value;
 const filterMarketplace = document.getElementById('all-sales-marketplace').value;
 const filterShop = document.getElementById('all-sales-shop').value;
+// Убедимся, что salesData является массивом
+if (!Array.isArray(salesData)) {
+    salesData = [];
+}
 let filteredSales = [...salesData];
 if (period !== 'all') {
 const now = new Date();
@@ -3000,21 +3008,37 @@ tbody.appendChild(tr);
 updatePagination();
 }
 function paginateArray(array, page, itemsPerPage) {
+// Убедимся, что array является массивом
+if (!Array.isArray(array)) {
+    return [];
+}
 const startIndex = (page - 1) * itemsPerPage;
 const endIndex = startIndex + itemsPerPage;
 return array.slice(startIndex, endIndex);
 }
 function updatePagination() {
+// Убедимся, что salesData является массивом
+if (!Array.isArray(salesData)) {
+    salesData = [];
+}
 const totalItems = salesData.length;
 const totalPages = Math.ceil(totalItems / itemsPerPage);
 document.getElementById('page-info').textContent = `Страница ${currentPage} из ${totalPages}`;
 document.getElementById('prev-page').disabled = currentPage === 1;
 document.getElementById('next-page').disabled = currentPage === totalPages;
+// Убедимся, что expensesData является массивом
+if (!Array.isArray(expensesData)) {
+    expensesData = [];
+}
 const totalExpenseItems = expensesData.length;
 const totalExpensePages = Math.ceil(totalExpenseItems / itemsPerPage);
 document.getElementById('expense-page-info').textContent = `Страница ${expenseCurrentPage} из ${totalExpensePages}`;
 document.getElementById('prev-expense-page').disabled = expenseCurrentPage === 1;
 document.getElementById('next-expense-page').disabled = expenseCurrentPage === totalExpensePages;
+// Убедимся, что returnsData является массивом
+if (!Array.isArray(returnsData)) {
+    returnsData = [];
+}
 const totalReturnItems = returnsData.length;
 const totalReturnPages = Math.ceil(totalReturnItems / itemsPerPage);
 document.getElementById('return-page-info').textContent = `Страница ${returnCurrentPage} из ${totalReturnPages}`;
@@ -3074,6 +3098,33 @@ localStorage.setItem('expenseCategories', JSON.stringify(expenseCategories));
 localStorage.setItem('taxSystems', JSON.stringify(taxSystems));
 localStorage.setItem('settings', JSON.stringify(settings));
 localStorage.setItem('lastValues', JSON.stringify(lastValues));
+}
+// Функция для отображения вкладок
+function showTab(tabId) {
+document.querySelectorAll('.tab-content').forEach(content => {
+content.classList.remove('active');
+});
+document.querySelectorAll('.nav-item').forEach(item => {
+item.classList.remove('active');
+});
+document.getElementById(tabId).classList.add('active');
+document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+// Обновляем содержимое вкладки при ее открытии
+if (tabId === 'dashboard') {
+updateDashboard();
+} else if (tabId === 'analytics') {
+updateAnalytics();
+} else if (tabId === 'reports') {
+updateReports();
+} else if (tabId === 'all-sales') {
+updateAllSalesTable();
+} else if (tabId === 'expenses') {
+updateExpenses();
+} else if (tabId === 'returns') {
+updateReturns();
+} else if (tabId === 'sales') {
+updateRecentAddedSales();
+}
 }
 </script>
 </body>
