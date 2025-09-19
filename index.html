@@ -1782,7 +1782,7 @@ showNotification('Пожалуйста, заполните все поля', 'er
 return;
 }
 // Создаем пользователя через Supabase Auth
-const {  authData, error: authError } = await supabase.auth.admin.createUser({
+const { data: authData, error: authError } = await supabase.auth.admin.createUser({
 email: email,
 password: password,
 email_confirm: true
@@ -1792,7 +1792,7 @@ showNotification('Ошибка создания пользователя: ' + au
 return;
 }
 // Создаем запись в таблице users с ролью
-const {  userData, error: userError } = await supabase
+const { data: userData, error: userError } = await supabase
 .from('users')
 .insert([
 { id: authData.user.id, email: email, role: role }
@@ -2416,7 +2416,7 @@ if (!Array.isArray(filteredData)) {
     filteredData = [];
 }
 filteredData.forEach(sale => {
-    // КРИТИЧЕСКАЯ ПРОВЕРКА: существует ли такой ключ в marketplaceData?
+    // ДОБАВЛЕНА КРИТИЧЕСКАЯ ПРОВЕРКА
     if (marketplaceData[sale.marketplace]) {
         marketplaceData[sale.marketplace].revenue += sale.selling_price * sale.quantity;
         marketplaceData[sale.marketplace].profit += sale.profit;
@@ -2491,7 +2491,7 @@ if (!Array.isArray(filteredData)) {
     filteredData = [];
 }
 filteredData.forEach(sale => {
-    // Добавлена проверка
+    // ДОБАВЛЕНА КРИТИЧЕСКАЯ ПРОВЕРКА
     if (marketplaceData[sale.marketplace]) {
         marketplaceData[sale.marketplace].revenue += sale.selling_price * sale.quantity;
         marketplaceData[sale.marketplace].profit += sale.profit;
