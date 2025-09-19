@@ -1525,25 +1525,18 @@ const editIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" st
 const deleteIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
 let marketplaceChart, salesChart, topProductsChart, expensesChart;
 // Обработчики событий
-document.addEventListener('DOMContentLoaded', async function () {
-    try {
-        // Проверяем, есть ли уже авторизованный пользователь
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError) {
-            console.error('Ошибка при проверке аутентификации:', authError);
-        }
-
-        if (user) {
-            await handleSuccessfulLogin(user);
-        } else {
-            document.getElementById('auth-container').style.display = 'block';
-            document.getElementById('main-app').style.display = 'none';
-        }
-    } catch (err) {
-        console.error('Неожиданная ошибка:', err);
-    }
-});
+document.addEventListener('DOMContentLoaded', async function() {
+// Проверяем, есть ли уже авторизованный пользователь
+const { data: { user }, error: authError } = await supabase.auth.getUser();
+if (authError) {
+    console.error('Ошибка при проверке аутентификации:', authError);
+}
+if (user) {
+    await handleSuccessfulLogin(user);
+} else {
+    document.getElementById('auth-container').style.display = 'block';
+    document.getElementById('main-app').style.display = 'none';
+}
 // Обработчик формы входа
 document.getElementById('auth-form').addEventListener('submit', async function(e) {
 e.preventDefault();
@@ -1641,7 +1634,7 @@ document.getElementById('sale-date').value = today;
 document.getElementById('return-date').value = today;
 document.getElementById('expense-date').value = today;
 restoreLastValues();
-}
+});
 // Функция для обработки успешного входа
 async function handleSuccessfulLogin(user) {
 currentUser = user;
@@ -1681,7 +1674,7 @@ return 'Пользователь';
 // Функция для загрузки данных пользователя
 async function loadData() {
 // Загружаем продажи
-let {  sales, error: salesError } = await supabase
+let { data: sales, error: salesError } = await supabase
 .from('sales')
 .select('*')
 .order('date', { ascending: false });
@@ -1696,7 +1689,7 @@ sales = sales.filter(sale => sale.user_id === currentUser.id);
 }
 salesData = sales || [];
 // Загружаем возвраты
-let {  returns, error: returnsError } = await supabase
+let { data: returns, error: returnsError } = await supabase
 .from('returns')
 .select('*')
 .order('date', { ascending: false });
@@ -1712,7 +1705,7 @@ returns = returns.filter(ret => userSaleIds.includes(ret.sale_id));
 }
 returnsData = returns || [];
 // Загружаем расходы
-let {  expenses, error: expensesError } = await supabase
+let { data: expenses, error: expensesError } = await supabase
 .from('expenses')
 .select('*')
 .order('date', { ascending: false });
@@ -1810,7 +1803,7 @@ return;
 }
 // Обновляем JWT-токен, чтобы добавить роль
 const { error: updateError } = await supabase.auth.admin.updateUserById(authData.user.id, {
-app_meta { role: role }
+app_metadata: { role: role }
 });
 if (updateError) {
 showNotification('Ошибка обновления метаданных: ' + updateError.message, 'error');
@@ -1823,7 +1816,7 @@ loadAllUsers();
 }
 // Функция для загрузки всех пользователей (только для админа)
 async function loadAllUsers() {
-    const {  users, error } = await supabase
+    const { data: users, error } = await supabase
         .from('users')
         .select('*')
         .order('created_at', { ascending: false });
@@ -1919,10 +1912,10 @@ function initCharts() {
 const marketplaceCtx = document.getElementById('marketplace-chart').getContext('2d');
 marketplaceChart = new Chart(marketplaceCtx, {
 type: 'pie',
- {
+data: {
 labels: ['Яндекс', 'Озон'],
 datasets: [{
- [0, 0],
+data: [0, 0],
 backgroundColor: ['#ffcc00', '#005bff']
 }]
 },
@@ -1934,19 +1927,19 @@ maintainAspectRatio: false
 const salesCtx = document.getElementById('sales-chart').getContext('2d');
 salesChart = new Chart(salesCtx, {
 type: 'line',
- {
+data: {
 labels: [],
 datasets: [
 {
 label: 'Выручка',
- [],
+data: [],
 borderColor: '#3b82f6',
 backgroundColor: 'rgba(59, 130, 246, 0.1)',
 tension: 0.1
 },
 {
 label: 'Прибыль',
- [],
+data: [],
 borderColor: '#10b981',
 backgroundColor: 'rgba(16, 185, 129, 0.1)',
 tension: 0.1
@@ -1966,11 +1959,11 @@ beginAtZero: true
 const topProductsCtx = document.getElementById('top-products-chart').getContext('2d');
 topProductsChart = new Chart(topProductsCtx, {
 type: 'bar',
- {
+data: {
 labels: [],
 datasets: [{
 label: 'Прибыль',
- [],
+data: [],
 backgroundColor: '#8b5cf6'
 }]
 },
@@ -1991,7 +1984,7 @@ data: {
 labels: [],
 datasets: [{
 label: 'Операционные расходы',
- [],
+data: [],
 backgroundColor: '#f59e0b'
 }]
 },
@@ -2007,77 +2000,73 @@ beginAtZero: true
 });
 }
 async function addSale() {
-    const name = document.getElementById('product-name').value.trim();
-    const article = document.getElementById('article').value.trim();
-    const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
-    const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
-    if (!name) {
-        showNotification('Пожалуйста, введите название товара', 'error');
-        return;
-    }
-    if (!article) {
-        showNotification('Пожалуйста, введите артикул', 'error');
-        return;
-    }
-    if (isNaN(purchasePrice) || purchasePrice <= 0) {
-        showNotification('Цена закупки должна быть числом больше 0', 'error');
-        return;
-    }
-    if (isNaN(sellingPrice) || sellingPrice <= 0) {
-        showNotification('Цена продажи должна быть числом больше 0', 'error');
-        return;
-    }
-    const sale = {
-        name: name,
-        article: article,
-        purchase_price: purchasePrice,
-        selling_price: sellingPrice,
-        commission: parseFloat(document.getElementById('commission').value) || 0,
-        logistics: parseFloat(document.getElementById('logistics').value) || 0,
-        delivery_to_mv: parseFloat(document.getElementById('delivery-mv').value) || 0,
-        advertising: parseFloat(document.getElementById('advertising').value) || 0.98,
-        tax_rate: parseFloat(document.getElementById('tax-rate').value) || 0.97,
-        quantity: parseInt(document.getElementById('quantity').value) || 1,
-        date: document.getElementById('sale-date').value,
-        marketplace: document.getElementById('marketplace-select').value,
-        shop: document.getElementById('shop-select').value,
-        user_id: currentUser.id
-    };
-    // Рассчитываем прибыль и маржу
-    const profit = calculateProfit(sale);
-    const margin = calculateMargin(sale);
-    sale.profit = profit;
-    sale.margin = margin;
-    // Сохраняем в Supabase
-    const { data, error } = await supabase
-        .from('sales')
-        .insert([sale])
-        .select()
-        .single();
-    if (error) {
-        showNotification('Ошибка добавления продажи: ' + error.message, 'error');
-        return;
-    }
-    // Добавляем в локальный массив ТОЛЬКО если data существует
-    if (data) {
-        salesData.push(data);
-        saveLastValues();
-        document.getElementById('product-name').value = '';
-        document.getElementById('article').value = '';
-        document.getElementById('purchase-price').value = '';
-        document.getElementById('selling-price').value = '';
-        document.getElementById('commission').value = '';
-        document.getElementById('logistics').value = '';
-        document.getElementById('delivery-mv').value = '';
-        document.getElementById('quantity').value = '1';
-        document.getElementById('sale-date').value = new Date().toISOString().split('T')[0];
-        updateProfitCalculator();
-        updateDashboard();
-        updateRecentAddedSales();
-        showNotification('Продажа успешно добавлена!', 'success');
-    } else {
-        showNotification('Ошибка: данные продажи не были получены', 'error');
-    }
+const name = document.getElementById('product-name').value.trim();
+const article = document.getElementById('article').value.trim();
+const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
+const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
+if (!name) {
+showNotification('Пожалуйста, введите название товара', 'error');
+return;
+}
+if (!article) {
+showNotification('Пожалуйста, введите артикул', 'error');
+return;
+}
+if (isNaN(purchasePrice) || purchasePrice <= 0) {
+showNotification('Цена закупки должна быть числом больше 0', 'error');
+return;
+}
+if (isNaN(sellingPrice) || sellingPrice <= 0) {
+showNotification('Цена продажи должна быть числом больше 0', 'error');
+return;
+}
+const sale = {
+name: name,
+article: article,
+purchase_price: purchasePrice,
+selling_price: sellingPrice,
+commission: parseFloat(document.getElementById('commission').value) || 0,
+logistics: parseFloat(document.getElementById('logistics').value) || 0,
+delivery_to_mv: parseFloat(document.getElementById('delivery-mv').value) || 0,
+advertising: parseFloat(document.getElementById('advertising').value) || 0.98,
+tax_rate: parseFloat(document.getElementById('tax-rate').value) || 0.97,
+quantity: parseInt(document.getElementById('quantity').value) || 1,
+date: document.getElementById('sale-date').value,
+marketplace: document.getElementById('marketplace-select').value,
+shop: document.getElementById('shop-select').value,
+user_id: currentUser.id
+};
+// Рассчитываем прибыль и маржу
+const profit = calculateProfit(sale);
+const margin = calculateMargin(sale);
+sale.profit = profit;
+sale.margin = margin;
+// Сохраняем в Supabase
+const { data, error } = await supabase
+.from('sales')
+.insert([sale])
+.select()
+.single();
+if (error) {
+showNotification('Ошибка добавления продажи: ' + error.message, 'error');
+return;
+}
+// Добавляем в локальный массив
+salesData.push(data);
+saveLastValues();
+document.getElementById('product-name').value = '';
+document.getElementById('article').value = '';
+document.getElementById('purchase-price').value = '';
+document.getElementById('selling-price').value = '';
+document.getElementById('commission').value = '';
+document.getElementById('logistics').value = '';
+document.getElementById('delivery-mv').value = '';
+document.getElementById('quantity').value = '1';
+document.getElementById('sale-date').value = new Date().toISOString().split('T')[0];
+updateProfitCalculator();
+updateDashboard();
+updateRecentAddedSales();
+showNotification('Продажа успешно добавлена!', 'success');
 }
 function calculateProfit(sale) {
 const revenue = sale.selling_price * sale.quantity;
@@ -2414,51 +2403,45 @@ totalReturns
 };
 }
 function updateCharts(filteredData) {
-    const marketplaceData = {
-        'Яндекс': { revenue: 0, profit: 0 },
-        'Озон': { revenue: 0, profit: 0 }
-    };
-    // Фильтруем данные, оставляя только существующие объекты
-    filteredData = filteredData.filter(sale => sale && typeof sale === 'object');
-    filteredData.forEach(sale => {
-        if (sale.marketplace && marketplaceData[sale.marketplace]) {
-            marketplaceData[sale.marketplace].revenue += (sale.selling_price || 0) * (sale.quantity || 0);
-            marketplaceData[sale.marketplace].profit += sale.profit || 0;
-        }
-    });
-    marketplaceChart.data.datasets[0].data = [
-        marketplaceData['Яндекс'].revenue,
-        marketplaceData['Озон'].revenue
-    ];
-    marketplaceChart.update();
-    const salesByMonth = {};
-    filteredData.forEach(sale => {
-        if (!sale.date) return;
-        const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-        if (!salesByMonth[month]) {
-            salesByMonth[month] = { revenue: 0, profit: 0 };
-        }
-        salesByMonth[month].revenue += (sale.selling_price || 0) * (sale.quantity || 0);
-        salesByMonth[month].profit += sale.profit || 0;
-    });
-    const months = Object.keys(salesByMonth);
-    const revenues = months.map(month => salesByMonth[month].revenue);
-    const profits = months.map(month => salesByMonth[month].profit);
-    salesChart.data.labels = months;
-    salesChart.data.datasets[0].data = revenues;
-    salesChart.data.datasets[1].data = profits;
-    salesChart.update();
-    const topProducts = [...filteredData]
-        .filter(sale => sale && sale.name) // Фильтруем только существующие продажи с именем
-        .sort((a, b) => (b.profit || 0) - (a.profit || 0))
-        .slice(0, 5)
-        .map(sale => ({
-            name: sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name,
-            profit: sale.profit || 0
-        }));
-    topProductsChart.data.labels = topProducts.map(p => p.name);
-    topProductsChart.data.datasets[0].data = topProducts.map(p => p.profit);
-    topProductsChart.update();
+const marketplaceData = {
+'Яндекс': { revenue: 0, profit: 0 },
+'Озон': { revenue: 0, profit: 0 }
+};
+filteredData.forEach(sale => {
+marketplaceData[sale.marketplace].revenue += sale.selling_price * sale.quantity;
+marketplaceData[sale.marketplace].profit += sale.profit;
+});
+marketplaceChart.data.datasets[0].data = [
+marketplaceData['Яндекс'].revenue,
+marketplaceData['Озон'].revenue
+];
+marketplaceChart.update();
+const salesByMonth = {};
+filteredData.forEach(sale => {
+const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+if (!salesByMonth[month]) {
+salesByMonth[month] = { revenue: 0, profit: 0 };
+}
+salesByMonth[month].revenue += sale.selling_price * sale.quantity;
+salesByMonth[month].profit += sale.profit;
+});
+const months = Object.keys(salesByMonth);
+const revenues = months.map(month => salesByMonth[month].revenue);
+const profits = months.map(month => salesByMonth[month].profit);
+salesChart.data.labels = months;
+salesChart.data.datasets[0].data = revenues;
+salesChart.data.datasets[1].data = profits;
+salesChart.update();
+const topProducts = [...filteredData]
+.sort((a, b) => b.profit - a.profit)
+.slice(0, 5)
+.map(sale => ({
+name: sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name,
+profit: sale.profit
+}));
+topProductsChart.data.labels = topProducts.map(p => p.name);
+topProductsChart.data.datasets[0].data = topProducts.map(p => p.profit);
+topProductsChart.update();
 }
 function updateRecentSalesTable(filteredData) {
 const tbody = document.querySelector('#recent-sales-table tbody');
