@@ -719,11 +719,11 @@ flex-wrap: nowrap;
 <input type="number" id="delivery-mv" placeholder="0">
 </div>
 <div>
-<label for="advertising">РК + Эквайринг (коэффициент)</label>
-<input type="number" id="advertising" min="0" max="1" step="0.01" value="0.98">
+<label for="advertising">РК + Эквайринг (%)</label>
+<input type="number" id="advertising" step="0.01" value="0.98">
 </div>
 <div>
-<label for="tax-rate">Налог (коэффициент)</label>
+<label for="tax-rate">Налог (%)</label>
 <select id="tax-rate">
 <option value="0.99">1% (УСН Доходы)</option>
 <option value="0.93">7% (УСН Доходы)</option>
@@ -1370,11 +1370,11 @@ flex-wrap: nowrap;
 <input type="number" id="edit-delivery-mv" placeholder="0">
 </div>
 <div>
-<label for="edit-advertising">РК + Эквайринг (коэффициент)</label>
-<input type="number" id="edit-advertising" min="0" max="1" step="0.01" value="0.98">
+<label for="edit-advertising">РК + Эквайринг (%)</label>
+<input type="number" id="edit-advertising" step="0.01" value="0.98">
 </div>
 <div>
-<label for="edit-tax-rate">Налог (коэффициент)</label>
+<label for="edit-tax-rate">Налог (%)</label>
 <select id="edit-tax-rate">
 <option value="0.99">1% (УСН Доходы)</option>
 <option value="0.93">7% (УСН Доходы)</option>
@@ -1518,9 +1518,9 @@ let lastValues = {
     taxRate: 0.99
 };
 let currentPage = 1;
+let itemsPerPage = 10;
 let expenseCurrentPage = 1;
 let returnCurrentPage = 1;
-let itemsPerPage = 10;
 const editIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
 const deleteIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
 let marketplaceChart, salesChart, topProductsChart, expensesChart;
@@ -1589,9 +1589,6 @@ document.getElementById('cancel-return').addEventListener('click', function() {
 document.getElementById('return-modal').style.display = 'none';
 });
 document.getElementById('add-return').addEventListener('click', addReturn);
-document.getElementById('open-expense-modal').addEventListener('click', function() {
-document.getElementById('expense-modal').style.display = 'flex';
-});
 document.getElementById('close-expense-modal').addEventListener('click', function() {
 document.getElementById('expense-modal').style.display = 'none';
 });
@@ -1629,42 +1626,6 @@ icon.textContent = '▲';
 });
 document.getElementById('save-account-settings').addEventListener('click', saveAccountSettings);
 document.getElementById('create-user').addEventListener('click', createUser);
-document.getElementById('prev-page').addEventListener('click', function() {
-if (currentPage > 1) {
-currentPage--;
-updateAllSalesTable();
-}
-});
-document.getElementById('next-page').addEventListener('click', function() {
-if (currentPage < Math.ceil(salesData.length / itemsPerPage)) {
-currentPage++;
-updateAllSalesTable();
-}
-});
-document.getElementById('prev-expense-page').addEventListener('click', function() {
-if (expenseCurrentPage > 1) {
-expenseCurrentPage--;
-updateExpenses();
-}
-});
-document.getElementById('next-expense-page').addEventListener('click', function() {
-if (expenseCurrentPage < Math.ceil(expensesData.length / itemsPerPage)) {
-expenseCurrentPage++;
-updateExpenses();
-}
-});
-document.getElementById('prev-return-page').addEventListener('click', function() {
-if (returnCurrentPage > 1) {
-returnCurrentPage--;
-updateReturns();
-}
-});
-document.getElementById('next-return-page').addEventListener('click', function() {
-if (returnCurrentPage < Math.ceil(returnsData.length / itemsPerPage)) {
-returnCurrentPage++;
-updateReturns();
-}
-});
 // Инициализация
 initMetricDragAndDrop();
 initCharts();
@@ -1821,25 +1782,31 @@ showNotification('Пожалуйста, заполните все поля', 'er
 return;
 }
 // Создаем пользователя через Supabase Auth
-const { data, error: authError } = await supabase.auth.signUp({
+const {  authData, error: authError } = await supabase.auth.admin.createUser({
 email: email,
 password: password,
-options: {
-data: { role: role }
-}
+email_confirm: true
 });
 if (authError) {
 showNotification('Ошибка создания пользователя: ' + authError.message, 'error');
 return;
 }
 // Создаем запись в таблице users с ролью
-const { error: userError } = await supabase
+const {  userData, error: userError } = await supabase
 .from('users')
 .insert([
-{ id: data.user.id, email: email, role: role }
+{ id: authData.user.id, email: email, role: role }
 ]);
 if (userError) {
 showNotification('Ошибка сохранения роли пользователя: ' + userError.message, 'error');
+return;
+}
+// Обновляем JWT-токен, чтобы добавить роль
+const { error: updateError } = await supabase.auth.admin.updateUserById(authData.user.id, {
+app_metadata: { role: role }
+});
+if (updateError) {
+showNotification('Ошибка обновления метаданных: ' + updateError.message, 'error');
 return;
 }
 showNotification('Пользователь успешно создан!', 'success');
@@ -2107,7 +2074,7 @@ const purchaseCost = sale.purchase_price * sale.quantity;
 const commissionCost = sale.commission * sale.quantity;
 const logisticsCost = (sale.logistics || 0) * sale.quantity;
 const deliveryCost = (sale.delivery_to_mv || 0) * sale.quantity;
-const advertisingCost = (1 - (sale.advertising || 1)) * revenue;
+const advertisingCost = (sale.advertising || 0) * revenue / 100;
 const taxCost = (1 - sale.tax_rate) * revenue;
 return revenue - purchaseCost - commissionCost - logisticsCost - deliveryCost - advertisingCost - taxCost;
 }
@@ -2130,7 +2097,7 @@ const purchaseCost = purchasePrice * quantity;
 const commissionCost = commission * quantity;
 const logisticsCost = logistics * quantity;
 const deliveryCost = deliveryToMV * quantity;
-const advertisingCost = (1 - advertising) * revenue;
+const advertisingCost = (advertising / 100) * revenue;
 const taxCost = (1 - taxRate) * revenue;
 const cost = purchaseCost + commissionCost + logisticsCost + deliveryCost + advertisingCost + taxCost;
 const profit = revenue - cost;
@@ -2319,6 +2286,10 @@ select.appendChild(option);
 function updateReturns() {
 const tbody = document.querySelector('#returns-table tbody');
 tbody.innerHTML = '';
+// Убедимся, что returnsData является массивом
+if (!Array.isArray(returnsData)) {
+    returnsData = [];
+}
 const paginatedReturns = paginateArray(returnsData, returnCurrentPage, itemsPerPage);
 paginatedReturns.forEach(ret => {
 const sale = salesData.find(s => s.id === ret.sale_id);
@@ -2420,8 +2391,8 @@ const purchaseCost = sale.purchase_price * sale.quantity;
 const commissionCost = sale.commission * sale.quantity;
 const logisticsCost = (sale.logistics || 0) * sale.quantity;
 const deliveryCost = (sale.delivery_to_mv || 0) * sale.quantity;
-const advertisingCost = (1 - (sale.advertising || 1)) * (sale.selling_price * sale.quantity);
-const taxCost = (1 - sale.tax_rate) * (sale.selling_price * sale.quantity);
+const advertisingCost = (sale.advertising || 0) * sale.selling_price * sale.quantity / 100;
+const taxCost = (1 - sale.tax_rate) * sale.selling_price * sale.quantity;
 return sum + purchaseCost + commissionCost + logisticsCost + deliveryCost + advertisingCost + taxCost;
 }, 0);
 const totalOperatingExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
@@ -2440,9 +2411,16 @@ const marketplaceData = {
 'Яндекс': { revenue: 0, profit: 0 },
 'Озон': { revenue: 0, profit: 0 }
 };
+// Убедимся, что filteredData является массивом
+if (!Array.isArray(filteredData)) {
+    filteredData = [];
+}
 filteredData.forEach(sale => {
-marketplaceData[sale.marketplace].revenue += sale.selling_price * sale.quantity;
-marketplaceData[sale.marketplace].profit += sale.profit;
+    // КРИТИЧЕСКАЯ ПРОВЕРКА: существует ли такой ключ в marketplaceData?
+    if (marketplaceData[sale.marketplace]) {
+        marketplaceData[sale.marketplace].revenue += sale.selling_price * sale.quantity;
+        marketplaceData[sale.marketplace].profit += sale.profit;
+    }
 });
 marketplaceChart.data.datasets[0].data = [
 marketplaceData['Яндекс'].revenue,
@@ -2479,6 +2457,10 @@ topProductsChart.update();
 function updateRecentSalesTable(filteredData) {
 const tbody = document.querySelector('#recent-sales-table tbody');
 tbody.innerHTML = '';
+// Убедимся, что filteredData является массивом
+if (!Array.isArray(filteredData)) {
+    filteredData = [];
+}
 const recentSales = [...filteredData]
 .sort((a, b) => new Date(b.date) - new Date(a.date))
 .slice(0, 10);
@@ -2504,10 +2486,17 @@ const marketplaceData = {
 'Яндекс': { revenue: 0, profit: 0, count: 0 },
 'Озон': { revenue: 0, profit: 0, count: 0 }
 };
+// Убедимся, что filteredData является массивом
+if (!Array.isArray(filteredData)) {
+    filteredData = [];
+}
 filteredData.forEach(sale => {
-marketplaceData[sale.marketplace].revenue += sale.selling_price * sale.quantity;
-marketplaceData[sale.marketplace].profit += sale.profit;
-marketplaceData[sale.marketplace].count += 1;
+    // Добавлена проверка
+    if (marketplaceData[sale.marketplace]) {
+        marketplaceData[sale.marketplace].revenue += sale.selling_price * sale.quantity;
+        marketplaceData[sale.marketplace].profit += sale.profit;
+        marketplaceData[sale.marketplace].count += 1;
+    }
 });
 Object.keys(marketplaceData).forEach(key => {
 const data = marketplaceData[key];
@@ -2549,6 +2538,10 @@ topProductsAnalytics.appendChild(div);
 const monthlySalesTable = document.querySelector('#monthly-sales-table tbody');
 monthlySalesTable.innerHTML = '';
 const salesByMonth = {};
+// Убедимся, что filteredData является массивом
+if (!Array.isArray(filteredData)) {
+    filteredData = [];
+}
 filteredData.forEach(sale => {
 const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
 if (!salesByMonth[month]) {
@@ -2575,6 +2568,10 @@ monthlySalesTable.appendChild(tr);
 const shopSalesTable = document.querySelector('#shop-sales-table tbody');
 shopSalesTable.innerHTML = '';
 const salesByShop = {};
+// Убедимся, что filteredData является массивом
+if (!Array.isArray(filteredData)) {
+    filteredData = [];
+}
 filteredData.forEach(sale => {
 const shop = sale.shop || 'Не указан';
 if (!salesByShop[shop]) {
@@ -2616,20 +2613,18 @@ const totalReturns = returnsData.reduce((sum, ret) => sum + ret.amount, 0);
 const adjustedRevenue = totalRevenue - totalReturns;
 const totalPurchaseCost = filteredData.reduce((sum, sale) => sum + (sale.purchase_price * sale.quantity), 0);
 const totalCommissionCost = filteredData.reduce((sum, sale) => sum + (sale.commission * sale.quantity), 0);
-const totalAdvertisingCost = filteredData.reduce((sum, sale) => sum + (1 - (sale.advertising || 1)) * (sale.selling_price * sale.quantity), 0);
 const totalTaxCost = filteredData.reduce((sum, sale) => sum + ((1 - sale.tax_rate) * sale.selling_price * sale.quantity), 0);
 const totalOperatingExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
-const totalDirectCosts = totalPurchaseCost + totalCommissionCost + totalAdvertisingCost + totalTaxCost;
-const totalProfit = (adjustedRevenue - totalDirectCosts) - totalOperatingExpenses;
+const totalProfit = (adjustedRevenue - totalPurchaseCost - totalCommissionCost - totalTaxCost) - totalOperatingExpenses;
 document.getElementById('report-revenue').textContent = adjustedRevenue.toLocaleString('ru-RU');
 document.getElementById('report-garden-revenue').textContent = adjustedRevenue.toLocaleString('ru-RU');
-document.getElementById('report-direct-costs').textContent = totalDirectCosts.toLocaleString('ru-RU');
+document.getElementById('report-direct-costs').textContent = (totalPurchaseCost + totalCommissionCost + totalTaxCost).toLocaleString('ru-RU');
 document.getElementById('report-purchase-cost').textContent = totalPurchaseCost.toLocaleString('ru-RU');
 document.getElementById('report-commission-cost').textContent = totalCommissionCost.toLocaleString('ru-RU');
 document.getElementById('report-tax-cost').textContent = totalTaxCost.toLocaleString('ru-RU');
 document.getElementById('report-operating-expenses').textContent = totalOperatingExpenses.toLocaleString('ru-RU');
 document.getElementById('report-profit').textContent = totalProfit.toLocaleString('ru-RU');
-document.getElementById('report-direct-costs-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalDirectCosts / adjustedRevenue) * 100) + '%';
+document.getElementById('report-direct-costs-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round(((totalPurchaseCost + totalCommissionCost + totalTaxCost) / adjustedRevenue) * 100) + '%';
 document.getElementById('report-purchase-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalPurchaseCost / adjustedRevenue) * 100) + '%';
 document.getElementById('report-commission-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalCommissionCost / adjustedRevenue) * 100) + '%';
 document.getElementById('report-tax-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalTaxCost / adjustedRevenue) * 100) + '%';
@@ -2652,9 +2647,10 @@ const data = salesData.map(sale => ({
 Прибыль: sale.profit.toFixed(2),
 Маржа: sale.margin + '%'
 }));
-let csvContent = "data:text/csv;charset=utf-8,";
+let csvContent = "text/csv;charset=utf-8,";
 const headers = Object.keys(data[0]).join(",");
-csvContent += headers + "\r\n";
+csvContent += headers + "\\r\
+";
 data.forEach(row => {
 const values = Object.values(row).map(value => {
 if (typeof value === 'string' && value.includes(',')) {
@@ -2662,7 +2658,8 @@ return `"${value}"`;
 }
 return value;
 });
-csvContent += values.join(",") + "\r\n";
+csvContent += values.join(",") + "\\r\
+";
 });
 const encodedUri = encodeURI(csvContent);
 const link = document.createElement("a");
@@ -2895,6 +2892,10 @@ showNotification('Расход успешно добавлен!', 'success');
 }
 function updateExpenses() {
 const expensesByMonth = {};
+// Убедимся, что expensesData является массивом
+if (!Array.isArray(expensesData)) {
+    expensesData = [];
+}
 expensesData.forEach(expense => {
 const month = new Date(expense.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
 if (!expensesByMonth[month]) {
@@ -2910,6 +2911,10 @@ expensesChart.update();
 const expensesByCategory = document.getElementById('expenses-by-category');
 expensesByCategory.innerHTML = '';
 const categoryTotals = {};
+// Убедимся, что expensesData является массивом
+if (!Array.isArray(expensesData)) {
+    expensesData = [];
+}
 expensesData.forEach(expense => {
 if (!categoryTotals[expense.category]) {
 categoryTotals[expense.category] = 0;
@@ -3077,6 +3082,42 @@ const totalReturnPages = Math.ceil(totalReturnItems / itemsPerPage);
 document.getElementById('return-page-info').textContent = `Страница ${returnCurrentPage} из ${totalReturnPages}`;
 document.getElementById('prev-return-page').disabled = returnCurrentPage === 1;
 document.getElementById('next-return-page').disabled = returnCurrentPage === totalReturnPages;
+document.getElementById('prev-page').addEventListener('click', function() {
+if (currentPage > 1) {
+currentPage--;
+updateAllSalesTable();
+}
+});
+document.getElementById('next-page').addEventListener('click', function() {
+if (currentPage < Math.ceil(salesData.length / itemsPerPage)) {
+currentPage++;
+updateAllSalesTable();
+}
+});
+document.getElementById('prev-expense-page').addEventListener('click', function() {
+if (expenseCurrentPage > 1) {
+expenseCurrentPage--;
+updateExpenses();
+}
+});
+document.getElementById('next-expense-page').addEventListener('click', function() {
+if (expenseCurrentPage < Math.ceil(expensesData.length / itemsPerPage)) {
+expenseCurrentPage++;
+updateExpenses();
+}
+});
+document.getElementById('prev-return-page').addEventListener('click', function() {
+if (returnCurrentPage > 1) {
+returnCurrentPage--;
+updateReturns();
+}
+});
+document.getElementById('next-return-page').addEventListener('click', function() {
+if (returnCurrentPage < Math.ceil(returnsData.length / itemsPerPage)) {
+returnCurrentPage++;
+updateReturns();
+}
+});
 }
 function showNotification(message, type) {
 const notification = document.getElementById('notification');
