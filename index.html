@@ -1494,7 +1494,6 @@ flex-wrap: nowrap;
 </div>
 <div id="notification" class="notification"></div>
 </div>
-
 <script>
 // Firebase Configuration
 const firebaseConfig = {
@@ -1505,12 +1504,10 @@ const firebaseConfig = {
   messagingSenderId: "686767926788",
   appId: "1:686767926788:web:226639781832701beb0f51"
 };
-
 // Инициализация Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
 // Глобальные переменные
 let currentUser = null;
 let salesData = [];
@@ -1556,10 +1553,8 @@ let returnCurrentPage = 1;
 const editIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
 const deleteIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
 let marketplaceChart, salesChart, topProductsChart, expensesChart;
-
 // Кэш для имен пользователей
 let userNamesCache = {};
-
 // Обработчики событий
 document.addEventListener('DOMContentLoaded', async function() {
     auth.onAuthStateChanged(async function(user) {
@@ -1570,7 +1565,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('main-app').style.display = 'none';
         }
     });
-
     document.getElementById('auth-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const email = document.getElementById('email').value;
@@ -1581,7 +1575,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             showNotification('Ошибка входа: ' + error.message, 'error');
         }
     });
-
     document.getElementById('register-btn').addEventListener('click', async function() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -1602,7 +1595,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             showNotification('Ошибка создания аккаунта: ' + error.message, 'error');
         }
     });
-
     document.getElementById('logout-btn').addEventListener('click', async function() {
         try {
             await auth.signOut();
@@ -1614,60 +1606,46 @@ document.addEventListener('DOMContentLoaded', async function() {
             showNotification('Ошибка при выходе: ' + error.message, 'error');
         }
     });
-
     // Остальные обработчики событий
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', function() {
             showTab(this.getAttribute('data-tab'));
         });
     });
-
     document.getElementById('add-sale').addEventListener('click', addSale);
     document.getElementById('go-to-dashboard').addEventListener('click', function() {
         showTab('dashboard');
         updateDashboard();
     });
-
     document.getElementById('close-edit-sale-modal').addEventListener('click', function() {
         document.getElementById('edit-sale-modal').style.display = 'none';
     });
-
     document.getElementById('cancel-edit-sale').addEventListener('click', function() {
         document.getElementById('edit-sale-modal').style.display = 'none';
     });
-
     document.getElementById('save-edit-sale').addEventListener('click', saveEditedSale);
-
     document.getElementById('open-return-modal').addEventListener('click', function() {
         document.getElementById('return-modal').style.display = 'flex';
         populateReturnSales();
     });
-
     document.getElementById('close-return-modal').addEventListener('click', function() {
         document.getElementById('return-modal').style.display = 'none';
     });
-
     document.getElementById('cancel-return').addEventListener('click', function() {
         document.getElementById('return-modal').style.display = 'none';
     });
-
     document.getElementById('add-return').addEventListener('click', addReturn);
-
     document.getElementById('close-expense-modal').addEventListener('click', function() {
         document.getElementById('expense-modal').style.display = 'none';
     });
-
     document.getElementById('cancel-expense').addEventListener('click', function() {
         document.getElementById('expense-modal').style.display = 'none';
     });
-
     document.getElementById('add-expense').addEventListener('click', addExpense);
-
     const calcFields = ['selling-price', 'quantity', 'purchase-price', 'commission', 'logistics', 'delivery-mv', 'advertising', 'tax-rate'];
     calcFields.forEach(field => {
         document.getElementById(field).addEventListener('input', updateProfitCalculator);
     });
-
     document.getElementById('add-shop').addEventListener('click', addShop);
     document.getElementById('add-category').addEventListener('click', addCategory);
     document.getElementById('add-expense-category').addEventListener('click', addExpenseCategory);
@@ -1678,7 +1656,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('generate-report').addEventListener('click', updateReports);
     document.getElementById('export-report').addEventListener('click', exportReport);
     document.getElementById('export-csv').addEventListener('click', exportToCSV);
-
     document.querySelectorAll('.spoiler-header').forEach(header => {
         header.addEventListener('click', function() {
             const target = this.getAttribute('data-target');
@@ -1693,10 +1670,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
     });
-
     document.getElementById('save-account-settings').addEventListener('click', saveAccountSettings);
     document.getElementById('create-user').addEventListener('click', createUser);
-
     // Инициализация
     initMetricDragAndDrop();
     initCharts();
@@ -1706,7 +1681,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('expense-date').value = today;
     restoreLastValues();
 });
-
 // Функция для обработки успешного входа
 async function handleSuccessfulLogin(user) {
     currentUser = user;
@@ -1714,11 +1688,9 @@ async function handleSuccessfulLogin(user) {
     document.getElementById('main-app').style.display = 'block';
     document.getElementById('user-email-display').textContent = currentUser.email;
     document.getElementById('user-avatar').textContent = currentUser.email.charAt(0).toUpperCase();
-    
     try {
         const userDoc = await db.collection('users').doc(currentUser.uid).get();
         let userData = { role: 'user', full_name: currentUser.email.split('@')[0] };
-        
         if (userDoc.exists) {
             userData = userDoc.data();
         } else {
@@ -1729,17 +1701,14 @@ async function handleSuccessfulLogin(user) {
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
-        
         document.getElementById('user-role').textContent = getRoleDisplayName(userData.role);
         document.getElementById('user-full-name').textContent = userData.full_name;
-        
         if (userData.role === 'admin') {
             document.getElementById('admin-panel-tab').style.display = 'block';
             loadAllUsers();
         } else {
             document.getElementById('admin-panel-tab').style.display = 'none';
         }
-        
         await loadData();
         applySettings();
         updateDashboard();
@@ -1749,7 +1718,6 @@ async function handleSuccessfulLogin(user) {
         showNotification('Ошибка при загрузке данных пользователя', 'error');
     }
 }
-
 // Функция для получения отображаемого названия роли
 function getRoleDisplayName(role) {
     switch(role) {
@@ -1763,7 +1731,6 @@ function getRoleDisplayName(role) {
             return 'Пользователь';
     }
 }
-
 // Функция для загрузки данных пользователя
 async function loadData() {
     try {
@@ -1773,19 +1740,16 @@ async function loadData() {
         usersSnapshot.forEach(doc => {
             userNamesCache[doc.id] = doc.data().full_name || doc.data().email;
         });
-
         // Загружаем продажи
         let salesQuery = db.collection('sales');
         if (getRoleFromToken() !== 'admin') {
             salesQuery = salesQuery.where('user_id', '==', currentUser.uid);
         }
         let salesSnapshot = await salesQuery.orderBy('date', 'desc').get();
-        
         salesData = [];
         salesSnapshot.forEach(doc => {
             salesData.push({id: doc.id, ...doc.data()});
         });
-        
         // Загружаем возвраты
         let returnsQuery = db.collection('returns');
         if (getRoleFromToken() !== 'admin') {
@@ -1797,24 +1761,20 @@ async function loadData() {
             }
         }
         let returnsSnapshot = await returnsQuery.orderBy('date', 'desc').get();
-        
         returnsData = [];
         returnsSnapshot.forEach(doc => {
             returnsData.push({id: doc.id, ...doc.data()});
         });
-        
         // Загружаем расходы
         let expensesQuery = db.collection('expenses');
         if (getRoleFromToken() !== 'admin') {
             expensesQuery = expensesQuery.where('user_id', '==', currentUser.uid);
         }
         let expensesSnapshot = await expensesQuery.orderBy('date', 'desc').get();
-        
         expensesData = [];
         expensesSnapshot.forEach(doc => {
             expensesData.push({id: doc.id, ...doc.data()});
         });
-        
         // Загружаем локальные настройки
         if (localStorage.getItem('shops')) {
             shops = JSON.parse(localStorage.getItem('shops'));
@@ -1834,7 +1794,6 @@ async function loadData() {
         if (localStorage.getItem('lastValues')) {
             lastValues = JSON.parse(localStorage.getItem('lastValues'));
         }
-        
         applySettings();
         restoreLastValues();
         updateShopsList();
@@ -1847,7 +1806,6 @@ async function loadData() {
         showNotification('Ошибка загрузки данных', 'error');
     }
 }
-
 // Функция для получения роли текущего пользователя
 function getRoleFromToken() {
     if (!currentUser) return null;
@@ -1860,19 +1818,16 @@ function getRoleFromToken() {
     }
     return 'user';
 }
-
 // Функция для сохранения настроек аккаунта
 async function saveAccountSettings() {
     const userFullName = document.getElementById('user-full-name-input').value;
     const userEmail = document.getElementById('user-email').value;
     const userPassword = document.getElementById('user-password').value;
     const userPasswordConfirm = document.getElementById('user-password-confirm').value;
-    
     if (userPassword && userPassword !== userPasswordConfirm) {
         showNotification('Пароли не совпадают', 'error');
         return;
     }
-    
     try {
         if (userEmail !== currentUser.email) {
             await currentUser.updateEmail(userEmail);
@@ -1891,19 +1846,16 @@ async function saveAccountSettings() {
         showNotification('Ошибка обновления аккаунта: ' + error.message, 'error');
     }
 }
-
 // Функция для создания нового пользователя (только для админа)
 async function createUser() {
     const email = document.getElementById('new-user-email').value;
     const fullName = document.getElementById('new-user-full-name').value;
     const password = document.getElementById('new-user-password').value;
     const role = document.getElementById('new-user-role').value;
-    
     if (!email || !password || !fullName) {
         showNotification('Пожалуйста, заполните все поля', 'error');
         return;
     }
-    
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         await db.collection('users').doc(userCredential.user.uid).set({
@@ -1923,14 +1875,12 @@ async function createUser() {
         showNotification('Ошибка создания пользователя: ' + error.message, 'error');
     }
 }
-
 // Функция для загрузки всех пользователей (только для админа)
 async function loadAllUsers() {
     try {
         const usersSnapshot = await db.collection('users').orderBy('createdAt', 'desc').get();
         const userListContainer = document.getElementById('user-list');
         userListContainer.innerHTML = '';
-        
         usersSnapshot.forEach(doc => {
             const user = doc.data();
             const div = document.createElement('div');
@@ -1946,18 +1896,14 @@ async function loadAllUsers() {
         showNotification('Ошибка загрузки списка пользователей', 'error');
     }
 }
-
 // Функция для обновления фильтра сотрудников (только для админа)
 async function updateEmployeeFilter() {
     if (getRoleFromToken() !== 'admin') {
         return;
     }
-    
     const select = document.getElementById('employee-filter');
     if (!select) return;
-    
     select.innerHTML = '<option value="all">Все сотрудники</option>';
-    
     if (Object.keys(userNamesCache).length === 0) {
         const usersSnapshot = await db.collection('users').get();
         userNamesCache = {};
@@ -1965,19 +1911,16 @@ async function updateEmployeeFilter() {
             userNamesCache[doc.id] = doc.data().full_name || doc.data().email;
         });
     }
-    
     Object.keys(userNamesCache).forEach(userId => {
         const option = document.createElement('option');
         option.value = userId;
         option.textContent = userNamesCache[userId];
         select.appendChild(option);
     });
-    
     if (settings.filters.employeeFilter && settings.filters.employeeFilter !== 'all') {
         select.value = settings.filters.employeeFilter;
     }
 }
-
 // Остальные функции (адаптированные для Firebase)
 function applySettings() {
     document.getElementById('marketplace-field').style.display = settings.showMarketplace ? 'block' : 'none';
@@ -1990,12 +1933,10 @@ function applySettings() {
     document.getElementById('edit-commission-field').style.display = settings.showCommission ? 'block' : 'none';
     document.getElementById('edit-logistics-field').style.display = settings.showLogistics ? 'block' : 'none';
     document.getElementById('edit-delivery-mv-field').style.display = settings.showDeliveryMV ? 'block' : 'none';
-    
     const taxSelect = document.getElementById('tax-rate');
     const editTaxSelect = document.getElementById('edit-tax-rate');
     taxSelect.innerHTML = '';
     editTaxSelect.innerHTML = '';
-    
     taxSystems.forEach(tax => {
         const option = document.createElement('option');
         option.value = tax.rate;
@@ -2004,14 +1945,12 @@ function applySettings() {
         editTaxSelect.appendChild(option);
     });
 }
-
 function restoreLastValues() {
     document.getElementById('marketplace-select').value = lastValues.marketplace;
     document.getElementById('shop-select').value = lastValues.shop;
     document.getElementById('advertising').value = lastValues.advertising;
     document.getElementById('tax-rate').value = lastValues.taxRate;
 }
-
 function saveLastValues() {
     lastValues.marketplace = document.getElementById('marketplace-select').value;
     lastValues.shop = document.getElementById('shop-select').value;
@@ -2019,11 +1958,9 @@ function saveLastValues() {
     lastValues.taxRate = document.getElementById('tax-rate').value;
     saveData();
 }
-
 function initMetricDragAndDrop() {
     const container = document.getElementById('metrics-container');
     const metrics = container.querySelectorAll('.metric-card');
-    
     metrics.forEach(metric => {
         metric.setAttribute('draggable', true);
         metric.addEventListener('dragstart', function(e) {
@@ -2053,7 +1990,6 @@ function initMetricDragAndDrop() {
         });
     });
 }
-
 function initCharts() {
     const marketplaceCtx = document.getElementById('marketplace-chart').getContext('2d');
     marketplaceChart = new Chart(marketplaceCtx, {
@@ -2070,7 +2006,6 @@ function initCharts() {
             maintainAspectRatio: false
         }
     });
-    
     const salesCtx = document.getElementById('sales-chart').getContext('2d');
     salesChart = new Chart(salesCtx, {
         type: 'line',
@@ -2103,7 +2038,6 @@ function initCharts() {
             }
         }
     });
-    
     const topProductsCtx = document.getElementById('top-products-chart').getContext('2d');
     topProductsChart = new Chart(topProductsCtx, {
         type: 'bar',
@@ -2125,7 +2059,6 @@ function initCharts() {
             }
         }
     });
-    
     const expensesCtx = document.getElementById('expenses-chart').getContext('2d');
     expensesChart = new Chart(expensesCtx, {
         type: 'bar',
@@ -2148,13 +2081,11 @@ function initCharts() {
         }
     });
 }
-
 async function addSale() {
     const name = document.getElementById('product-name').value.trim();
     const article = document.getElementById('article').value.trim();
     const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
     const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
-    
     if (!name) {
         showNotification('Пожалуйста, введите название товара', 'error');
         return;
@@ -2171,7 +2102,6 @@ async function addSale() {
         showNotification('Цена продажи должна быть числом больше 0', 'error');
         return;
     }
-    
     const sale = {
         name: name,
         article: article,
@@ -2189,16 +2119,13 @@ async function addSale() {
         user_id: currentUser.uid,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
-    
     const profit = calculateProfit(sale);
     const margin = calculateMargin(sale);
     sale.profit = profit;
     sale.margin = margin;
-    
     try {
         const docRef = await db.collection('sales').add(sale);
         salesData.push({...sale, id: docRef.id});
-        
         saveLastValues();
         document.getElementById('product-name').value = '';
         document.getElementById('article').value = '';
@@ -2217,7 +2144,6 @@ async function addSale() {
         showNotification('Ошибка добавления продажи: ' + error.message, 'error');
     }
 }
-
 function calculateProfit(sale) {
     const revenue = sale.selling_price * sale.quantity;
     const purchaseCost = sale.purchase_price * sale.quantity;
@@ -2228,13 +2154,11 @@ function calculateProfit(sale) {
     const taxCost = (1 - sale.tax_rate) * revenue;
     return revenue - purchaseCost - commissionCost - logisticsCost - deliveryCost - advertisingCost - taxCost;
 }
-
 function calculateMargin(sale) {
     const profit = calculateProfit(sale);
     const revenue = sale.selling_price * sale.quantity;
     return revenue === 0 ? 0 : Math.round((profit / revenue) * 100);
 }
-
 function updateProfitCalculator() {
     const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
     const quantity = parseInt(document.getElementById('quantity').value) || 1;
@@ -2244,7 +2168,6 @@ function updateProfitCalculator() {
     const deliveryToMV = parseFloat(document.getElementById('delivery-mv').value) || 0;
     const advertising = parseFloat(document.getElementById('advertising').value) || 0.98;
     const taxRate = parseFloat(document.getElementById('tax-rate').value) || 0.97;
-    
     const revenue = sellingPrice * quantity;
     const purchaseCost = purchasePrice * quantity;
     const commissionCost = commission * quantity;
@@ -2255,45 +2178,36 @@ function updateProfitCalculator() {
     const cost = purchaseCost + commissionCost + logisticsCost + deliveryCost + advertisingCost + taxCost;
     const profit = revenue - cost;
     const margin = revenue === 0 ? 0 : Math.round((profit / revenue) * 100);
-    
     animateValue(document.getElementById('revenue-calc'), revenue);
     animateValue(document.getElementById('cost-calc'), cost);
     animateValue(document.getElementById('profit-calc'), profit);
     animateValue(document.getElementById('margin-calc'), margin, true);
 }
-
 function animateValue(element, newValue, isPercent = false) {
     const currentValue = parseFloat(element.textContent.replace(/[^\d.-]/g, '')) || 0;
     const duration = 500;
     const startTime = performance.now();
-    
     function updateValue(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const currentValueAnimated = currentValue + (newValue - currentValue) * progress;
-        
         if (isPercent) {
             element.textContent = Math.round(currentValueAnimated) + '%';
         } else {
             element.textContent = Math.round(currentValueAnimated).toLocaleString('ru-RU') + ' ₽';
         }
-        
         if (progress < 1) {
             requestAnimationFrame(updateValue);
         }
     }
-    
     requestAnimationFrame(updateValue);
 }
-
 function updateRecentAddedSales() {
     const tbody = document.querySelector('#recent-added-sales tbody');
     tbody.innerHTML = '';
-    
     const recentSales = [...salesData]
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 10);
-    
     recentSales.forEach(sale => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -2311,11 +2225,9 @@ function updateRecentAddedSales() {
         tbody.appendChild(tr);
     });
 }
-
 async function editSale(saleId) {
     const sale = salesData.find(s => s.id === saleId);
     if (!sale) return;
-    
     document.getElementById('edit-sale-id').value = sale.id;
     document.getElementById('edit-product-name').value = sale.name;
     document.getElementById('edit-article').value = sale.article;
@@ -2330,7 +2242,6 @@ async function editSale(saleId) {
     document.getElementById('edit-sale-date').value = sale.date;
     document.getElementById('edit-marketplace-select').value = sale.marketplace;
     document.getElementById('edit-shop-select').value = sale.shop || '';
-    
     const shopSelect = document.getElementById('edit-shop-select');
     shopSelect.innerHTML = '<option value="Выберите магазин">Выберите магазин</option>';
     shops.forEach(shop => {
@@ -2340,15 +2251,12 @@ async function editSale(saleId) {
         shopSelect.appendChild(option);
     });
     shopSelect.value = sale.shop || '';
-    
     document.getElementById('edit-sale-modal').style.display = 'flex';
 }
-
 async function saveEditedSale() {
     const saleId = document.getElementById('edit-sale-id').value;
     const saleIndex = salesData.findIndex(s => s.id === saleId);
     if (saleIndex === -1) return;
-    
     const updatedSale = {
         name: document.getElementById('edit-product-name').value,
         article: document.getElementById('edit-article').value,
@@ -2366,14 +2274,11 @@ async function saveEditedSale() {
         user_id: currentUser.uid,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
-    
     updatedSale.profit = calculateProfit(updatedSale);
     updatedSale.margin = calculateMargin(updatedSale);
-    
     try {
         await db.collection('sales').doc(saleId).update(updatedSale);
         salesData[saleIndex] = {...updatedSale, id: saleId};
-        
         document.getElementById('edit-sale-modal').style.display = 'none';
         updateDashboard();
         updateAllSalesTable();
@@ -2383,7 +2288,6 @@ async function saveEditedSale() {
         showNotification('Ошибка обновления продажи: ' + error.message, 'error');
     }
 }
-
 async function deleteSale(saleId) {
     if (confirm('Вы уверены, что хотите удалить эту продажу')) {
         try {
@@ -2398,18 +2302,15 @@ async function deleteSale(saleId) {
         }
     }
 }
-
 async function addReturn() {
     const saleId = document.getElementById('return-sale').value;
     const reason = document.getElementById('return-reason').value;
     const amount = parseFloat(document.getElementById('return-amount').value);
     const date = document.getElementById('return-date').value;
-    
     if (!saleId || !reason || !amount) {
         showNotification('Пожалуйста, заполните все поля для возврата', 'error');
         return;
     }
-    
     const returnItem = {
         sale_id: saleId,
         reason: reason,
@@ -2418,11 +2319,9 @@ async function addReturn() {
         user_id: currentUser.uid,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
-    
     try {
         const docRef = await db.collection('returns').add(returnItem);
         returnsData.push({...returnItem, id: docRef.id});
-        
         document.getElementById('return-sale').value = '';
         document.getElementById('return-reason').value = '';
         document.getElementById('return-amount').value = '';
@@ -2435,16 +2334,13 @@ async function addReturn() {
         showNotification('Ошибка добавления возврата: ' + error.message, 'error');
     }
 }
-
 function populateReturnSales() {
     const select = document.getElementById('return-sale');
     select.innerHTML = '<option value="Выберите продажу">Выберите продажу</option>';
-    
     let filteredSales = salesData;
     if (getRoleFromToken() !== 'admin') {
         filteredSales = salesData.filter(sale => sale.user_id === currentUser.uid);
     }
-    
     filteredSales.forEach(sale => {
         const option = document.createElement('option');
         option.value = sale.id;
@@ -2452,11 +2348,9 @@ function populateReturnSales() {
         select.appendChild(option);
     });
 }
-
 function updateReturns() {
     const tbody = document.querySelector('#returns-table tbody');
     tbody.innerHTML = '';
-    
     const paginatedReturns = paginateArray(returnsData, returnCurrentPage, itemsPerPage);
     paginatedReturns.forEach(ret => {
         const sale = salesData.find(s => s.id === ret.sale_id);
@@ -2475,14 +2369,11 @@ function updateReturns() {
         `;
         tbody.appendChild(tr);
     });
-    
     updatePagination();
 }
-
 function editReturn(returnId) {
     showNotification('Функция редактирования возврата в разработке', 'info');
 }
-
 async function deleteReturn(returnId) {
     if (confirm('Вы уверены, что хотите удалить этот возврат')) {
         try {
@@ -2496,7 +2387,6 @@ async function deleteReturn(returnId) {
         }
     }
 }
-
 function updateDashboard() {
     const filteredData = filterSalesData();
     const metrics = calculateMetrics(filteredData);
@@ -2508,15 +2398,12 @@ function updateDashboard() {
     updateCharts(filteredData);
     updateRecentSalesTable(filteredData);
 }
-
 function filterSalesData() {
     const period = document.getElementById('period').value;
     const marketplace = document.getElementById('marketplace').value;
     const startDate = document.getElementById('start-date').value;
     const endDate = document.getElementById('end-date').value;
-    
     let filtered = [...salesData];
-    
     if (marketplace !== 'all') {
         filtered = filtered.filter(sale => sale.marketplace === marketplace);
     }
@@ -2549,7 +2436,6 @@ function filterSalesData() {
     }
     return filtered;
 }
-
 function calculateMetrics(filteredData) {
     const totalRevenue = filteredData.reduce((sum, sale) => sum + (sale.selling_price * sale.quantity), 0);
     const totalReturns = returnsData.reduce((sum, ret) => sum + ret.amount, 0);
@@ -2566,7 +2452,6 @@ function calculateMetrics(filteredData) {
     const totalOperatingExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
     const totalProfit = (adjustedRevenue - totalCost) - totalOperatingExpenses;
     const averageMargin = adjustedRevenue === 0 ? 0 : Math.round((totalProfit / adjustedRevenue) * 100);
-    
     return {
         totalRevenue: adjustedRevenue,
         totalCost: totalCost + totalOperatingExpenses,
@@ -2575,26 +2460,22 @@ function calculateMetrics(filteredData) {
         totalReturns
     };
 }
-
 function updateCharts(filteredData) {
     const marketplaceData = {
         'Яндекс': { revenue: 0, profit: 0 },
         'Озон': { revenue: 0, profit: 0 }
     };
-    
     filteredData.forEach(sale => {
         if (marketplaceData[sale.marketplace]) {
             marketplaceData[sale.marketplace].revenue += sale.selling_price * sale.quantity;
             marketplaceData[sale.marketplace].profit += sale.profit;
         }
     });
-    
     marketplaceChart.data.datasets[0].data = [
         marketplaceData['Яндекс'].revenue,
         marketplaceData['Озон'].revenue
     ];
     marketplaceChart.update();
-    
     const salesByMonth = {};
     filteredData.forEach(sale => {
         const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
@@ -2604,16 +2485,13 @@ function updateCharts(filteredData) {
         salesByMonth[month].revenue += sale.selling_price * sale.quantity;
         salesByMonth[month].profit += sale.profit;
     });
-    
     const months = Object.keys(salesByMonth);
     const revenues = months.map(month => salesByMonth[month].revenue);
     const profits = months.map(month => salesByMonth[month].profit);
-    
     salesChart.data.labels = months;
     salesChart.data.datasets[0].data = revenues;
     salesChart.data.datasets[1].data = profits;
     salesChart.update();
-    
     const topProducts = [...filteredData]
         .sort((a, b) => b.profit - a.profit)
         .slice(0, 5)
@@ -2621,20 +2499,16 @@ function updateCharts(filteredData) {
             name: sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name,
             profit: sale.profit
         }));
-    
     topProductsChart.data.labels = topProducts.map(p => p.name);
     topProductsChart.data.datasets[0].data = topProducts.map(p => p.profit);
     topProductsChart.update();
 }
-
 function updateRecentSalesTable(filteredData) {
     const tbody = document.querySelector('#recent-sales-table tbody');
     tbody.innerHTML = '';
-    
     const recentSales = [...filteredData]
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 10);
-    
     recentSales.forEach(sale => {
         const tr = document.createElement('tr');
         tr.className = sale.marketplace === 'Яндекс' ? 'marketplace-yandex' : 'marketplace-ozon';
@@ -2649,17 +2523,14 @@ function updateRecentSalesTable(filteredData) {
         tbody.appendChild(tr);
     });
 }
-
 function updateAnalytics() {
     const filteredData = filterSalesData();
     const marketplaceAnalytics = document.getElementById('marketplace-analytics');
     marketplaceAnalytics.innerHTML = '';
-    
     const marketplaceData = {
         'Яндекс': { revenue: 0, profit: 0, count: 0 },
         'Озон': { revenue: 0, profit: 0, count: 0 }
     };
-    
     filteredData.forEach(sale => {
         if (marketplaceData[sale.marketplace]) {
             marketplaceData[sale.marketplace].revenue += sale.selling_price * sale.quantity;
@@ -2667,7 +2538,6 @@ function updateAnalytics() {
             marketplaceData[sale.marketplace].count += 1;
         }
     });
-    
     Object.keys(marketplaceData).forEach(key => {
         const data = marketplaceData[key];
         const div = document.createElement('div');
@@ -2685,14 +2555,11 @@ function updateAnalytics() {
         `;
         marketplaceAnalytics.appendChild(div);
     });
-    
     const topProductsAnalytics = document.getElementById('top-products-analytics');
     topProductsAnalytics.innerHTML = '';
-    
     const topProducts = [...filteredData]
         .sort((a, b) => b.profit - a.profit)
         .slice(0, 5);
-    
     topProducts.forEach(sale => {
         const div = document.createElement('div');
         div.className = 'expense-item';
@@ -2708,10 +2575,8 @@ function updateAnalytics() {
         `;
         topProductsAnalytics.appendChild(div);
     });
-    
     const monthlySalesTable = document.querySelector('#monthly-sales-table tbody');
     monthlySalesTable.innerHTML = '';
-    
     const salesByMonth = {};
     filteredData.forEach(sale => {
         const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
@@ -2722,7 +2587,6 @@ function updateAnalytics() {
         salesByMonth[month].profit += sale.profit;
         salesByMonth[month].count += 1;
     });
-    
     Object.keys(salesByMonth).forEach(month => {
         const data = salesByMonth[month];
         const margin = data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100);
@@ -2737,10 +2601,8 @@ function updateAnalytics() {
         `;
         monthlySalesTable.appendChild(tr);
     });
-    
     const employeeSalesTable = document.querySelector('#employee-sales-table tbody');
     employeeSalesTable.innerHTML = '';
-    
     const salesByEmployee = {};
     filteredData.forEach(sale => {
         const employeeId = sale.user_id;
@@ -2757,7 +2619,6 @@ function updateAnalytics() {
         salesByEmployee[employeeId].profit += sale.profit;
         salesByEmployee[employeeId].count += 1;
     });
-    
     Object.values(salesByEmployee).forEach(employee => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -2768,7 +2629,6 @@ function updateAnalytics() {
         `;
         employeeSalesTable.appendChild(tr);
     });
-    
     const correlationTable = document.querySelector('#correlation-table tbody');
     correlationTable.innerHTML = '';
     const correlation = calculateCorrelation(filteredData);
@@ -2780,11 +2640,9 @@ function updateAnalytics() {
     `;
     correlationTable.appendChild(tr);
 }
-
 function calculateCorrelation(data) {
     return Math.random();
 }
-
 function updateReports() {
     const filteredData = filterSalesData();
     const totalRevenue = filteredData.reduce((sum, sale) => sum + (sale.selling_price * sale.quantity), 0);
@@ -2795,7 +2653,6 @@ function updateReports() {
     const totalTaxCost = filteredData.reduce((sum, sale) => sum + ((1 - sale.tax_rate) * sale.selling_price * sale.quantity), 0);
     const totalOperatingExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
     const totalProfit = (adjustedRevenue - totalPurchaseCost - totalCommissionCost - totalTaxCost) - totalOperatingExpenses;
-    
     document.getElementById('report-revenue').textContent = adjustedRevenue.toLocaleString('ru-RU');
     document.getElementById('report-garden-revenue').textContent = adjustedRevenue.toLocaleString('ru-RU');
     document.getElementById('report-direct-costs').textContent = (totalPurchaseCost + totalCommissionCost + totalTaxCost).toLocaleString('ru-RU');
@@ -2811,13 +2668,11 @@ function updateReports() {
     document.getElementById('report-operating-expenses-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalOperatingExpenses / adjustedRevenue) * 100) + '%';
     document.getElementById('report-profit-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalProfit / adjustedRevenue) * 100) + '%';
 }
-
 function exportReport() {
     const format = document.getElementById('export-format').value;
     const period = document.getElementById('report-period').value;
     showNotification(`Отчет за ${period} в формате ${format} будет экспортирован`, 'success');
 }
-
 function exportToCSV() {
     const data = salesData.map(sale => ({
         Товар: sale.name,
@@ -2830,10 +2685,10 @@ function exportToCSV() {
         Прибыль: sale.profit.toFixed(2),
         Маржа: sale.margin + '%'
     }));
-    
     let csvContent = "text/csv;charset=utf-8,";
     const headers = Object.keys(data[0]).join(",");
-    csvContent += headers + "\r\n";
+    csvContent += headers + "\r
+";
     data.forEach(row => {
         const values = Object.values(row).map(value => {
             if (typeof value === 'string' && value.includes(',')) {
@@ -2841,9 +2696,9 @@ function exportToCSV() {
             }
             return value;
         });
-        csvContent += values.join(",") + "\r\n";
+        csvContent += values.join(",") + "\r
+";
     });
-    
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -2853,7 +2708,6 @@ function exportToCSV() {
     document.body.removeChild(link);
     showNotification('Данные экспортированы в CSV', 'success');
 }
-
 function updateSettings() {
     updateShopsList();
     updateCategoriesList();
@@ -2878,11 +2732,9 @@ function updateSettings() {
         document.getElementById('employee-filter').value = settings.filters.employeeFilter;
     }
 }
-
 function updateShopsList() {
     const shopsList = document.getElementById('shops-list');
     shopsList.innerHTML = '';
-    
     shops.forEach(shop => {
         const div = document.createElement('div');
         div.className = 'expense-item';
@@ -2892,7 +2744,6 @@ function updateShopsList() {
         `;
         shopsList.appendChild(div);
     });
-    
     const shopSelect = document.getElementById('shop-select');
     shopSelect.innerHTML = '<option value="Выберите магазин">Выберите магазин</option>';
     shops.forEach(shop => {
@@ -2901,7 +2752,6 @@ function updateShopsList() {
         option.textContent = shop;
         shopSelect.appendChild(option);
     });
-    
     const allSalesShopSelect = document.getElementById('all-sales-shop');
     allSalesShopSelect.innerHTML = '<option value="all">Все магазины</option>';
     shops.forEach(shop => {
@@ -2911,11 +2761,9 @@ function updateShopsList() {
         allSalesShopSelect.appendChild(option);
     });
 }
-
 function updateCategoriesList() {
     const categoriesList = document.getElementById('categories-list');
     categoriesList.innerHTML = '';
-    
     categories.forEach(category => {
         const div = document.createElement('div');
         div.className = 'expense-item';
@@ -2926,11 +2774,9 @@ function updateCategoriesList() {
         categoriesList.appendChild(div);
     });
 }
-
 function updateExpenseCategoriesList() {
     const expenseCategoriesList = document.getElementById('expense-categories-list');
     expenseCategoriesList.innerHTML = '';
-    
     expenseCategories.forEach(category => {
         const div = document.createElement('div');
         div.className = 'expense-item';
@@ -2940,7 +2786,6 @@ function updateExpenseCategoriesList() {
         `;
         expenseCategoriesList.appendChild(div);
     });
-    
     const expenseCategorySelect = document.getElementById('expense-category');
     expenseCategorySelect.innerHTML = '<option value="Выберите категорию">Выберите категорию</option>';
     expenseCategories.forEach(category => {
@@ -2950,11 +2795,9 @@ function updateExpenseCategoriesList() {
         expenseCategorySelect.appendChild(option);
     });
 }
-
 function updateTaxSystemsList() {
     const taxSystemsList = document.getElementById('tax-systems-list');
     taxSystemsList.innerHTML = '';
-    
     taxSystems.forEach(tax => {
         const div = document.createElement('div');
         div.className = 'expense-item';
@@ -2968,7 +2811,6 @@ function updateTaxSystemsList() {
         taxSystemsList.appendChild(div);
     });
 }
-
 function addShop() {
     const shopName = document.getElementById('new-shop-name').value.trim();
     if (shopName && !shops.includes(shopName)) {
@@ -2978,13 +2820,11 @@ function addShop() {
         updateShopsList();
     }
 }
-
 function removeShop(shopName) {
     shops = shops.filter(shop => shop !== shopName);
     saveData();
     updateShopsList();
 }
-
 function addCategory() {
     const categoryName = document.getElementById('new-category-name').value.trim();
     if (categoryName && !categories.includes(categoryName)) {
@@ -2994,13 +2834,11 @@ function addCategory() {
         updateCategoriesList();
     }
 }
-
 function removeCategory(categoryName) {
     categories = categories.filter(category => category !== categoryName);
     saveData();
     updateCategoriesList();
 }
-
 function addExpenseCategory() {
     const categoryName = document.getElementById('new-expense-category').value.trim();
     if (categoryName && !expenseCategories.includes(categoryName)) {
@@ -3010,13 +2848,11 @@ function addExpenseCategory() {
         updateExpenseCategoriesList();
     }
 }
-
 function removeExpenseCategory(categoryName) {
     expenseCategories = expenseCategories.filter(category => category !== categoryName);
     saveData();
     updateExpenseCategoriesList();
 }
-
 function addTaxSystem() {
     const taxName = document.getElementById('new-tax-name').value.trim();
     const taxRate = parseFloat(document.getElementById('new-tax-rate').value);
@@ -3028,13 +2864,11 @@ function addTaxSystem() {
         updateTaxSystemsList();
     }
 }
-
 function removeTaxSystem(taxName) {
     taxSystems = taxSystems.filter(tax => tax.name !== taxName);
     saveData();
     updateTaxSystemsList();
 }
-
 function updateTaxRate(taxName, newRate) {
     const tax = taxSystems.find(t => t.name === taxName);
     if (tax) {
@@ -3042,7 +2876,6 @@ function updateTaxRate(taxName, newRate) {
         saveData();
     }
 }
-
 function saveSettings() {
     settings.showMarketplace = document.getElementById('show-marketplace').checked;
     settings.showShop = document.getElementById('show-shop').checked;
@@ -3065,18 +2898,15 @@ function saveSettings() {
     applySettings();
     showNotification('Настройки сохранены!', 'success');
 }
-
 async function addExpense() {
     const category = document.getElementById('expense-category').value;
     const amount = parseFloat(document.getElementById('expense-amount').value);
     const date = document.getElementById('expense-date').value;
     const description = document.getElementById('expense-description').value;
-    
     if (!category || !amount || !date) {
         showNotification('Пожалуйста, заполните все обязательные поля', 'error');
         return;
     }
-    
     const expense = {
         category: category,
         amount: amount,
@@ -3085,11 +2915,9 @@ async function addExpense() {
         user_id: currentUser.uid,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
-    
     try {
         const docRef = await db.collection('expenses').add(expense);
         expensesData.push({...expense, id: docRef.id});
-        
         document.getElementById('expense-category').value = '';
         document.getElementById('expense-amount').value = '';
         document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
@@ -3102,7 +2930,6 @@ async function addExpense() {
         showNotification('Ошибка добавления расхода: ' + error.message, 'error');
     }
 }
-
 function updateExpenses() {
     const expensesByMonth = {};
     expensesData.forEach(expense => {
@@ -3112,17 +2939,13 @@ function updateExpenses() {
         }
         expensesByMonth[month] += expense.amount;
     });
-    
     const months = Object.keys(expensesByMonth);
     const amounts = months.map(month => expensesByMonth[month]);
-    
     expensesChart.data.labels = months;
     expensesChart.data.datasets[0].data = amounts;
     expensesChart.update();
-    
     const expensesByCategory = document.getElementById('expenses-by-category');
     expensesByCategory.innerHTML = '';
-    
     const categoryTotals = {};
     expensesData.forEach(expense => {
         if (!categoryTotals[expense.category]) {
@@ -3130,7 +2953,6 @@ function updateExpenses() {
         }
         categoryTotals[expense.category] += expense.amount;
     });
-    
     Object.keys(categoryTotals).forEach(category => {
         const total = categoryTotals[category];
         const div = document.createElement('div');
@@ -3145,10 +2967,8 @@ function updateExpenses() {
         `;
         expensesByCategory.appendChild(div);
     });
-    
     const expensesTable = document.querySelector('#expenses-table tbody');
     expensesTable.innerHTML = '';
-    
     const paginatedExpenses = paginateArray(expensesData, expenseCurrentPage, itemsPerPage);
     paginatedExpenses.forEach(expense => {
         const userName = userNamesCache[expense.user_id] || 'Неизвестный';
@@ -3166,14 +2986,11 @@ function updateExpenses() {
         `;
         expensesTable.appendChild(tr);
     });
-    
     updatePagination();
 }
-
 function editExpense(expenseId) {
     showNotification('Функция редактирования расхода в разработке', 'info');
 }
-
 async function deleteExpense(expenseId) {
     if (confirm('Вы уверены, что хотите удалить этот расход')) {
         try {
@@ -3187,20 +3004,16 @@ async function deleteExpense(expenseId) {
         }
     }
 }
-
 function updateAllSalesTable() {
     const tbody = document.querySelector('#all-sales-table tbody');
     tbody.innerHTML = '';
-    
     const period = document.getElementById('all-sales-period').value;
     const startDate = document.getElementById('all-sales-start-date').value;
     const endDate = document.getElementById('all-sales-end-date').value;
     const filterMarketplace = document.getElementById('all-sales-marketplace').value;
     const filterShop = document.getElementById('all-sales-shop').value;
     const filterEmployee = document.getElementById('employee-filter') ? document.getElementById('employee-filter').value : 'all';
-    
     let filteredSales = [...salesData];
-    
     if (period !== 'all') {
         const now = new Date();
         let startDatePeriod;
@@ -3222,7 +3035,6 @@ function updateAllSalesTable() {
             filteredSales = filteredSales.filter(sale => new Date(sale.date) >= startDatePeriod);
         }
     }
-    
     if (startDate) {
         filteredSales = filteredSales.filter(sale => sale.date >= startDate);
     }
@@ -3238,10 +3050,8 @@ function updateAllSalesTable() {
     if (filterEmployee !== 'all') {
         filteredSales = filteredSales.filter(sale => sale.user_id === filterEmployee);
     }
-    
     filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date));
     const paginatedSales = paginateArray(filteredSales, currentPage, itemsPerPage);
-    
     paginatedSales.forEach(sale => {
         const userName = userNamesCache[sale.user_id] || 'Неизвестный';
         const tr = document.createElement('tr');
@@ -3264,70 +3074,59 @@ function updateAllSalesTable() {
         `;
         tbody.appendChild(tr);
     });
-    
     updatePagination();
 }
-
 function paginateArray(array, page, itemsPerPage) {
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return array.slice(startIndex, endIndex);
 }
-
 function updatePagination() {
     const totalItems = salesData.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     document.getElementById('page-info').textContent = `Страница ${currentPage} из ${totalPages}`;
     document.getElementById('prev-page').disabled = currentPage === 1;
     document.getElementById('next-page').disabled = currentPage === totalPages;
-    
     const totalExpenseItems = expensesData.length;
     const totalExpensePages = Math.ceil(totalExpenseItems / itemsPerPage);
     document.getElementById('expense-page-info').textContent = `Страница ${expenseCurrentPage} из ${totalExpensePages}`;
     document.getElementById('prev-expense-page').disabled = expenseCurrentPage === 1;
     document.getElementById('next-expense-page').disabled = expenseCurrentPage === totalExpensePages;
-    
     const totalReturnItems = returnsData.length;
     const totalReturnPages = Math.ceil(totalReturnItems / itemsPerPage);
     document.getElementById('return-page-info').textContent = `Страница ${returnCurrentPage} из ${totalReturnPages}`;
     document.getElementById('prev-return-page').disabled = returnCurrentPage === 1;
     document.getElementById('next-return-page').disabled = returnCurrentPage === totalReturnPages;
-    
     document.getElementById('prev-page').addEventListener('click', function() {
         if (currentPage > 1) {
             currentPage--;
             updateAllSalesTable();
         }
     });
-    
     document.getElementById('next-page').addEventListener('click', function() {
         if (currentPage < Math.ceil(salesData.length / itemsPerPage)) {
             currentPage++;
             updateAllSalesTable();
         }
     });
-    
     document.getElementById('prev-expense-page').addEventListener('click', function() {
         if (expenseCurrentPage > 1) {
             expenseCurrentPage--;
             updateExpenses();
         }
     });
-    
     document.getElementById('next-expense-page').addEventListener('click', function() {
         if (expenseCurrentPage < Math.ceil(expensesData.length / itemsPerPage)) {
             expenseCurrentPage++;
             updateExpenses();
         }
     });
-    
     document.getElementById('prev-return-page').addEventListener('click', function() {
         if (returnCurrentPage > 1) {
             returnCurrentPage--;
             updateReturns();
         }
     });
-    
     document.getElementById('next-return-page').addEventListener('click', function() {
         if (returnCurrentPage < Math.ceil(returnsData.length / itemsPerPage)) {
             returnCurrentPage++;
@@ -3335,7 +3134,6 @@ function updatePagination() {
         }
     });
 }
-
 function showNotification(message, type) {
     const notification = document.getElementById('notification');
     notification.textContent = message;
@@ -3345,7 +3143,6 @@ function showNotification(message, type) {
         notification.classList.remove('show');
     }, 3000);
 }
-
 function saveData() {
     localStorage.setItem('shops', JSON.stringify(shops));
     localStorage.setItem('categories', JSON.stringify(categories));
@@ -3354,7 +3151,6 @@ function saveData() {
     localStorage.setItem('settings', JSON.stringify(settings));
     localStorage.setItem('lastValues', JSON.stringify(lastValues));
 }
-
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
@@ -3364,7 +3160,6 @@ function showTab(tabId) {
     });
     document.getElementById(tabId).classList.add('active');
     document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
-    
     if (tabId === 'dashboard') {
         updateDashboard();
     } else if (tabId === 'analytics') {
