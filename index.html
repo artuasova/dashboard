@@ -555,6 +555,7 @@ flex-wrap: nowrap;
 <div class="avatar" id="user-avatar">А</div>
 <div>
 <div id="user-role">Администратор</div>
+<div style="font-size: 0.9rem; color: var(--gray);" id="user-full-name">Имя Фамилия</div>
 <div style="font-size: 0.9rem; color: var(--gray);" id="user-email-display">admin@example.com</div>
 </div>
 <button class="btn btn-danger" id="logout-btn" style="margin-left: 20px;">Выйти</button>
@@ -832,6 +833,13 @@ flex-wrap: nowrap;
 </select>
 </div>
 <div>
+<label for="employee-filter">Сотрудник</label>
+<select id="employee-filter">
+<option value="all">Все сотрудники</option>
+<!-- Список сотрудников будет загружен динамически -->
+</select>
+</div>
+<div>
 <label>&nbsp;</label>
 <button class="btn btn-primary" id="apply-sales-filters">Применить</button>
 </div>
@@ -845,6 +853,7 @@ flex-wrap: nowrap;
 <th>Артикул</th>
 <th>Маркетплейс</th>
 <th>Магазин</th>
+<th>Сотрудник</th>
 <th>Дата</th>
 <th>Выручка</th>
 <th>Прибыль</th>
@@ -892,6 +901,7 @@ flex-wrap: nowrap;
 <th>Сумма</th>
 <th>Дата</th>
 <th>Описание</th>
+<th>Сотрудник</th>
 <th>Действия</th>
 </tr>
 </thead>
@@ -921,6 +931,7 @@ flex-wrap: nowrap;
 <th>Причина</th>
 <th>Сумма</th>
 <th>Дата</th>
+<th>Сотрудник</th>
 <th>Действия</th>
 </tr>
 </thead>
@@ -970,12 +981,12 @@ flex-wrap: nowrap;
 </div>
 </div>
 <div class="card" style="background: #f1f5f9;">
-<h3>Продажи по магазинам</h3>
+<h3>Продажи по сотрудникам</h3>
 <div style="overflow-x: auto;">
-<table id="shop-sales-table">
+<table id="employee-sales-table">
 <thead>
 <tr>
-<th>Магазин</th>
+<th>Сотрудник</th>
 <th>Выручка</th>
 <th>Прибыль</th>
 <th>Количество продаж</th>
@@ -1269,8 +1280,8 @@ flex-wrap: nowrap;
 <div class="spoiler-content" id="account-settings">
 <div style="background: #f1f5f9; padding: 20px; border-radius: 8px;">
 <div class="form-group">
-<label for="user-name">Имя пользователя</label>
-<input type="text" id="user-name" value="Администратор">
+<label for="user-full-name-input">Имя пользователя</label>
+<input type="text" id="user-full-name-input" value="Администратор">
 </div>
 <div class="form-group">
 <label for="user-email">Email</label>
@@ -1303,6 +1314,10 @@ flex-wrap: nowrap;
 <div class="form-group">
 <label for="new-user-email">Email нового пользователя</label>
 <input type="email" id="new-user-email" placeholder="Введите email" required>
+</div>
+<div class="form-group">
+<label for="new-user-full-name">Полное имя</label>
+<input type="text" id="new-user-full-name" placeholder="Введите полное имя" required>
 </div>
 <div class="form-group">
 <label for="new-user-password">Пароль</label>
@@ -1481,7 +1496,7 @@ flex-wrap: nowrap;
 </div>
 
 <script>
-// Firebase Configuration - ЗАМЕНИТЕ ЭТИ ЗНАЧЕНИЯ НА ВАШИ ИЗ КОНСОЛИ FIREBASE
+// Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCou0cmN5gZzcHO4ZmFSRTYRrbEK0PC_1Q",
   authDomain: "salesdashboard-6d362.firebaseapp.com",
@@ -1498,9 +1513,9 @@ const db = firebase.firestore();
 
 // Глобальные переменные
 let currentUser = null;
-let salesData = []; // Инициализируем как пустой массив
-let returnsData = []; // Инициализируем как пустой массив
-let expensesData = []; // Инициализируем как пустой массив
+let salesData = [];
+let returnsData = [];
+let expensesData = [];
 let shops = ['Магазин 1', 'Магазин 2'];
 let categories = ['Садовые товары', 'Строительные товары', 'Бытовые товары'];
 let expenseCategories = ['Аренда', 'Зарплата', 'Уборщица', 'Курьеры'];
@@ -1524,7 +1539,8 @@ let settings = {
         allSalesStart: '',
         allSalesEnd: '',
         allSalesMarketplace: 'all',
-        allSalesShop: 'all'
+        allSalesShop: 'all',
+        employeeFilter: 'all'
     }
 };
 let lastValues = {
@@ -1541,9 +1557,11 @@ const editIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" st
 const deleteIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
 let marketplaceChart, salesChart, topProductsChart, expensesChart;
 
+// Кэш для имен пользователей
+let userNamesCache = {};
+
 // Обработчики событий
 document.addEventListener('DOMContentLoaded', async function() {
-    // Проверяем, есть ли уже авторизованный пользователь
     auth.onAuthStateChanged(async function(user) {
         if (user) {
             await handleSuccessfulLogin(user);
@@ -1553,36 +1571,30 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
-    // Обработчик формы входа
     document.getElementById('auth-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-        
         try {
             const userCredential = await auth.signInWithEmailAndPassword(email, password);
-            // handleSuccessfulLogin будет вызван автоматически через onAuthStateChanged
         } catch (error) {
             showNotification('Ошибка входа: ' + error.message, 'error');
         }
     });
 
-    // Обработчик регистрации
     document.getElementById('register-btn').addEventListener('click', async function() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-        
         if (!email || !password) {
             showNotification('Пожалуйста, введите email и пароль', 'error');
             return;
         }
-        
         try {
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            // Создаем запись пользователя в Firestore
             await db.collection('users').doc(userCredential.user.uid).set({
                 email: email,
-                role: 'user', // По умолчанию обычный пользователь
+                full_name: email.split('@')[0], // По умолчанию имя из email
+                role: 'user',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             showNotification('Аккаунт успешно создан! Теперь вы можете войти.', 'success');
@@ -1591,7 +1603,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
-    // Обработчик выхода
     document.getElementById('logout-btn').addEventListener('click', async function() {
         try {
             await auth.signOut();
@@ -1704,33 +1715,31 @@ async function handleSuccessfulLogin(user) {
     document.getElementById('user-email-display').textContent = currentUser.email;
     document.getElementById('user-avatar').textContent = currentUser.email.charAt(0).toUpperCase();
     
-    // Получаем роль пользователя из Firestore
     try {
         const userDoc = await db.collection('users').doc(currentUser.uid).get();
-        let userRole = 'user'; // По умолчанию
+        let userData = { role: 'user', full_name: currentUser.email.split('@')[0] };
         
         if (userDoc.exists) {
-            userRole = userDoc.data().role || 'user';
+            userData = userDoc.data();
         } else {
-            // Если документа нет, создаем его
             await db.collection('users').doc(currentUser.uid).set({
                 email: currentUser.email,
+                full_name: currentUser.email.split('@')[0],
                 role: 'user',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
         
-        document.getElementById('user-role').textContent = getRoleDisplayName(userRole);
+        document.getElementById('user-role').textContent = getRoleDisplayName(userData.role);
+        document.getElementById('user-full-name').textContent = userData.full_name;
         
-        // Показываем/скрываем админ-панель
-        if (userRole === 'admin') {
+        if (userData.role === 'admin') {
             document.getElementById('admin-panel-tab').style.display = 'block';
             loadAllUsers();
         } else {
             document.getElementById('admin-panel-tab').style.display = 'none';
         }
         
-        // Загружаем данные пользователя
         await loadData();
         applySettings();
         updateDashboard();
@@ -1758,9 +1767,19 @@ function getRoleDisplayName(role) {
 // Функция для загрузки данных пользователя
 async function loadData() {
     try {
+        // Загружаем всех пользователей для кэша (нужно админу для отображения имен)
+        const usersSnapshot = await db.collection('users').get();
+        userNamesCache = {};
+        usersSnapshot.forEach(doc => {
+            userNamesCache[doc.id] = doc.data().full_name || doc.data().email;
+        });
+
         // Загружаем продажи
-        let salesQuery = db.collection('sales').where('user_id', '==', currentUser.uid).orderBy('date', 'desc');
-        let salesSnapshot = await salesQuery.get();
+        let salesQuery = db.collection('sales');
+        if (getRoleFromToken() !== 'admin') {
+            salesQuery = salesQuery.where('user_id', '==', currentUser.uid);
+        }
+        let salesSnapshot = await salesQuery.orderBy('date', 'desc').get();
         
         salesData = [];
         salesSnapshot.forEach(doc => {
@@ -1768,8 +1787,16 @@ async function loadData() {
         });
         
         // Загружаем возвраты
-        let returnsQuery = db.collection('returns').where('user_id', '==', currentUser.uid).orderBy('date', 'desc');
-        let returnsSnapshot = await returnsQuery.get();
+        let returnsQuery = db.collection('returns');
+        if (getRoleFromToken() !== 'admin') {
+            const userSaleIds = salesData.map(sale => sale.id);
+            if (userSaleIds.length > 0) {
+                returnsQuery = returnsQuery.where('sale_id', 'in', userSaleIds);
+            } else {
+                returnsQuery = returnsQuery.where('sale_id', '==', 'nonexistent'); // Пустой запрос
+            }
+        }
+        let returnsSnapshot = await returnsQuery.orderBy('date', 'desc').get();
         
         returnsData = [];
         returnsSnapshot.forEach(doc => {
@@ -1777,8 +1804,11 @@ async function loadData() {
         });
         
         // Загружаем расходы
-        let expensesQuery = db.collection('expenses').where('user_id', '==', currentUser.uid).orderBy('date', 'desc');
-        let expensesSnapshot = await expensesQuery.get();
+        let expensesQuery = db.collection('expenses');
+        if (getRoleFromToken() !== 'admin') {
+            expensesQuery = expensesQuery.where('user_id', '==', currentUser.uid);
+        }
+        let expensesSnapshot = await expensesQuery.orderBy('date', 'desc').get();
         
         expensesData = [];
         expensesSnapshot.forEach(doc => {
@@ -1805,22 +1835,37 @@ async function loadData() {
             lastValues = JSON.parse(localStorage.getItem('lastValues'));
         }
         
-        // Обновляем интерфейс
         applySettings();
         restoreLastValues();
         updateShopsList();
         updateCategoriesList();
         updateExpenseCategoriesList();
         updateTaxSystemsList();
+        updateEmployeeFilter(); // Обновляем фильтр сотрудников для админа
     } catch (error) {
         console.error('Ошибка загрузки данных:', error);
         showNotification('Ошибка загрузки данных', 'error');
     }
 }
 
+// Функция для получения роли текущего пользователя
+function getRoleFromToken() {
+    if (!currentUser) return null;
+    // В Firebase роль хранится в Firestore, а не в токене
+    // Мы будем получать ее при входе и хранить в DOM
+    const roleElement = document.getElementById('user-role');
+    if (roleElement) {
+        const roleText = roleElement.textContent;
+        if (roleText === 'Администратор') return 'admin';
+        if (roleText === 'Сотрудник') return 'user';
+        if (roleText === 'Наблюдатель') return 'viewer';
+    }
+    return 'user';
+}
+
 // Функция для сохранения настроек аккаунта
 async function saveAccountSettings() {
-    const userName = document.getElementById('user-name').value;
+    const userFullName = document.getElementById('user-full-name-input').value;
     const userEmail = document.getElementById('user-email').value;
     const userPassword = document.getElementById('user-password').value;
     const userPasswordConfirm = document.getElementById('user-password-confirm').value;
@@ -1831,26 +1876,18 @@ async function saveAccountSettings() {
     }
     
     try {
-        // Обновляем email, если он изменился
         if (userEmail !== currentUser.email) {
             await currentUser.updateEmail(userEmail);
-            // Обновляем email в Firestore
-            await db.collection('users').doc(currentUser.uid).update({
-                email: userEmail
-            });
         }
-        
-        // Обновляем пароль, если он указан
         if (userPassword) {
             await currentUser.updatePassword(userPassword);
         }
-        
-        // Обновляем имя пользователя в Firestore
         await db.collection('users').doc(currentUser.uid).update({
-            name: userName
+            full_name: userFullName,
+            email: userEmail
         });
-        
         showNotification('Настройки аккаунта сохранены', 'success');
+        document.getElementById('user-full-name').textContent = userFullName;
         document.getElementById('user-email-display').textContent = userEmail;
     } catch (error) {
         showNotification('Ошибка обновления аккаунта: ' + error.message, 'error');
@@ -1860,29 +1897,31 @@ async function saveAccountSettings() {
 // Функция для создания нового пользователя (только для админа)
 async function createUser() {
     const email = document.getElementById('new-user-email').value;
+    const fullName = document.getElementById('new-user-full-name').value;
     const password = document.getElementById('new-user-password').value;
     const role = document.getElementById('new-user-role').value;
     
-    if (!email || !password) {
+    if (!email || !password || !fullName) {
         showNotification('Пожалуйста, заполните все поля', 'error');
         return;
     }
     
     try {
-        // Создаем пользователя через Firebase Auth
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        
-        // Создаем запись в Firestore с ролью
         await db.collection('users').doc(userCredential.user.uid).set({
             email: email,
+            full_name: fullName,
             role: role,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        
         showNotification('Пользователь успешно создан!', 'success');
         document.getElementById('new-user-email').value = '';
+        document.getElementById('new-user-full-name').value = '';
         document.getElementById('new-user-password').value = '';
         loadAllUsers();
+        // Обновляем кэш имен
+        userNamesCache[userCredential.user.uid] = fullName;
+        updateEmployeeFilter();
     } catch (error) {
         showNotification('Ошибка создания пользователя: ' + error.message, 'error');
     }
@@ -1900,7 +1939,7 @@ async function loadAllUsers() {
             const div = document.createElement('div');
             div.className = 'user-list-item';
             div.innerHTML = `
-                <strong>${user.email}</strong>
+                <strong>${user.full_name} (${user.email})</strong>
                 <span>Роль: ${getRoleDisplayName(user.role)}</span>
             `;
             userListContainer.appendChild(div);
@@ -1908,6 +1947,39 @@ async function loadAllUsers() {
     } catch (error) {
         console.error('Ошибка загрузки пользователей:', error);
         showNotification('Ошибка загрузки списка пользователей', 'error');
+    }
+}
+
+// Функция для обновления фильтра сотрудников (только для админа)
+async function updateEmployeeFilter() {
+    if (getRoleFromToken() !== 'admin') {
+        return;
+    }
+    
+    const select = document.getElementById('employee-filter');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="all">Все сотрудники</option>';
+    
+    // Используем кэш, если он есть, иначе загружаем заново
+    if (Object.keys(userNamesCache).length === 0) {
+        const usersSnapshot = await db.collection('users').get();
+        userNamesCache = {};
+        usersSnapshot.forEach(doc => {
+            userNamesCache[doc.id] = doc.data().full_name || doc.data().email;
+        });
+    }
+    
+    Object.keys(userNamesCache).forEach(userId => {
+        const option = document.createElement('option');
+        option.value = userId;
+        option.textContent = userNamesCache[userId];
+        select.appendChild(option);
+    });
+    
+    // Устанавливаем сохраненное значение, если оно есть
+    if (settings.filters.employeeFilter && settings.filters.employeeFilter !== 'all') {
+        select.value = settings.filters.employeeFilter;
     }
 }
 
@@ -2123,17 +2195,13 @@ async function addSale() {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
-    // Рассчитываем прибыль и маржу
     const profit = calculateProfit(sale);
     const margin = calculateMargin(sale);
     sale.profit = profit;
     sale.margin = margin;
     
     try {
-        // Сохраняем в Firestore
         const docRef = await db.collection('sales').add(sale);
-        
-        // Добавляем в локальный массив
         salesData.push({...sale, id: docRef.id});
         
         saveLastValues();
@@ -2304,15 +2372,11 @@ async function saveEditedSale() {
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
-    // Рассчитываем прибыль и маржу
     updatedSale.profit = calculateProfit(updatedSale);
     updatedSale.margin = calculateMargin(updatedSale);
     
     try {
-        // Обновляем в Firestore
         await db.collection('sales').doc(saleId).update(updatedSale);
-        
-        // Обновляем локальный массив
         salesData[saleIndex] = {...updatedSale, id: saleId};
         
         document.getElementById('edit-sale-modal').style.display = 'none';
@@ -2381,8 +2445,12 @@ function populateReturnSales() {
     const select = document.getElementById('return-sale');
     select.innerHTML = '<option value="Выберите продажу">Выберите продажу</option>';
     
-    // Показываем только продажи текущего пользователя
-    salesData.forEach(sale => {
+    let filteredSales = salesData;
+    if (getRoleFromToken() !== 'admin') {
+        filteredSales = salesData.filter(sale => sale.user_id === currentUser.uid);
+    }
+    
+    filteredSales.forEach(sale => {
         const option = document.createElement('option');
         option.value = sale.id;
         option.textContent = `${sale.name} - ${(sale.selling_price * sale.quantity).toLocaleString('ru-RU')} ₽`;
@@ -2397,12 +2465,14 @@ function updateReturns() {
     const paginatedReturns = paginateArray(returnsData, returnCurrentPage, itemsPerPage);
     paginatedReturns.forEach(ret => {
         const sale = salesData.find(s => s.id === ret.sale_id);
+        const userName = userNamesCache[ret.user_id] || 'Неизвестный';
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${sale ? sale.name : 'Неизвестный товар'}</td>
             <td>${ret.reason}</td>
             <td>${ret.amount.toLocaleString('ru-RU')} ₽</td>
             <td>${new Date(ret.date).toLocaleDateString('ru-RU')}</td>
+            <td>${userName}</td>
             <td class="actions-cell">
                 <button class="icon-btn" onclick="editReturn('${ret.id}')" title="Редактировать">${editIcon}</button>
                 <button class="icon-btn" onclick="deleteReturn('${ret.id}')" title="Удалить">${deleteIcon}</button>
@@ -2673,30 +2743,36 @@ function updateAnalytics() {
         monthlySalesTable.appendChild(tr);
     });
     
-    const shopSalesTable = document.querySelector('#shop-sales-table tbody');
-    shopSalesTable.innerHTML = '';
+    // Обновление таблицы продаж по сотрудникам
+    const employeeSalesTable = document.querySelector('#employee-sales-table tbody');
+    employeeSalesTable.innerHTML = '';
     
-    const salesByShop = {};
+    const salesByEmployee = {};
     filteredData.forEach(sale => {
-        const shop = sale.shop || 'Не указан';
-        if (!salesByShop[shop]) {
-            salesByShop[shop] = { revenue: 0, profit: 0, count: 0 };
+        const employeeId = sale.user_id;
+        const employeeName = userNamesCache[employeeId] || 'Неизвестный';
+        if (!salesByEmployee[employeeId]) {
+            salesByEmployee[employeeId] = { 
+                name: employeeName, 
+                revenue: 0, 
+                profit: 0, 
+                count: 0 
+            };
         }
-        salesByShop[shop].revenue += sale.selling_price * sale.quantity;
-        salesByShop[shop].profit += sale.profit;
-        salesByShop[shop].count += 1;
+        salesByEmployee[employeeId].revenue += sale.selling_price * sale.quantity;
+        salesByEmployee[employeeId].profit += sale.profit;
+        salesByEmployee[employeeId].count += 1;
     });
     
-    Object.keys(salesByShop).forEach(shop => {
-        const data = salesByShop[shop];
+    Object.values(salesByEmployee).forEach(employee => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${shop}</td>
-            <td>${data.revenue.toLocaleString('ru-RU')} ₽</td>
-            <td>${data.profit.toLocaleString('ru-RU')} ₽</td>
-            <td>${data.count}</td>
+            <td>${employee.name}</td>
+            <td>${employee.revenue.toLocaleString('ru-RU')} ₽</td>
+            <td>${employee.profit.toLocaleString('ru-RU')} ₽</td>
+            <td>${employee.count}</td>
         `;
-        shopSalesTable.appendChild(tr);
+        employeeSalesTable.appendChild(tr);
     });
     
     const correlationTable = document.querySelector('#correlation-table tbody');
@@ -2754,6 +2830,7 @@ function exportToCSV() {
         Артикул: sale.article,
         Маркетплейс: sale.marketplace,
         Магазин: sale.shop,
+        Сотрудник: userNamesCache[sale.user_id] || 'Неизвестный',
         Дата: sale.date,
         Выручка: (sale.selling_price * sale.quantity).toFixed(2),
         Прибыль: sale.profit.toFixed(2),
@@ -2788,6 +2865,7 @@ function updateSettings() {
     updateCategoriesList();
     updateExpenseCategoriesList();
     updateTaxSystemsList();
+    updateEmployeeFilter();
     document.getElementById('show-marketplace').checked = settings.showMarketplace;
     document.getElementById('show-shop').checked = settings.showShop;
     document.getElementById('show-commission').checked = settings.showCommission;
@@ -2802,6 +2880,9 @@ function updateSettings() {
     document.getElementById('all-sales-end-date').value = settings.filters.allSalesEnd || '';
     document.getElementById('all-sales-marketplace').value = settings.filters.allSalesMarketplace || 'all';
     document.getElementById('all-sales-shop').value = settings.filters.allSalesShop || 'all';
+    if (settings.filters.employeeFilter && document.getElementById('employee-filter')) {
+        document.getElementById('employee-filter').value = settings.filters.employeeFilter;
+    }
 }
 
 function updateShopsList() {
@@ -2983,7 +3064,8 @@ function saveSettings() {
         allSalesStart: document.getElementById('all-sales-start-date').value,
         allSalesEnd: document.getElementById('all-sales-end-date').value,
         allSalesMarketplace: document.getElementById('all-sales-marketplace').value,
-        allSalesShop: document.getElementById('all-sales-shop').value
+        allSalesShop: document.getElementById('all-sales-shop').value,
+        employeeFilter: document.getElementById('employee-filter') ? document.getElementById('employee-filter').value : 'all'
     };
     saveData();
     applySettings();
@@ -3075,12 +3157,14 @@ function updateExpenses() {
     
     const paginatedExpenses = paginateArray(expensesData, expenseCurrentPage, itemsPerPage);
     paginatedExpenses.forEach(expense => {
+        const userName = userNamesCache[expense.user_id] || 'Неизвестный';
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${expense.category}</td>
             <td>${expense.amount.toLocaleString('ru-RU')} ₽</td>
             <td>${new Date(expense.date).toLocaleDateString('ru-RU')}</td>
             <td>${expense.description || '-'}</td>
+            <td>${userName}</td>
             <td class="actions-cell">
                 <button class="icon-btn" onclick="editExpense('${expense.id}')" title="Редактировать">${editIcon}</button>
                 <button class="icon-btn" onclick="deleteExpense('${expense.id}')" title="Удалить">${deleteIcon}</button>
@@ -3119,6 +3203,7 @@ function updateAllSalesTable() {
     const endDate = document.getElementById('all-sales-end-date').value;
     const filterMarketplace = document.getElementById('all-sales-marketplace').value;
     const filterShop = document.getElementById('all-sales-shop').value;
+    const filterEmployee = document.getElementById('employee-filter') ? document.getElementById('employee-filter').value : 'all';
     
     let filteredSales = [...salesData];
     
@@ -3156,17 +3241,22 @@ function updateAllSalesTable() {
     if (filterShop !== 'all') {
         filteredSales = filteredSales.filter(sale => sale.shop === filterShop);
     }
+    if (filterEmployee !== 'all') {
+        filteredSales = filteredSales.filter(sale => sale.user_id === filterEmployee);
+    }
     
     filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date));
     const paginatedSales = paginateArray(filteredSales, currentPage, itemsPerPage);
     
     paginatedSales.forEach(sale => {
+        const userName = userNamesCache[sale.user_id] || 'Неизвестный';
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td title="${sale.name}">${sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name}</td>
             <td>${sale.article}</td>
             <td>${sale.marketplace}</td>
             <td>${sale.shop || '-'}</td>
+            <td>${userName}</td>
             <td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
             <td>${(sale.selling_price * sale.quantity).toLocaleString('ru-RU')} ₽</td>
             <td class="${sale.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
@@ -3262,7 +3352,6 @@ function showNotification(message, type) {
     }, 3000);
 }
 
-// Функция для сохранения локальных данных (настройки, магазины и т.д.)
 function saveData() {
     localStorage.setItem('shops', JSON.stringify(shops));
     localStorage.setItem('categories', JSON.stringify(categories));
@@ -3272,7 +3361,6 @@ function saveData() {
     localStorage.setItem('lastValues', JSON.stringify(lastValues));
 }
 
-// Функция для отображения вкладок
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
@@ -3283,7 +3371,6 @@ function showTab(tabId) {
     document.getElementById(tabId).classList.add('active');
     document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
     
-    // Обновляем содержимое вкладки при ее открытии
     if (tabId === 'dashboard') {
         updateDashboard();
     } else if (tabId === 'analytics') {
