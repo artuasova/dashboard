@@ -1789,11 +1789,13 @@ async function loadData() {
         // Загружаем возвраты
         let returnsQuery = db.collection('returns');
         if (getRoleFromToken() !== 'admin') {
+            // Получаем ID всех продаж текущего пользователя
             const userSaleIds = salesData.map(sale => sale.id);
             if (userSaleIds.length > 0) {
                 returnsQuery = returnsQuery.where('sale_id', 'in', userSaleIds);
             } else {
-                returnsQuery = returnsQuery.where('sale_id', '==', 'nonexistent'); // Пустой запрос
+                // Если у пользователя нет продаж, создаем пустой запрос
+                returnsQuery = returnsQuery.where('sale_id', '==', 'nonexistent-id');
             }
         }
         let returnsSnapshot = await returnsQuery.orderBy('date', 'desc').get();
@@ -1907,21 +1909,31 @@ async function createUser() {
     }
     
     try {
+        // Создаем пользователя через Firebase Auth
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        
+        // Создаем запись в Firestore с полной информацией
         await db.collection('users').doc(userCredential.user.uid).set({
             email: email,
             full_name: fullName,
             role: role,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+        
         showNotification('Пользователь успешно создан!', 'success');
+        
+        // Очищаем форму
         document.getElementById('new-user-email').value = '';
         document.getElementById('new-user-full-name').value = '';
         document.getElementById('new-user-password').value = '';
+        
+        // Перезагружаем список пользователей в админ-панели
         loadAllUsers();
+        
         // Обновляем кэш имен
         userNamesCache[userCredential.user.uid] = fullName;
         updateEmployeeFilter();
+        
     } catch (error) {
         showNotification('Ошибка создания пользователя: ' + error.message, 'error');
     }
