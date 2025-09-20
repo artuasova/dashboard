@@ -1593,7 +1593,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             await db.collection('users').doc(userCredential.user.uid).set({
                 email: email,
-                full_name: email.split('@')[0], // По умолчанию имя из email
+                full_name: email.split('@')[0],
                 role: 'user',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -1789,12 +1789,10 @@ async function loadData() {
         // Загружаем возвраты
         let returnsQuery = db.collection('returns');
         if (getRoleFromToken() !== 'admin') {
-            // Получаем ID всех продаж текущего пользователя
             const userSaleIds = salesData.map(sale => sale.id);
             if (userSaleIds.length > 0) {
                 returnsQuery = returnsQuery.where('sale_id', 'in', userSaleIds);
             } else {
-                // Если у пользователя нет продаж, создаем пустой запрос
                 returnsQuery = returnsQuery.where('sale_id', '==', 'nonexistent-id');
             }
         }
@@ -1843,7 +1841,7 @@ async function loadData() {
         updateCategoriesList();
         updateExpenseCategoriesList();
         updateTaxSystemsList();
-        updateEmployeeFilter(); // Обновляем фильтр сотрудников для админа
+        updateEmployeeFilter();
     } catch (error) {
         console.error('Ошибка загрузки данных:', error);
         showNotification('Ошибка загрузки данных', 'error');
@@ -1853,8 +1851,6 @@ async function loadData() {
 // Функция для получения роли текущего пользователя
 function getRoleFromToken() {
     if (!currentUser) return null;
-    // В Firebase роль хранится в Firestore, а не в токене
-    // Мы будем получать ее при входе и хранить в DOM
     const roleElement = document.getElementById('user-role');
     if (roleElement) {
         const roleText = roleElement.textContent;
@@ -1909,31 +1905,20 @@ async function createUser() {
     }
     
     try {
-        // Создаем пользователя через Firebase Auth
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        
-        // Создаем запись в Firestore с полной информацией
         await db.collection('users').doc(userCredential.user.uid).set({
             email: email,
             full_name: fullName,
             role: role,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        
         showNotification('Пользователь успешно создан!', 'success');
-        
-        // Очищаем форму
         document.getElementById('new-user-email').value = '';
         document.getElementById('new-user-full-name').value = '';
         document.getElementById('new-user-password').value = '';
-        
-        // Перезагружаем список пользователей в админ-панели
         loadAllUsers();
-        
-        // Обновляем кэш имен
         userNamesCache[userCredential.user.uid] = fullName;
         updateEmployeeFilter();
-        
     } catch (error) {
         showNotification('Ошибка создания пользователя: ' + error.message, 'error');
     }
@@ -1973,7 +1958,6 @@ async function updateEmployeeFilter() {
     
     select.innerHTML = '<option value="all">Все сотрудники</option>';
     
-    // Используем кэш, если он есть, иначе загружаем заново
     if (Object.keys(userNamesCache).length === 0) {
         const usersSnapshot = await db.collection('users').get();
         userNamesCache = {};
@@ -1989,7 +1973,6 @@ async function updateEmployeeFilter() {
         select.appendChild(option);
     });
     
-    // Устанавливаем сохраненное значение, если оно есть
     if (settings.filters.employeeFilter && settings.filters.employeeFilter !== 'all') {
         select.value = settings.filters.employeeFilter;
     }
@@ -2755,7 +2738,6 @@ function updateAnalytics() {
         monthlySalesTable.appendChild(tr);
     });
     
-    // Обновление таблицы продаж по сотрудникам
     const employeeSalesTable = document.querySelector('#employee-sales-table tbody');
     employeeSalesTable.innerHTML = '';
     
