@@ -624,17 +624,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        /* === СТИЛИ ДЛЯ ИМПОРТА CSV === */
-        .import-section {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f0f9ff;
-            border-radius: 8px;
-        }
-        .import-section h3 {
-            margin-bottom: 15px;
-        }
     </style>
 </head>
 <body>
@@ -1420,18 +1409,6 @@
             <div id="admin-panel" class="tab-content">
                 <div class="card">
                     <h2 class="card-title">Админ-панель</h2>
-
-                    <!-- === НОВЫЙ БЛОК: ИМПОРТ ИЗ CSV === -->
-                    <div class="admin-panel import-section">
-                        <h3>Импорт данных из CSV</h3>
-                        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
-                            <button class="btn btn-secondary" id="download-csv-template">Скачать шаблон CSV</button>
-                            <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
-                            <button class="btn btn-primary" id="trigger-csv-upload">Загрузить CSV</button>
-                            <small style="color: var(--gray);">Поддерживается только UTF-8 с BOM</small>
-                        </div>
-                    </div>
-
                     <!-- Управление пользователями -->
                     <div class="admin-panel">
                         <h3>Управление пользователями</h3>
@@ -1854,6 +1831,17 @@
         let marketplaceChart, salesChart, topProductsChart, expensesChart, revenueExpensesChart;
         let userNamesCache = {};
         // ======================
+        // ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ СОРТИРОВКИ МЕСЯЦЕВ
+        // ======================
+        function getMonthNumber(monthName) {
+            const months = {
+                'янв.': '01', 'февр.': '02', 'мар.': '03', 'апр.': '04',
+                'мая': '05', 'июня': '06', 'июля': '07', 'авг.': '08',
+                'сент.': '09', 'окт.': '10', 'нояб.': '11', 'дек.': '12'
+            };
+            return months[monthName] || '01';
+        }
+        // ======================
         // ФУНКЦИИ ПРЕЛОАДЕРА И МОДАЛЬНЫХ ОКОН
         // ======================
         function showLoading(message = 'Пожалуйста, подождите...') {
@@ -1915,291 +1903,6 @@
                 throw new Error("Некорректный формат email");
             }
         }
-
-        // ======================
-        // ФУНКЦИИ ИМПОРТА CSV (НОВОЕ)
-        // ======================
-
-        // Скачивание шаблона CSV
-        function downloadCSVTemplate() {
-            const headers = [
-                "Тип", // Продажа / Расход / Возврат
-                "Название",
-                "Артикул",
-                "Закуп, ₽",
-                "Цена озон, ₽",
-                "Комиссия, ₽",
-                "Логистика, ₽",
-                "Доставка до МВ, ₽",
-                "РК + Экв",
-                "Налог",
-                "Кол-во, шт.",
-                "Дата ДД.ММ.ГГГГ",
-                "Маркетплейс", // ←←← добавлено!
-                "Примечание",
-                "Сумма", // для расходов и возвратов
-                "Причина" // для возвратов
-            ];
-            const exampleRow = [
-                "Продажа",
-                "Футболка мужская",
-                "ART-123",
-                "500",
-                "1200",
-                "120",
-                "80",
-                "30",
-                "0.98",
-                "0.99",
-                "2",
-                "01.04.2025",
-                "Озон",
-                "Первая продажа",
-                "",
-                ""
-            ];
-            const exampleExpense = [
-                "Расход",
-                "Аренда",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "01.04.2025",
-                "",
-                "Оплата за апрель",
-                "15000",
-                ""
-            ];
-            const exampleReturn = [
-                "Возврат",
-                "Футболка мужская",
-                "ART-123",
-                "500",
-                "1200",
-                "120",
-                "80",
-                "30",
-                "0.98",
-                "0.99",
-                "1",
-                "05.04.2025",
-                "Озон",
-                "Брак",
-                "1200",
-                "Брак"
-            ];
-
-            let csvContent = "text/csv;charset=utf-8,\uFEFF";
-            csvContent += headers.join(',') + "\r\n";
-            csvContent += exampleRow.join(',') + "\r\n";
-            csvContent += exampleExpense.join(',') + "\r\n";
-            csvContent += exampleReturn.join(',') + "\r\n";
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "шаблон_импорта.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            notyf.success('Шаблон CSV скачан');
-        }
-
-        // Обработка загрузки CSV
-        async function handleCSVImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (!file.name.endsWith('.csv')) {
-                notyf.error('Файл должен быть в формате CSV');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    showLoading('Парсим CSV...');
-                    const csvText = e.target.result;
-                    const records = parseCSV(csvText);
-                    await validateAndImportRecords(records);
-                    hideLoading();
-                    notyf.success(`Успешно импортировано ${records.length} записей`);
-                    // Обновляем данные
-                    await loadData();
-                    showTab('dashboard');
-                } catch (error) {
-                    hideLoading();
-                    console.error('Ошибка импорта:', error);
-                    notyf.error('Ошибка импорта: ' + error.message);
-                }
-            };
-            reader.readAsText(file, 'utf-8');
-        }
-
-        // Парсинг CSV
-        function parseCSV(text) {
-            const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
-            if (lines.length < 2) throw new Error('Файл пуст или содержит только заголовки');
-
-            const headers = lines[0].split(',').map(h => h.trim());
-            const records = [];
-
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i];
-                if (!line.trim()) continue;
-
-                // Простой парсер с учётом кавычек
-                const fields = [];
-                let inQuotes = false;
-                let current = '';
-                for (let j = 0; j < line.length; j++) {
-                    const char = line[j];
-                    if (char === '"') {
-                        if (inQuotes && line[j + 1] === '"') {
-                            current += '"';
-                            j++;
-                        } else {
-                            inQuotes = !inQuotes;
-                        }
-                    } else if (char === ',' && !inQuotes) {
-                        fields.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
-                }
-                fields.push(current.trim());
-
-                if (fields.length !== headers.length) {
-                    throw new Error(`Несоответствие колонок в строке ${i + 1}`);
-                }
-
-                const record = {};
-                headers.forEach((header, idx) => {
-                    record[header] = fields[idx] === '' ? null : fields[idx];
-                });
-                records.push(record);
-            }
-            return records;
-        }
-
-        // Валидация и импорт записей
-        async function validateAndImportRecords(records) {
-            if (!currentUser || getRoleFromToken() !== 'admin') {
-                throw new Error('Импорт разрешён только администратору');
-            }
-
-            for (const rec of records) {
-                const type = rec["Тип"];
-                if (!type) throw new Error('Отсутствует колонка "Тип"');
-
-                if (type === "Продажа") {
-                    // Обязательные поля
-                    if (!rec["Название"]) throw new Error('Отсутствует "Название" для продажи');
-                    if (!rec["Артикул"]) throw new Error('Отсутствует "Артикул"');
-                    if (rec["Закуп, ₽"] === null) throw new Error('Отсутствует "Закуп, ₽"');
-                    if (rec["Цена озон, ₽"] === null) throw new Error('Отсутствует "Цена озон, ₽"');
-                    if (!rec["Маркетплейс"]) throw new Error('Отсутствует "Маркетплейс"');
-                    if (!rec["Дата ДД.ММ.ГГГГ"]) throw new Error('Отсутствует "Дата"');
-
-                    const sale = {
-                        name: rec["Название"],
-                        article: rec["Артикул"],
-                        purchase_price: parseFloat(rec["Закуп, ₽"]),
-                        selling_price: parseFloat(rec["Цена озон, ₽"]),
-                        commission: rec["Комиссия, ₽"] ? parseFloat(rec["Комиссия, ₽"]) : 0,
-                        logistics: rec["Логистика, ₽"] ? parseFloat(rec["Логистика, ₽"]) : 0,
-                        delivery_to_mv: rec["Доставка до МВ, ₽"] ? parseFloat(rec["Доставка до МВ, ₽"]) : 0,
-                        advertising: rec["РК + Экв"] ? parseFloat(rec["РК + Экв"]) : 0.98,
-                        tax_rate: rec["Налог"] ? parseFloat(rec["Налог"]) : 0.99,
-                        quantity: rec["Кол-во, шт."] ? parseInt(rec["Кол-во, шт."]) : 1,
-                        date: convertDate(rec["Дата ДД.ММ.ГГГГ"]), // DD.MM.YYYY → YYYY-MM-DD
-                        marketplace: rec["Маркетплейс"],
-                        shop: "", // не используется
-                        user_id: currentUser.uid,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastModifiedBy: currentUser.uid,
-                        lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-
-                    sale.profit = calculateProfit(sale);
-                    sale.margin = calculateMargin(sale);
-                    await db.collection('sales').add(sale);
-                    await logActivity('импортировал продажу', `Товар: ${sale.name}`);
-
-                } else if (type === "Расход") {
-                    if (!rec["Название"]) throw new Error('Отсутствует "Название" (категория) для расхода');
-                    if (rec["Сумма"] === null) throw new Error('Отсутствует "Сумма"');
-                    if (!rec["Дата ДД.ММ.ГГГГ"]) throw new Error('Отсутствует "Дата"');
-
-                    const expense = {
-                        category: rec["Название"],
-                        amount: parseFloat(rec["Сумма"]),
-                        date: convertDate(rec["Дата ДД.ММ.ГГГГ"]),
-                        description: rec["Примечание"] || '',
-                        user_id: currentUser.uid,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastModifiedBy: currentUser.uid,
-                        lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-                    await db.collection('expenses').add(expense);
-                    await logActivity('импортировал расход', `Категория: ${expense.category}`);
-
-                } else if (type === "Возврат") {
-                    if (!rec["Название"]) throw new Error('Отсутствует "Название" для возврата');
-                    if (rec["Сумма"] === null) throw new Error('Отсутствует "Сумма"');
-                    if (!rec["Причина"]) throw new Error('Отсутствует "Причина"');
-                    if (!rec["Дата ДД.ММ.ГГГГ"]) throw new Error('Отсутствует "Дата"');
-
-                    // Найдём продажу по артикулу и дате (простой способ)
-                    const article = rec["Артикул"];
-                    const saleDate = convertDate(rec["Дата ДД.ММ.ГГГГ"]);
-                    let saleId = null;
-                    if (article) {
-                        const sale = salesData.find(s =>
-                            s.article === article &&
-                            s.date === saleDate &&
-                            s.user_id === currentUser.uid
-                        );
-                        if (sale) saleId = sale.id;
-                    }
-
-                    const returnItem = {
-                        sale_id: saleId || '',
-                        reason: rec["Причина"],
-                        amount: parseFloat(rec["Сумма"]),
-                        date: convertDate(rec["Дата ДД.ММ.ГГГГ"]),
-                        user_id: currentUser.uid,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastModifiedBy: currentUser.uid,
-                        lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-                    await db.collection('returns').add(returnItem);
-                    await logActivity('импортировал возврат', `Товар: ${rec["Название"]}, Причина: ${rec["Причина"]}`);
-
-                } else {
-                    throw new Error(`Неизвестный тип записи: "${type}"`);
-                }
-            }
-        }
-
-        // Конвертация даты DD.MM.YYYY → YYYY-MM-DD
-        function convertDate(dateStr) {
-            if (!dateStr) return '';
-            const parts = dateStr.split('.');
-            if (parts.length !== 3) throw new Error(`Неверный формат даты: ${dateStr}`);
-            const day = parts[0].padStart(2, '0');
-            const month = parts[1].padStart(2, '0');
-            const year = parts[2];
-            return `${year}-${month}-${day}`;
-        }
-
         // ======================
         // ОСНОВНЫЕ ФУНКЦИИ
         // ======================
@@ -2326,13 +2029,6 @@
             document.getElementById('generate-report').addEventListener('click', updateReports);
             document.getElementById('export-csv').addEventListener('click', exportToCSV);
 	    document.getElementById('apply-spreadsheet-filters').addEventListener('click', updateSpreadsheetView);
-            // === НОВЫЕ ОБРАБОТЧИКИ ===
-            document.getElementById('download-csv-template').addEventListener('click', downloadCSVTemplate);
-            document.getElementById('trigger-csv-upload').addEventListener('click', () => {
-                document.getElementById('csv-file-input').click();
-            });
-            document.getElementById('csv-file-input').addEventListener('change', handleCSVImport);
-
             // Обработчики спойлеров
             document.querySelectorAll('.spoiler-header').forEach(header => {
                 header.addEventListener('click', function() {
@@ -3705,7 +3401,15 @@
                 }
                 expensesByMonth[month] += expense.amount;
             });
-            const months = Object.keys(salesByMonth);
+            // === СОРТИРОВКА МЕСЯЦЕВ ПО ВОЗРАСТАНИЮ ===
+            const months = Object.keys(salesByMonth)
+                .map(m => {
+                    const [month, year] = m.split(' ');
+                    const date = new Date(`${year}-${getMonthNumber(month)}-01`);
+                    return { label: m, date: date };
+                })
+                .sort((a, b) => a.date - b.date)
+                .map(item => item.label);
             const revenues = months.map(month => salesByMonth[month].revenue);
             const netProfits = months.map(month => {
                 const gross = salesByMonth[month].grossProfit;
@@ -3858,7 +3562,16 @@
                 }
                 expensesByMonth[month] += expense.amount;
             });
-            Object.keys(salesByMonth).forEach(month => {
+            // === СОРТИРОВКА МЕСЯЦЕВ ПО ВОЗРАСТАНИЮ ===
+            const months = Object.keys(salesByMonth)
+                .map(m => {
+                    const [month, year] = m.split(' ');
+                    const date = new Date(`${year}-${getMonthNumber(month)}-01`);
+                    return { label: m, date: date };
+                })
+                .sort((a, b) => a.date - b.date)
+                .map(item => item.label);
+            months.forEach(month => {
                 const data = salesByMonth[month];
                 const expense = expensesByMonth[month] || 0;
                 const netProfit = data.profit - expense;
@@ -3875,7 +3588,6 @@
                 monthlySalesTable.appendChild(tr);
             });
             // НОВОЕ: Обновление графика "Выручка vs Расходы по месяцам"
-            const months = Object.keys(salesByMonth);
             const revenues = months.map(month => salesByMonth[month].revenue);
             const expenses = months.map(month => expensesByMonth[month] || 0);
             window.revenueExpensesChart.data.labels = months;
@@ -4233,7 +3945,15 @@
                 }
                 expensesByMonth[month] += expense.amount;
             });
-            const months = Object.keys(expensesByMonth);
+            // === СОРТИРОВКА МЕСЯЦЕВ ПО ВОЗРАСТАНИЮ ===
+            const months = Object.keys(expensesByMonth)
+                .map(m => {
+                    const [month, year] = m.split(' ');
+                    const date = new Date(`${year}-${getMonthNumber(month)}-01`);
+                    return { label: m, date: date };
+                })
+                .sort((a, b) => a.date - b.date)
+                .map(item => item.label);
             const amounts = months.map(month => expensesByMonth[month]);
             expensesChart.data.labels = months;
             expensesChart.data.datasets[0].data = amounts;
