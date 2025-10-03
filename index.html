@@ -624,7 +624,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
         /* Стили для кнопок сортировки топ-5 */
         .top-products-sort-buttons {
             display: flex;
@@ -1151,6 +1150,35 @@
             <div id="analytics" class="tab-content">
                 <div class="card">
                     <h2 class="card-title">Аналитика продаж</h2>
+                    <!-- === ДОБАВЛЕН ФИЛЬТР ПО ПЕРИОДАМ === -->
+                    <div class="card">
+                        <h3>Фильтры</h3>
+                        <div class="filters">
+                            <div>
+                                <label for="analytics-period">Период</label>
+                                <select id="analytics-period">
+                                    <option value="all">Все время</option>
+                                    <option value="day">Текущий день</option>
+                                    <option value="week">Текущая неделя</option>
+                                    <option value="month">Текущий месяц</option>
+                                    <option value="quarter">Текущий квартал</option>
+                                    <option value="year">Текущий год</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="analytics-start-date">Дата от</label>
+                                <input type="date" id="analytics-start-date">
+                            </div>
+                            <div>
+                                <label for="analytics-end-date">Дата до</label>
+                                <input type="date" id="analytics-end-date">
+                            </div>
+                            <div>
+                                <label>&nbsp;</label>
+                                <button class="btn btn-primary" id="apply-analytics-filters">Применить</button>
+                            </div>
+                        </div>
+                    </div>
                     <div class="metrics-grid">
                         <div class="metric-card" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
                             <h3>Средний чек <span class="tooltip">?<span class="tooltip-text">Общая выручка / Количество продаж</span></span></h3>
@@ -1168,6 +1196,13 @@
                             </div>
                         </div>
                         <div class="card" style="background: #f1f5f9;">
+                            <h3>Продажи по магазинам</h3>
+                            <div id="shops-analytics">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid">
+                        <div class="card" style="background: #f1f5f9;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                                 <h3 style="margin: 0;">Топ-5 самых прибыльных товаров</h3>
                                 <div class="top-products-sort-buttons">
@@ -1178,13 +1213,13 @@
                             <div id="top-products-analytics">
                             </div>
                         </div>
-                    </div>
-                    <div class="grid">
                         <div class="card" style="background: #f1f5f9;">
                             <h3>Расходы по категориям</h3>
                             <div id="expenses-by-category-analytics">
                             </div>
                         </div>
+                    </div>
+                    <div class="grid">
                         <div class="card" style="background: #f1f5f9;">
                             <h3>Топ-5 самых убыточных товаров</h3>
                             <div id="bottom-products-analytics">
@@ -1873,7 +1908,6 @@
             };
             return months[monthName] || '01';
         }
-
         // ======================
         // НОВАЯ ФУНКЦИЯ: ГРУППИРОВКА ПРОДАЖ ПО ТОВАРУ
         // ======================
@@ -1894,7 +1928,6 @@
                 grouped[key].totalProfit += sale.profit;
                 grouped[key].totalQuantity += sale.quantity;
             });
-
             return Object.values(grouped).map(item => {
                 const margin = item.totalRevenue > 0 
                     ? Math.round((item.totalProfit / item.totalRevenue) * 100) 
@@ -1905,7 +1938,6 @@
                 };
             });
         }
-
         // ======================
         // ФУНКЦИИ ПРЕЛОАДЕРА И МОДАЛЬНЫХ ОКОН
         // ======================
@@ -2176,6 +2208,8 @@
             document.getElementById('generate-report').addEventListener('click', updateReports);
             document.getElementById('export-csv').addEventListener('click', exportToCSV);
             document.getElementById('apply-spreadsheet-filters').addEventListener('click', updateSpreadsheetView);
+            // НОВЫЕ ОБРАБОТЧИКИ ДЛЯ АНАЛИТИКИ
+            document.getElementById('apply-analytics-filters').addEventListener('click', updateAnalytics);
             // Обработчики спойлеров
             document.querySelectorAll('.spoiler-header').forEach(header => {
                 header.addEventListener('click', function() {
@@ -2238,7 +2272,6 @@
                     await updateReturns();
                 }
             });
-
             // === НОВЫЕ ОБРАБОТЧИКИ ДЛЯ СОРТИРОВКИ ТОП-5 ===
             document.getElementById('top-products-sort-profit').addEventListener('click', function() {
                 this.classList.add('active');
@@ -2260,7 +2293,6 @@
                 document.getElementById('analytics-top-products-sort-profit').classList.remove('active');
                 updateAnalytics();
             });
-
             // Инициализация
             initMetricDragAndDrop();
             initCharts();
@@ -3590,12 +3622,10 @@
             salesChart.data.datasets[0].data = revenues;
             salesChart.data.datasets[1].data = netProfits;
             salesChart.update();
-
             // === НОВОЕ: ГРУППИРОВКА И ОБНОВЛЕНИЕ ТОП-5 ===
             const groupedProducts = groupSalesByProduct(filteredData);
             let topProducts = [];
             const sortByMargin = document.getElementById('top-products-sort-margin')?.classList.contains('active') || false;
-
             if (sortByMargin) {
                 topProducts = [...groupedProducts]
                     .sort((a, b) => b.margin - a.margin)
@@ -3616,7 +3646,6 @@
                 topProductsChart.data.datasets[0].data = topProducts.map(p => p.totalProfit);
                 topProductsChart.options.scales.y = { beginAtZero: true };
             }
-
             topProductsChart.data.labels = topProducts.map(p => 
                 p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name
             );
@@ -3624,7 +3653,35 @@
         }
         // Функция для обновления аналитики
         function updateAnalytics() {
-            const filteredData = filterSalesData();
+            // === ПРИМЕНЯЕМ ФИЛЬТРЫ ИЗ АНАЛИТИКИ ===
+            const period = document.getElementById('analytics-period').value;
+            const startDate = document.getElementById('analytics-start-date').value;
+            const endDate = document.getElementById('analytics-end-date').value;
+            let filteredData = [...salesData];
+            if (startDate) {
+                filteredData = filteredData.filter(sale => sale.date >= startDate);
+            }
+            if (endDate) {
+                filteredData = filteredData.filter(sale => sale.date <= endDate);
+            }
+            if (period !== 'all') {
+                let startDatePeriod;
+                if (period === 'day') {
+                    startDatePeriod = dateFns.startOfDay(new Date());
+                } else if (period === 'week') {
+                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
+                } else if (period === 'month') {
+                    startDatePeriod = dateFns.startOfMonth(new Date());
+                } else if (period === 'quarter') {
+                    startDatePeriod = dateFns.startOfQuarter(new Date());
+                } else if (period === 'year') {
+                    startDatePeriod = dateFns.startOfYear(new Date());
+                }
+                if (startDatePeriod) {
+                    filteredData = filteredData.filter(sale => new Date(sale.date) >= startDatePeriod);
+                }
+            }
+
             // НОВОЕ: Расчет и отображение среднего чека и конверсии возвратов
             const totalRevenue = filteredData.reduce((sum, sale) => sum + (sale.selling_price * sale.quantity), 0);
             const totalReturns = returnsData.reduce((sum, ret) => sum + ret.amount, 0);
@@ -3633,6 +3690,7 @@
             const returnConversion = totalRevenue > 0 ? (totalReturns / totalRevenue) * 100 : 0;
             document.getElementById('average-check').textContent = formatCurrency(averageCheck);
             document.getElementById('return-conversion').textContent = returnConversion.toFixed(2) + '%';
+
             // Аналитика по маркетплейсам
             const marketplaceAnalytics = document.getElementById('marketplace-analytics');
             marketplaceAnalytics.innerHTML = '';
@@ -3649,6 +3707,7 @@
             });
             Object.keys(marketplaceData).forEach(key => {
                 const data = marketplaceData[key];
+                const avgCheck = data.count > 0 ? data.revenue / data.count : 0;
                 const div = document.createElement('div');
                 div.className = 'expense-item';
                 div.innerHTML = `
@@ -3656,7 +3715,8 @@
                         <strong>${key}</strong><br>
                         <small>Выручка ${formatCurrency(data.revenue)}<br>
                         Прибыль ${formatCurrency(data.profit)}<br>
-                        Продаж ${data.count}</small>
+                        Продаж ${data.count}<br>
+                        Средний чек ${formatCurrency(avgCheck)}</small>
                     </div>
                     <div>
                         Маржа ${data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100)}%
@@ -3664,6 +3724,40 @@
                 `;
                 marketplaceAnalytics.appendChild(div);
             });
+
+            // === НОВОЕ: Аналитика по магазинам ===
+            const shopsAnalytics = document.getElementById('shops-analytics');
+            shopsAnalytics.innerHTML = '';
+            const shopsData = {};
+            filteredData.forEach(sale => {
+                const shop = sale.shop || 'Без магазина';
+                if (!shopsData[shop]) {
+                    shopsData[shop] = { revenue: 0, profit: 0, count: 0 };
+                }
+                shopsData[shop].revenue += sale.selling_price * sale.quantity;
+                shopsData[shop].profit += sale.profit;
+                shopsData[shop].count += 1;
+            });
+            Object.keys(shopsData).forEach(shop => {
+                const data = shopsData[shop];
+                const avgCheck = data.count > 0 ? data.revenue / data.count : 0;
+                const div = document.createElement('div');
+                div.className = 'expense-item';
+                div.innerHTML = `
+                    <div>
+                        <strong>${shop}</strong><br>
+                        <small>Выручка ${formatCurrency(data.revenue)}<br>
+                        Прибыль ${formatCurrency(data.profit)}<br>
+                        Продаж ${data.count}<br>
+                        Средний чек ${formatCurrency(avgCheck)}</small>
+                    </div>
+                    <div>
+                        Маржа ${data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100)}%
+                    </div>
+                `;
+                shopsAnalytics.appendChild(div);
+            });
+
             // Топ-5 самых прибыльных товаров
             const topProductsAnalytics = document.getElementById('top-products-analytics');
             topProductsAnalytics.innerHTML = '';
@@ -3679,7 +3773,6 @@
                     .sort((a, b) => b.totalProfit - a.totalProfit)
                     .slice(0, 5);
             }
-
             topProductsList.forEach(product => {
                 const div = document.createElement('div');
                 div.className = 'expense-item';
@@ -3718,6 +3811,7 @@
                 `;
                 bottomProductsAnalytics.appendChild(div);
             });
+
             // НОВОЕ: Расходы по категориям (дублируем из вкладки "Расходы")
             const expensesByCategoryAnalytics = document.getElementById('expenses-by-category-analytics');
             expensesByCategoryAnalytics.innerHTML = '';
@@ -3742,6 +3836,7 @@
                 `;
                 expensesByCategoryAnalytics.appendChild(div);
             });
+
             // Продажи по месяцам
             const monthlySalesTable = document.querySelector('#monthly-sales-table tbody');
             monthlySalesTable.innerHTML = '';
@@ -3789,6 +3884,7 @@
                 `;
                 monthlySalesTable.appendChild(tr);
             });
+
             // НОВОЕ: Обновление графика "Выручка vs Расходы по месяцам"
             const revenues = months.map(month => salesByMonth[month].revenue);
             const expenses = months.map(month => expensesByMonth[month] || 0);
@@ -3796,6 +3892,7 @@
             window.revenueExpensesChart.data.datasets[0].data = revenues;
             window.revenueExpensesChart.data.datasets[1].data = expenses;
             window.revenueExpensesChart.update();
+
             // Продажи по сотрудникам
             const employeeSalesTable = document.querySelector('#employee-sales-table tbody');
             employeeSalesTable.innerHTML = '';
