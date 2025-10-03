@@ -976,9 +976,9 @@
                     </div>
                     <div class="grid">
                         <div class="card" style="background: #f0f9ff;">
-                            <h3>График операционных расходов</h3>
+                            <h3>График операционных расходов по категориям</h3>
                             <div class="chart-container">
-                                <canvas id="expenses-chart"></canvas>
+                                <canvas id="expenses-stacked-chart"></canvas>
                             </div>
                         </div>
                         <div class="card" style="background: #f0f9ff;">
@@ -1785,7 +1785,7 @@
                 y: 'top',
             }
         });
-        // Глобальные переменные
+        // Глобальные переменные — УДАЛЕНА expensesChart
         let currentUser = null;
         let salesData = [];
         let returnsData = [];
@@ -1828,7 +1828,8 @@
         let lastVisibleReturn = null; 
         const editIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
         const deleteIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
-        let marketplaceChart, salesChart, topProductsChart, expensesChart, revenueExpensesChart;
+        // УДАЛЕНА expensesChart из списка
+        let marketplaceChart, salesChart, topProductsChart, revenueExpensesChart;
         let userNamesCache = {};
         // ======================
         // ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ СОРТИРОВКИ МЕСЯЦЕВ
@@ -1902,6 +1903,88 @@
             if (!emailRegex.test(value)) {
                 throw new Error("Некорректный формат email");
             }
+        }
+        // ======================
+        // ФУНКЦИЯ ОБНОВЛЕНИЯ ГРАФИКА РАСХОДОВ С КАТЕГОРИЯМИ (ИСПРАВЛЕНА)
+        // ======================
+        function updateExpensesStackedChart() {
+            if (expensesData.length === 0) {
+                const ctx = document.getElementById('expenses-stacked-chart').getContext('2d');
+                if (window.expensesStackedChart) window.expensesStackedChart.destroy();
+                window.expensesStackedChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: [], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+                return;
+            }
+            const allCategories = [...new Set(expensesData.map(e => e.category))];
+            const monthsSet = new Set(
+                expensesData.map(e =>
+                    new Date(e.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' })
+                )
+            );
+            const months = Array.from(monthsSet)
+                .map(m => {
+                    const [month, year] = m.split(' ');
+                    const date = new Date(`${year}-${getMonthNumber(month)}-01`);
+                    return { label: m, date: date };
+                })
+                .sort((a, b) => a.date - b.date)
+                .map(item => item.label);
+            const dataByMonth = {};
+            months.forEach(month => {
+                dataByMonth[month] = {};
+                allCategories.forEach(cat => {
+                    dataByMonth[month][cat] = 0;
+                });
+            });
+            expensesData.forEach(exp => {
+                const month = new Date(exp.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+                if (dataByMonth[month]) {
+                    dataByMonth[month][exp.category] += exp.amount;
+                }
+            });
+            // ИСПРАВЛЕНО: добавлено `` 
+            const datasets = allCategories.map((category, index) => ({
+                label: category,
+                data: months.map(month => dataByMonth[month][category] || 0),
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                    '#FF9F40', '#8AC926', '#1982C4', '#6A4C93', '#F15BB5',
+                    '#00BBF9', '#00F5D4', '#FEE440', '#9B5DE5', '#00C1D4'
+                ][index % 15]
+            }));
+            const ctx = document.getElementById('expenses-stacked-chart').getContext('2d');
+            if (window.expensesStackedChart) {
+                window.expensesStackedChart.destroy();
+            }
+            window.expensesStackedChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                footer: (tooltipItems) => {
+                                    let total = 0;
+                                    tooltipItems.forEach(item => total += item.parsed.y);
+                                    return `Итого: ${total.toLocaleString('ru-RU')} ₽`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true }
+                    }
+                }
+            });
         }
         // ======================
         // ОСНОВНЫЕ ФУНКЦИИ
@@ -2028,7 +2111,7 @@
             document.getElementById('apply-sales-filters').addEventListener('click', updateAllSalesTable);
             document.getElementById('generate-report').addEventListener('click', updateReports);
             document.getElementById('export-csv').addEventListener('click', exportToCSV);
-	    document.getElementById('apply-spreadsheet-filters').addEventListener('click', updateSpreadsheetView);
+            document.getElementById('apply-spreadsheet-filters').addEventListener('click', updateSpreadsheetView);
             // Обработчики спойлеров
             document.querySelectorAll('.spoiler-header').forEach(header => {
                 header.addEventListener('click', function() {
@@ -2593,31 +2676,31 @@
         // ======================
         // Функция для загрузки продаж
         async function loadSalesData() {
-		    try {
-		        let salesQuery = db.collection('sales');
-		        if (getRoleFromToken() !== 'admin') {
-		            salesQuery = salesQuery.where('user_id', '==', currentUser.uid);
-		        }
-		        salesQuery = salesQuery.orderBy('createdAt', 'desc').limit(itemsPerPage);
-		        if (currentPage > 1 && lastVisibleSaleDate) {
-		            salesQuery = salesQuery.startAfter(lastVisibleSaleDate);
-		        }
-		        const salesSnapshot = await salesQuery.get();
-		        salesData = [];
-		        salesSnapshot.forEach(doc => {
-		            salesData.push({id: doc.id, ...doc.data()});
-		        });
-		        if (!salesSnapshot.empty) {
-		            const lastDoc = salesSnapshot.docs[salesSnapshot.docs.length - 1];
-		            lastVisibleSaleDate = lastDoc;
-		        } else {
-		            lastVisibleSaleDate = null;
-		        }
-		    } catch (error) {
-		        console.error('Ошибка загрузки продаж:', error);
-		        throw error;
-		    }
-		}
+            try {
+                let salesQuery = db.collection('sales');
+                if (getRoleFromToken() !== 'admin') {
+                    salesQuery = salesQuery.where('user_id', '==', currentUser.uid);
+                }
+                salesQuery = salesQuery.orderBy('createdAt', 'desc').limit(itemsPerPage);
+                if (currentPage > 1 && lastVisibleSaleDate) {
+                    salesQuery = salesQuery.startAfter(lastVisibleSaleDate);
+                }
+                const salesSnapshot = await salesQuery.get();
+                salesData = [];
+                salesSnapshot.forEach(doc => {
+                    salesData.push({id: doc.id, ...doc.data()});
+                });
+                if (!salesSnapshot.empty) {
+                    const lastDoc = salesSnapshot.docs[salesSnapshot.docs.length - 1];
+                    lastVisibleSaleDate = lastDoc;
+                } else {
+                    lastVisibleSaleDate = null;
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки продаж:', error);
+                throw error;
+            }
+        }
         // Функция для загрузки расходов
         async function loadExpensesData() {
             try {
@@ -2634,7 +2717,7 @@
                 expensesSnapshot.forEach(doc => {
                     expensesData.push({id: doc.id, ...doc.data()});
                 });
-		expensesData.sort((a, b) => new Date(b.date) - new Date(a.date));
+                expensesData.sort((a, b) => new Date(b.date) - new Date(a.date));
                 if (!expensesSnapshot.empty) {
                     lastVisibleExpense = expensesSnapshot.docs[expensesSnapshot.docs.length - 1];
                 } else {
@@ -2647,23 +2730,23 @@
         }
         // Функция для загрузки возвратов
         async function loadReturnsData() {
-		    try {
-		        let returnsQuery = db.collection('returns');
-		        if (getRoleFromToken() !== 'admin') {
-		            // Фильтруем напрямую по user_id — НОВОЕ ПРАВИЛО!
-		            returnsQuery = returnsQuery.where('user_id', '==', currentUser.uid);
-		        }
-		        returnsQuery = returnsQuery.orderBy('date', 'desc');
-		        const returnsSnapshot = await returnsQuery.get();
-		        returnsData = [];
-		        returnsSnapshot.forEach(doc => {
-		            returnsData.push({id: doc.id, ...doc.data()});
-		        });
-		    } catch (error) {
-		        console.error('Ошибка загрузки возвратов:', error);
-		        throw error;
-		    }
-		}
+            try {
+                let returnsQuery = db.collection('returns');
+                if (getRoleFromToken() !== 'admin') {
+                    // Фильтруем напрямую по user_id — НОВОЕ ПРАВИЛО!
+                    returnsQuery = returnsQuery.where('user_id', '==', currentUser.uid);
+                }
+                returnsQuery = returnsQuery.orderBy('date', 'desc');
+                const returnsSnapshot = await returnsQuery.get();
+                returnsData = [];
+                returnsSnapshot.forEach(doc => {
+                    returnsData.push({id: doc.id, ...doc.data()});
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки возвратов:', error);
+                throw error;
+            }
+        }
         // Функция для загрузки пользователей (только для админа)
         async function loadAllUsers() {
             try {
@@ -3045,15 +3128,15 @@
                 validateNumber(amount, "Сумма возврата", 0.01);
                 validateRequired(date, "Дата возврата");
                 const returnItem = {
-			    sale_id: saleId,
-			    reason: reason,
-			    amount: parseFloat(amount),
-			    date: date,
-			    user_id: currentUser.uid, // ←←← ОБЯЗАТЕЛЬНО!
-			    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-			    lastModifiedBy: currentUser.uid,
-			    lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
-			};
+                    sale_id: saleId,
+                    reason: reason,
+                    amount: parseFloat(amount),
+                    date: date,
+                    user_id: currentUser.uid, // ←←← ОБЯЗАТЕЛЬНО!
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastModifiedBy: currentUser.uid,
+                    lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
                 showLoading('Сохраняем возврат...');
                 const docRef = await db.collection('returns').add(returnItem);
                 const sale = salesData.find(s => s.id === saleId);
@@ -3324,15 +3407,15 @@
             if (period !== 'all') {
                 let startDatePeriod;
                 if (period === 'day') {
-                    startDatePeriod = dateFns.default.startOfDay(new Date());
+                    startDatePeriod = dateFns.startOfDay(new Date());
                 } else if (period === 'week') {
-                    startDatePeriod = dateFns.default.startOfWeek(new Date(), { weekStartsOn: 1 });
+                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
                 } else if (period === 'month') {
-                    startDatePeriod = dateFns.default.startOfMonth(new Date());
+                    startDatePeriod = dateFns.startOfMonth(new Date());
                 } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.default.startOfQuarter(new Date());
+                    startDatePeriod = dateFns.startOfQuarter(new Date());
                 } else if (period === 'year') {
-                    startDatePeriod = dateFns.default.startOfYear(new Date());
+                    startDatePeriod = dateFns.startOfYear(new Date());
                 }
                 if (startDatePeriod) {
                     filtered = filtered.filter(sale => new Date(sale.date) >= startDatePeriod);
@@ -3645,15 +3728,15 @@
             if (period !== 'all') {
                 let startDatePeriod;
                 if (period === 'day') {
-                    startDatePeriod = dateFns.default.startOfDay(new Date());
+                    startDatePeriod = dateFns.startOfDay(new Date());
                 } else if (period === 'week') {
-                    startDatePeriod = dateFns.default.startOfWeek(new Date(), { weekStartsOn: 1 });
+                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
                 } else if (period === 'month') {
-                    startDatePeriod = dateFns.default.startOfMonth(new Date());
+                    startDatePeriod = dateFns.startOfMonth(new Date());
                 } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.default.startOfQuarter(new Date());
+                    startDatePeriod = dateFns.startOfQuarter(new Date());
                 } else if (period === 'year') {
-                    startDatePeriod = dateFns.default.startOfYear(new Date());
+                    startDatePeriod = dateFns.startOfYear(new Date());
                 }
                 if (startDatePeriod) {
                     filteredData = filteredData.filter(sale => new Date(sale.date) >= startDatePeriod);
@@ -3716,15 +3799,15 @@
             if (period !== 'all') {
                 let startDatePeriod;
                 if (period === 'day') {
-                    startDatePeriod = dateFns.default.startOfDay(new Date());
+                    startDatePeriod = dateFns.startOfDay(new Date());
                 } else if (period === 'week') {
-                    startDatePeriod = dateFns.default.startOfWeek(new Date(), { weekStartsOn: 1 });
+                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
                 } else if (period === 'month') {
-                    startDatePeriod = dateFns.default.startOfMonth(new Date());
+                    startDatePeriod = dateFns.startOfMonth(new Date());
                 } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.default.startOfQuarter(new Date());
+                    startDatePeriod = dateFns.startOfQuarter(new Date());
                 } else if (period === 'year') {
-                    startDatePeriod = dateFns.default.startOfYear(new Date());
+                    startDatePeriod = dateFns.startOfYear(new Date());
                 }
                 if (startDatePeriod) {
                     filteredSales = filteredSales.filter(sale => new Date(sale.date) >= startDatePeriod);
@@ -3831,7 +3914,7 @@
                 ]);
             });
             // Генерируем CSV-строку
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // Добавляем BOM для корректной кодировки в Excel
+            let csvContent = "text/csv;charset=utf-8,\uFEFF"; // Добавляем BOM для корректной кодировки в Excel
             csvData.forEach(row => {
                 const escapedRow = row.map(field => {
                     if (typeof field === 'string' && (field.includes(',') || field.includes('"') || field.includes('\n'))) {
@@ -3869,15 +3952,15 @@
             if (period !== 'all') {
                 let startDatePeriod;
                 if (period === 'day') {
-                    startDatePeriod = dateFns.default.startOfDay(new Date());
+                    startDatePeriod = dateFns.startOfDay(new Date());
                 } else if (period === 'week') {
-                    startDatePeriod = dateFns.default.startOfWeek(new Date(), { weekStartsOn: 1 });
+                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
                 } else if (period === 'month') {
-                    startDatePeriod = dateFns.default.startOfMonth(new Date());
+                    startDatePeriod = dateFns.startOfMonth(new Date());
                 } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.default.startOfQuarter(new Date());
+                    startDatePeriod = dateFns.startOfQuarter(new Date());
                 } else if (period === 'year') {
-                    startDatePeriod = dateFns.default.startOfYear(new Date());
+                    startDatePeriod = dateFns.startOfYear(new Date());
                 }
                 if (startDatePeriod) {
                     filteredSales = filteredSales.filter(sale => new Date(sale.date) >= startDatePeriod);
@@ -3906,7 +3989,7 @@
                 }
             }
             // НОВОЕ: Сортируем по дате (новые сверху)
-			filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date));
+            filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date));
             const paginatedSales = paginateArray(filteredSales, currentPage, itemsPerPage);
             paginatedSales.forEach(sale => {
                 const userName = userNamesCache[sale.user_id] || 'Неизвестный';
@@ -3937,27 +4020,6 @@
         }
         // Функция для обновления таблицы расходов
         function updateExpenses() {
-            const expensesByMonth = {};
-            expensesData.forEach(expense => {
-                const month = new Date(expense.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-                if (!expensesByMonth[month]) {
-                    expensesByMonth[month] = 0;
-                }
-                expensesByMonth[month] += expense.amount;
-            });
-            // === СОРТИРОВКА МЕСЯЦЕВ ПО ВОЗРАСТАНИЮ ===
-            const months = Object.keys(expensesByMonth)
-                .map(m => {
-                    const [month, year] = m.split(' ');
-                    const date = new Date(`${year}-${getMonthNumber(month)}-01`);
-                    return { label: m, date: date };
-                })
-                .sort((a, b) => a.date - b.date)
-                .map(item => item.label);
-            const amounts = months.map(month => expensesByMonth[month]);
-            expensesChart.data.labels = months;
-            expensesChart.data.datasets[0].data = amounts;
-            expensesChart.update();
             // Обновление статистики по категориям
             const expensesByCategory = document.getElementById('expenses-by-category');
             expensesByCategory.innerHTML = '';
@@ -4005,6 +4067,8 @@
                 expensesTable.appendChild(tr);
             });
             updatePagination();
+            // Обновляем график
+            updateExpensesStackedChart();
         }
         // Функция для обновления таблицы возвратов
         function updateReturns() {
@@ -4340,27 +4404,6 @@
                         label: 'Прибыль',
                         data: [],
                         backgroundColor: '#8b5cf6'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            const expensesCtx = document.getElementById('expenses-chart').getContext('2d');
-            expensesChart = new Chart(expensesCtx, {
-                type: 'bar',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Операционные расходы',
-                        data: [],
-                        backgroundColor: '#f59e0b'
                     }]
                 },
                 options: {
