@@ -1785,6 +1785,12 @@
                 y: 'top',
             }
         });
+
+        // === НОВАЯ УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ФОРМАТИРОВАНИЯ СУММ ===
+        function formatCurrency(value) {
+            return Math.round(value).toLocaleString('ru-RU') + ' ₽';
+        }
+
         // Глобальные переменные — УДАЛЕНА expensesChart
         let currentUser = null;
         let salesData = [];
@@ -1974,7 +1980,7 @@
                                 footer: (tooltipItems) => {
                                     let total = 0;
                                     tooltipItems.forEach(item => total += item.parsed.y);
-                                    return `Итого: ${total.toLocaleString('ru-RU')} ₽`;
+                                    return `Итого: ${formatCurrency(total)}`;
                                 }
                             }
                         }
@@ -2994,7 +3000,7 @@
                 if (isPercent) {
                     element.textContent = Math.round(currentValueAnimated) + '%';
                 } else {
-                    element.textContent = Math.round(currentValueAnimated).toLocaleString('ru-RU') + ' ₽';
+                    element.textContent = formatCurrency(currentValueAnimated);
                 }
                 if (progress < 1) {
                     requestAnimationFrame(updateValue);
@@ -3017,7 +3023,7 @@
                     <td>${sale.marketplace}</td>
                     <td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
                     <td class="${sale.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        ${sale.profit.toLocaleString('ru-RU')} ₽
+                        ${formatCurrency(sale.profit)}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -3169,7 +3175,7 @@
             filteredSales.forEach(sale => {
                 const option = document.createElement('option');
                 option.value = sale.id;
-                option.textContent = `${sale.name} - ${(sale.selling_price * sale.quantity).toLocaleString('ru-RU')} ₽`;
+                option.textContent = `${sale.name} - ${formatCurrency(sale.selling_price * sale.quantity)}`;
                 select.appendChild(option);
             });
         }
@@ -3191,7 +3197,7 @@
             filteredSales.forEach(sale => {
                 const option = document.createElement('option');
                 option.value = sale.id;
-                option.textContent = `${sale.name} - ${(sale.selling_price * sale.quantity).toLocaleString('ru-RU')} ₽`;
+                option.textContent = `${sale.name} - ${formatCurrency(sale.selling_price * sale.quantity)}`;
                 saleSelect.appendChild(option);
             });
             saleSelect.value = ret.sale_id;
@@ -3288,7 +3294,7 @@
                 };
                 showLoading('Сохраняем расход...');
                 const docRef = await db.collection('expenses').add(expense);
-                await logActivity('добавил расход', `Категория: ${category}, Сумма: ${amount} ₽`);
+                await logActivity('добавил расход', `Категория: ${category}, Сумма: ${formatCurrency(amount)}`);
                 expensesData.push({...expense, id: docRef.id});
                 // Сбрасываем форму
                 document.getElementById('expense-category').value = '';
@@ -3336,7 +3342,7 @@
                 };
                 showLoading('Сохраняем изменения...');
                 await db.collection('expenses').doc(expenseId).update(updatedExpense);
-                await logActivity('отредактировал расход', `Категория: ${updatedExpense.category}, Сумма: ${updatedExpense.amount} ₽`);
+                await logActivity('отредактировал расход', `Категория: ${updatedExpense.category}, Сумма: ${formatCurrency(updatedExpense.amount)}`);
                 expensesData[expenseIndex] = {...updatedExpense, id: expenseId};
                 document.getElementById('edit-expense-modal').style.display = 'none';
                 hideLoading();
@@ -3357,7 +3363,7 @@
                     try {
                         const expense = expensesData.find(e => e.id === expenseId);
                         if (expense) {
-                            await logActivity('удалил расход', `Категория: ${expense.category}, Сумма: ${expense.amount} ₽`);
+                            await logActivity('удалил расход', `Категория: ${expense.category}, Сумма: ${formatCurrency(expense.amount)}`);
                         }
                         showLoading('Удаляем расход...');
                         await db.collection('expenses').doc(expenseId).delete();
@@ -3380,11 +3386,11 @@
         function updateDashboard() {
             const filteredData = filterSalesData();
             const metrics = calculateMetrics(filteredData);
-            document.getElementById('total-revenue').textContent = metrics.totalRevenue.toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('total-cost').textContent = metrics.totalCost.toLocaleString('ru-RU') + ' ₽';
-            document.getElementById('total-profit').textContent = metrics.totalProfit.toLocaleString('ru-RU') + ' ₽';
+            document.getElementById('total-revenue').textContent = formatCurrency(metrics.totalRevenue);
+            document.getElementById('total-cost').textContent = formatCurrency(metrics.totalCost);
+            document.getElementById('total-profit').textContent = formatCurrency(metrics.totalProfit);
             document.getElementById('average-margin').textContent = metrics.averageMargin + '%';
-            document.getElementById('total-returns').textContent = metrics.totalReturns.toLocaleString('ru-RU') + ' ₽';
+            document.getElementById('total-returns').textContent = formatCurrency(metrics.totalReturns);
             updateCharts(filteredData);
             updateRecentAddedSales();
         }
@@ -3524,7 +3530,7 @@
             const totalSalesCount = filteredData.length;
             const averageCheck = totalSalesCount > 0 ? totalRevenue / totalSalesCount : 0;
             const returnConversion = totalRevenue > 0 ? (totalReturns / totalRevenue) * 100 : 0;
-            document.getElementById('average-check').textContent = averageCheck.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+            document.getElementById('average-check').textContent = formatCurrency(averageCheck);
             document.getElementById('return-conversion').textContent = returnConversion.toFixed(2) + '%';
             // Аналитика по маркетплейсам
             const marketplaceAnalytics = document.getElementById('marketplace-analytics');
@@ -3547,8 +3553,8 @@
                 div.innerHTML = `
                     <div>
                         <strong>${key}</strong><br>
-                        <small>Выручка ${data.revenue.toLocaleString('ru-RU')} ₽<br>
-                        Прибыль ${data.profit.toLocaleString('ru-RU')} ₽<br>
+                        <small>Выручка ${formatCurrency(data.revenue)}<br>
+                        Прибыль ${formatCurrency(data.profit)}<br>
                         Продаж ${data.count}</small>
                     </div>
                     <div>
@@ -3569,8 +3575,8 @@
                 div.innerHTML = `
                     <div>
                         <strong>${sale.name}</strong><br>
-                        <small>Выручка ${(sale.selling_price * sale.quantity).toLocaleString('ru-RU')} ₽<br>
-                        Прибыль ${sale.profit.toLocaleString('ru-RU')} ₽</small>
+                        <small>Выручка ${formatCurrency(sale.selling_price * sale.quantity)}<br>
+                        Прибыль ${formatCurrency(sale.profit)}</small>
                     </div>
                     <div>
                         Маржа ${sale.margin}%
@@ -3590,8 +3596,8 @@
                 div.innerHTML = `
                     <div>
                         <strong>${sale.name}</strong><br>
-                        <small>Выручка ${(sale.selling_price * sale.quantity).toLocaleString('ru-RU')} ₽<br>
-                        Прибыль ${sale.profit.toLocaleString('ru-RU')} ₽</small>
+                        <small>Выручка ${formatCurrency(sale.selling_price * sale.quantity)}<br>
+                        Прибыль ${formatCurrency(sale.profit)}</small>
                     </div>
                     <div>
                         Маржа ${sale.margin}%
@@ -3618,7 +3624,7 @@
                         <strong>${category}</strong>
                     </div>
                     <div>
-                        ${total.toLocaleString('ru-RU')} ₽
+                        ${formatCurrency(total)}
                     </div>
                 `;
                 expensesByCategoryAnalytics.appendChild(div);
@@ -3662,9 +3668,9 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${month}</td>
-                    <td>${data.revenue.toLocaleString('ru-RU')} ₽</td>
-                    <td>${expense.toLocaleString('ru-RU')} ₽</td>
-                    <td>${netProfit.toLocaleString('ru-RU')} ₽</td>
+                    <td>${formatCurrency(data.revenue)}</td>
+                    <td>${formatCurrency(expense)}</td>
+                    <td>${formatCurrency(netProfit)}</td>
                     <td>${margin}%</td>
                     <td>${data.count}</td>
                 `;
@@ -3700,8 +3706,8 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${employee.name}</td>
-                    <td>${employee.revenue.toLocaleString('ru-RU')} ₽</td>
-                    <td>${employee.profit.toLocaleString('ru-RU')} ₽</td>
+                    <td>${formatCurrency(employee.revenue)}</td>
+                    <td>${formatCurrency(employee.profit)}</td>
                     <td>${employee.count}</td>
                 `;
                 employeeSalesTable.appendChild(tr);
@@ -3764,13 +3770,13 @@
             }, 0);
             const totalOperatingExpenses = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
             const totalProfit = (adjustedRevenue - totalPurchaseCost - totalCommissionCost - totalTaxCost) - totalOperatingExpenses;
-            document.getElementById('report-revenue').textContent = adjustedRevenue.toLocaleString('ru-RU');
-            document.getElementById('report-direct-costs').textContent = (totalPurchaseCost + totalCommissionCost + totalTaxCost).toLocaleString('ru-RU');
-            document.getElementById('report-purchase-cost').textContent = totalPurchaseCost.toLocaleString('ru-RU');
-            document.getElementById('report-commission-cost').textContent = totalCommissionCost.toLocaleString('ru-RU');
-            document.getElementById('report-tax-cost').textContent = totalTaxCost.toLocaleString('ru-RU');
-            document.getElementById('report-operating-expenses').textContent = totalOperatingExpenses.toLocaleString('ru-RU');
-            document.getElementById('report-profit').textContent = totalProfit.toLocaleString('ru-RU');
+            document.getElementById('report-revenue').textContent = formatCurrency(adjustedRevenue);
+            document.getElementById('report-direct-costs').textContent = formatCurrency(totalPurchaseCost + totalCommissionCost + totalTaxCost);
+            document.getElementById('report-purchase-cost').textContent = formatCurrency(totalPurchaseCost);
+            document.getElementById('report-commission-cost').textContent = formatCurrency(totalCommissionCost);
+            document.getElementById('report-tax-cost').textContent = formatCurrency(totalTaxCost);
+            document.getElementById('report-operating-expenses').textContent = formatCurrency(totalOperatingExpenses);
+            document.getElementById('report-profit').textContent = formatCurrency(totalProfit);
             document.getElementById('report-direct-costs-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round(((totalPurchaseCost + totalCommissionCost + totalTaxCost) / adjustedRevenue) * 100) + '%';
             document.getElementById('report-purchase-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalPurchaseCost / adjustedRevenue) * 100) + '%';
             document.getElementById('report-commission-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalCommissionCost / adjustedRevenue) * 100) + '%';
@@ -3852,8 +3858,8 @@
                     sale.advertising,
                     Math.round((1 - sale.tax_rate) * 100),
                     sale.quantity,
-                    sale.selling_price * sale.quantity,
-                    sale.profit,
+                    Math.round(sale.selling_price * sale.quantity),
+                    Math.round(sale.profit),
                     sale.margin,
                     '', // Сумма для расходов/возвратов
                     '', // Причина для возвратов
@@ -3881,7 +3887,7 @@
                     '', // Выручка
                     '', // Прибыль
                     '', // Маржа
-                    expense.amount,
+                    Math.round(expense.amount),
                     '', // Причина для возвратов
                     expense.description || ''
                 ]);
@@ -3905,10 +3911,10 @@
                     sale ? sale.advertising : '',
                     sale ? Math.round((1 - sale.tax_rate) * 100) : '',
                     sale ? sale.quantity : '',
-                    sale ? (sale.selling_price * sale.quantity) : '',
-                    sale ? sale.profit : '',
+                    sale ? Math.round(sale.selling_price * sale.quantity) : '',
+                    sale ? Math.round(sale.profit) : '',
                     sale ? sale.margin : '',
-                    ret.amount,
+                    Math.round(ret.amount),
                     ret.reason,
                     '' // Описание для расходов
                 ]);
@@ -4004,9 +4010,9 @@
                     <td>${sale.shop || '-'}</td>
                     <td>${userName}</td>
                     <td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
-                    <td>${(sale.selling_price * sale.quantity).toLocaleString('ru-RU')} ₽</td>
+                    <td>${formatCurrency(sale.selling_price * sale.quantity)}</td>
                     <td class="${sale.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        ${sale.profit.toLocaleString('ru-RU')} ₽
+                        ${formatCurrency(sale.profit)}
                     </td>
                     <td>${sale.margin}%</td>
                     <td class="actions-cell">
@@ -4039,7 +4045,7 @@
                         <strong>${category}</strong>
                     </div>
                     <div>
-                        ${total.toLocaleString('ru-RU')} ₽
+                        ${formatCurrency(total)}
                     </div>
                 `;
                 expensesByCategory.appendChild(div);
@@ -4055,7 +4061,7 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${expense.category}</td>
-                    <td>${expense.amount.toLocaleString('ru-RU')} ₽</td>
+                    <td>${formatCurrency(expense.amount)}</td>
                     <td>${new Date(expense.date).toLocaleDateString('ru-RU')}</td>
                     <td>${expense.description || '-'}</td>
                     <td>${userName}</td>
@@ -4084,7 +4090,7 @@
                 tr.innerHTML = `
                     <td>${sale ? sale.name : 'Неизвестный товар'}</td>
                     <td>${ret.reason}</td>
-                    <td>${ret.amount.toLocaleString('ru-RU')} ₽</td>
+                    <td>${formatCurrency(ret.amount)}</td>
                     <td>${new Date(ret.date).toLocaleDateString('ru-RU')}</td>
                     <td>${userName}</td>
                     <td class="actions-cell">
@@ -4215,20 +4221,20 @@
                     <td>${item.marketplace || '-'}</td>
                     <td>${item.shop || '-'}</td>
                     <td>${userName}</td>
-                    <td>${item.purchase_price ? item.purchase_price.toLocaleString('ru-RU') : '-'}</td>
-                    <td>${item.selling_price ? item.selling_price.toLocaleString('ru-RU') : '-'}</td>
-                    <td>${item.commission ? item.commission.toLocaleString('ru-RU') : '-'}</td>
-                    <td>${item.logistics ? item.logistics.toLocaleString('ru-RU') : '-'}</td>
-                    <td>${item.delivery_to_mv ? item.delivery_to_mv.toLocaleString('ru-RU') : '-'}</td>
+                    <td>${item.purchase_price ? formatCurrency(item.purchase_price) : '-'}</td>
+                    <td>${item.selling_price ? formatCurrency(item.selling_price) : '-'}</td>
+                    <td>${item.commission ? formatCurrency(item.commission) : '-'}</td>
+                    <td>${item.logistics ? formatCurrency(item.logistics) : '-'}</td>
+                    <td>${item.delivery_to_mv ? formatCurrency(item.delivery_to_mv) : '-'}</td>
                     <td>${item.advertising ? item.advertising : '-'}</td>
                     <td>${item.tax_rate ? Math.round((1 - item.tax_rate) * 100) : '-'}</td>
                     <td>${item.quantity || '-'}</td>
-                    <td>${item.revenue ? item.revenue.toLocaleString('ru-RU') : '-'}</td>
+                    <td>${item.revenue ? formatCurrency(item.revenue) : '-'}</td>
                     <td class="${item.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        ${item.profit ? item.profit.toLocaleString('ru-RU') : '-'}
+                        ${item.profit ? formatCurrency(item.profit) : '-'}
                     </td>
                     <td>${item.margin ? item.margin + '%' : '-'}</td>
-                    <td>${item.amount ? item.amount.toLocaleString('ru-RU') : '-'}</td>
+                    <td>${item.amount ? formatCurrency(item.amount) : '-'}</td>
                     <td>${item.reason || '-'}</td>
                     <td>${item.description || '-'}</td>
                     <td class="actions-cell">
