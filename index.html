@@ -624,6 +624,21 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Стили для кнопок сортировки топ-5 */
+        .top-products-sort-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .top-products-sort-buttons .btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        .top-products-sort-buttons .btn.active {
+            background: var(--primary);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -773,7 +788,13 @@
                 </div>
                 <div class="grid">
                     <div class="card">
-                        <h2 class="card-title">Топ-5 самых прибыльных товаров</h2>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h2 class="card-title" style="margin: 0;">Топ-5 самых прибыльных товаров</h2>
+                            <div class="top-products-sort-buttons">
+                                <button class="btn btn-sm active" id="top-products-sort-profit">По прибыли (₽)</button>
+                                <button class="btn btn-sm" id="top-products-sort-margin">По марже (%)</button>
+                            </div>
+                        </div>
                         <div class="chart-container">
                             <canvas id="top-products-chart"></canvas>
                         </div>
@@ -1147,7 +1168,13 @@
                             </div>
                         </div>
                         <div class="card" style="background: #f1f5f9;">
-                            <h3>Топ-5 самых прибыльных товаров</h3>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h3 style="margin: 0;">Топ-5 самых прибыльных товаров</h3>
+                                <div class="top-products-sort-buttons">
+                                    <button class="btn btn-sm active" id="analytics-top-products-sort-profit">По прибыли (₽)</button>
+                                    <button class="btn btn-sm" id="analytics-top-products-sort-margin">По марже (%)</button>
+                                </div>
+                            </div>
                             <div id="top-products-analytics">
                             </div>
                         </div>
@@ -1785,12 +1812,10 @@
                 y: 'top',
             }
         });
-
         // === НОВАЯ УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ФОРМАТИРОВАНИЯ СУММ ===
         function formatCurrency(value) {
             return Math.round(value).toLocaleString('ru-RU') + ' ₽';
         }
-
         // Глобальные переменные — УДАЛЕНА expensesChart
         let currentUser = null;
         let salesData = [];
@@ -1848,6 +1873,39 @@
             };
             return months[monthName] || '01';
         }
+
+        // ======================
+        // НОВАЯ ФУНКЦИЯ: ГРУППИРОВКА ПРОДАЖ ПО ТОВАРУ
+        // ======================
+        function groupSalesByProduct(sales) {
+            const grouped = {};
+            sales.forEach(sale => {
+                const key = sale.name;
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        name: sale.name,
+                        totalRevenue: 0,
+                        totalProfit: 0,
+                        totalQuantity: 0
+                    };
+                }
+                const revenue = sale.selling_price * sale.quantity;
+                grouped[key].totalRevenue += revenue;
+                grouped[key].totalProfit += sale.profit;
+                grouped[key].totalQuantity += sale.quantity;
+            });
+
+            return Object.values(grouped).map(item => {
+                const margin = item.totalRevenue > 0 
+                    ? Math.round((item.totalProfit / item.totalRevenue) * 100) 
+                    : 0;
+                return {
+                    ...item,
+                    margin
+                };
+            });
+        }
+
         // ======================
         // ФУНКЦИИ ПРЕЛОАДЕРА И МОДАЛЬНЫХ ОКОН
         // ======================
@@ -2180,6 +2238,29 @@
                     await updateReturns();
                 }
             });
+
+            // === НОВЫЕ ОБРАБОТЧИКИ ДЛЯ СОРТИРОВКИ ТОП-5 ===
+            document.getElementById('top-products-sort-profit').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('top-products-sort-margin').classList.remove('active');
+                updateDashboard();
+            });
+            document.getElementById('top-products-sort-margin').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('top-products-sort-profit').classList.remove('active');
+                updateDashboard();
+            });
+            document.getElementById('analytics-top-products-sort-profit').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('analytics-top-products-sort-margin').classList.remove('active');
+                updateAnalytics();
+            });
+            document.getElementById('analytics-top-products-sort-margin').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('analytics-top-products-sort-profit').classList.remove('active');
+                updateAnalytics();
+            });
+
             // Инициализация
             initMetricDragAndDrop();
             initCharts();
@@ -3509,16 +3590,36 @@
             salesChart.data.datasets[0].data = revenues;
             salesChart.data.datasets[1].data = netProfits;
             salesChart.update();
-            // Обновление графика топ-5 товаров
-            const topProducts = [...filteredData]
-                .sort((a, b) => b.profit - a.profit)
-                .slice(0, 5)
-                .map(sale => ({
-                    name: sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name,
-                    profit: sale.profit
-                }));
-            topProductsChart.data.labels = topProducts.map(p => p.name);
-            topProductsChart.data.datasets[0].data = topProducts.map(p => p.profit);
+
+            // === НОВОЕ: ГРУППИРОВКА И ОБНОВЛЕНИЕ ТОП-5 ===
+            const groupedProducts = groupSalesByProduct(filteredData);
+            let topProducts = [];
+            const sortByMargin = document.getElementById('top-products-sort-margin')?.classList.contains('active') || false;
+
+            if (sortByMargin) {
+                topProducts = [...groupedProducts]
+                    .sort((a, b) => b.margin - a.margin)
+                    .slice(0, 5);
+                topProductsChart.data.datasets[0].label = 'Маржа (%)';
+                topProductsChart.data.datasets[0].data = topProducts.map(p => p.margin);
+                topProductsChart.options.scales.y = {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) { return value + '%'; }
+                    }
+                };
+            } else {
+                topProducts = [...groupedProducts]
+                    .sort((a, b) => b.totalProfit - a.totalProfit)
+                    .slice(0, 5);
+                topProductsChart.data.datasets[0].label = 'Прибыль (₽)';
+                topProductsChart.data.datasets[0].data = topProducts.map(p => p.totalProfit);
+                topProductsChart.options.scales.y = { beginAtZero: true };
+            }
+
+            topProductsChart.data.labels = topProducts.map(p => 
+                p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name
+            );
             topProductsChart.update();
         }
         // Функция для обновления аналитики
@@ -3566,24 +3667,36 @@
             // Топ-5 самых прибыльных товаров
             const topProductsAnalytics = document.getElementById('top-products-analytics');
             topProductsAnalytics.innerHTML = '';
-            const topProducts = [...filteredData]
-                .sort((a, b) => b.profit - a.profit)
-                .slice(0, 5);
-            topProducts.forEach(sale => {
+            const groupedProducts = groupSalesByProduct(filteredData);
+            const analyticsSortByMargin = document.getElementById('analytics-top-products-sort-margin')?.classList.contains('active') || false;
+            let topProductsList = [];
+            if (analyticsSortByMargin) {
+                topProductsList = [...groupedProducts]
+                    .sort((a, b) => b.margin - a.margin)
+                    .slice(0, 5);
+            } else {
+                topProductsList = [...groupedProducts]
+                    .sort((a, b) => b.totalProfit - a.totalProfit)
+                    .slice(0, 5);
+            }
+
+            topProductsList.forEach(product => {
                 const div = document.createElement('div');
                 div.className = 'expense-item';
                 div.innerHTML = `
                     <div>
-                        <strong>${sale.name}</strong><br>
-                        <small>Выручка ${formatCurrency(sale.selling_price * sale.quantity)}<br>
-                        Прибыль ${formatCurrency(sale.profit)}</small>
+                        <strong>${product.name}</strong><br>
+                        <small>Выручка ${formatCurrency(product.totalRevenue)}<br>
+                        Прибыль ${formatCurrency(product.totalProfit)}<br>
+                        Кол-во ${product.totalQuantity}</small>
                     </div>
                     <div>
-                        Маржа ${sale.margin}%
+                        Маржа ${product.margin}%
                     </div>
                 `;
                 topProductsAnalytics.appendChild(div);
             });
+
             // НОВОЕ: Топ-5 самых убыточных товаров
             const bottomProductsAnalytics = document.getElementById('bottom-products-analytics');
             bottomProductsAnalytics.innerHTML = '';
