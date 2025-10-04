@@ -638,6 +638,18 @@
             background: var(--primary);
             color: white;
         }
+
+        /* === НОВЫЕ СТИЛИ ДЛЯ АНАЛИТИКИ === */
+        .analytics-section {
+            margin-bottom: 32px;
+        }
+        .analytics-section h3 {
+            margin-bottom: 16px;
+            color: var(--dark);
+        }
+        .analytics-section .card {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -1147,10 +1159,12 @@
                     </div>
                 </div>
             </div>
+            <!-- === ПОЛНОСТЬЮ ОБНОВЛЁННАЯ ВКЛАДКА АНАЛИТИКИ === -->
             <div id="analytics" class="tab-content">
                 <div class="card">
                     <h2 class="card-title">Аналитика продаж</h2>
-                    <!-- === ДОБАВЛЕН ФИЛЬТР ПО ПЕРИОДАМ === -->
+
+                    <!-- === ФИЛЬТРЫ === -->
                     <div class="card">
                         <h3>Фильтры</h3>
                         <div class="filters">
@@ -1179,94 +1193,121 @@
                             </div>
                         </div>
                     </div>
-                    <div class="metrics-grid">
-                        <div class="metric-card" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
-                            <h3>Средний чек <span class="tooltip">?<span class="tooltip-text">Общая выручка / Количество продаж</span></span></h3>
-                            <div class="value" id="average-check">0 ₽</div>
-                        </div>
-                        <div class="metric-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                            <h3>Конверсия возвратов <span class="tooltip">?<span class="tooltip-text">Сумма возвратов / Общая выручка * 100%</span></span></h3>
-                            <div class="value" id="return-conversion">0%</div>
-                        </div>
-                    </div>
-                    <div class="grid">
-                        <div class="card" style="background: #f1f5f9;">
-                            <h3>Продажи по маркетплейсам</h3>
-                            <div id="marketplace-analytics">
+
+                    <!-- === ОБЩИЕ МЕТРИКИ === -->
+                    <div class="analytics-section">
+                        <h3>📊 Общие показатели</h3>
+                        <div class="metrics-grid">
+                            <div class="metric-card" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                                <h3>Средний чек <span class="tooltip">?<span class="tooltip-text">Общая выручка / Количество продаж</span></span></h3>
+                                <div class="value" id="average-check">0 ₽</div>
                             </div>
-                        </div>
-                        <div class="card" style="background: #f1f5f9;">
-                            <h3>Продажи по магазинам</h3>
-                            <div id="shops-analytics">
+                            <div class="metric-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                                <h3>Конверсия возвратов <span class="tooltip">?<span class="tooltip-text">Сумма возвратов / Общая выручка * 100%</span></span></h3>
+                                <div class="value" id="return-conversion">0%</div>
                             </div>
                         </div>
                     </div>
-                    <div class="grid">
-                        <div class="card" style="background: #f1f5f9;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                                <h3 style="margin: 0;">Топ-5 самых прибыльных товаров</h3>
-                                <div class="top-products-sort-buttons">
-                                    <button class="btn btn-sm active" id="analytics-top-products-sort-profit">По прибыли (₽)</button>
-                                    <button class="btn btn-sm" id="analytics-top-products-sort-margin">По марже (%)</button>
+
+                    <!-- === АНАЛИТИКА ПО КАНАЛАМ === -->
+                    <div class="analytics-section">
+                        <div class="grid">
+                            <div class="card" style="background: #f8fafc;">
+                                <h3>🏪 Продажи по маркетплейсам</h3>
+                                <div id="marketplace-analytics"></div>
+                            </div>
+                            <div class="card" style="background: #f8fafc;">
+                                <h3>🏬 Продажи по магазинам</h3>
+                                <div id="shops-analytics"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- === ТОП ПО ТОВАРАМ === -->
+                    <div class="analytics-section">
+                        <div class="grid">
+                            <div class="card" style="background: #f8fafc;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                    <h3 style="margin: 0;">📦 Топ-5 самых прибыльных товаров</h3>
+                                    <div class="top-products-sort-buttons">
+                                        <button class="btn btn-sm active" id="analytics-top-products-sort-profit">По прибыли (₽)</button>
+                                        <button class="btn btn-sm" id="analytics-top-products-sort-margin">По марже (%)</button>
+                                    </div>
+                                </div>
+                                <div class="chart-container" style="height: 200px;">
+                                    <canvas id="analytics-top-products-chart"></canvas>
                                 </div>
                             </div>
-                            <div id="top-products-analytics">
-                            </div>
-                        </div>
-                        <div class="card" style="background: #f1f5f9;">
-                            <h3>Расходы по категориям</h3>
-                            <div id="expenses-by-category-analytics">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="grid">
-                        <div class="card" style="background: #f1f5f9;">
-                            <h3>Топ-5 самых убыточных товаров</h3>
-                            <div id="bottom-products-analytics">
+                            <div class="card" style="background: #f8fafc;">
+                                <h3>📉 Топ-5 самых убыточных товаров</h3>
+                                <div class="chart-container" style="height: 200px;">
+                                    <canvas id="analytics-bottom-products-chart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="card" style="background: #f1f5f9;">
-                        <h3>Динамика продаж по месяцам</h3>
-                        <div class="chart-container">
-                            <canvas id="revenue-expenses-chart"></canvas>
-                        </div>
-                        <div style="overflow-x: auto;">
-                            <table id="monthly-sales-table">
-                                <thead>
-                                    <tr>
-                                        <th>Месяц</th>
-                                        <th>Выручка</th>
-                                        <th>Расходы</th>
-                                        <th>Прибыль</th>
-                                        <th>Рентабельность</th>
-                                        <th>Количество продаж</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
+
+                    <!-- === РАСХОДЫ ПО КАТЕГОРИЯМ === -->
+                    <div class="analytics-section">
+                        <div class="card" style="background: #f8fafc;">
+                            <h3>💰 Расходы по категориям</h3>
+                            <div id="expenses-by-category-analytics"></div>
                         </div>
                     </div>
-                    <div class="card" style="background: #f1f5f9;">
-                        <h3>Продажи по сотрудникам</h3>
-                        <div style="overflow-x: auto;">
-                            <table id="employee-sales-table">
-                                <thead>
-                                    <tr>
-                                        <th>Сотрудник</th>
-                                        <th>Выручка</th>
-                                        <th>Прибыль</th>
-                                        <th>Количество продаж</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
+
+                    <!-- === ДИНАМИКА ПО МЕСЯЦАМ === -->
+                    <div class="analytics-section">
+                        <div class="card" style="background: #f8fafc;">
+                            <h3>📅 Динамика продаж по месяцам</h3>
+                            <div class="chart-container">
+                                <canvas id="revenue-expenses-chart"></canvas>
+                            </div>
+                            <div style="overflow-x: auto; margin-top: 20px;">
+                                <table id="monthly-sales-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Месяц</th>
+                                            <th>Выручка</th>
+                                            <th>Расходы</th>
+                                            <th>Прибыль</th>
+                                            <th>Рентабельность</th>
+                                            <th>Количество продаж</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                    <tfoot id="monthly-sales-total">
+                                        <!-- Итоговая строка будет добавлена динамически -->
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- === ПРОДАЖИ ПО СОТРУДНИКАМ === -->
+                    <div class="analytics-section">
+                        <div class="card" style="background: #f8fafc;">
+                            <h3>👥 Продажи по сотрудникам</h3>
+                            <div style="overflow-x: auto;">
+                                <table id="employee-sales-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Сотрудник</th>
+                                            <th>Выручка</th>
+                                            <th>Прибыль</th>
+                                            <th>Количество продаж</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <!-- === КОНЕЦ ОБНОВЛЁННОЙ АНАЛИТИКИ === -->
+
             <div id="reports" class="tab-content">
                 <div class="card">
                     <h2 class="card-title">Финансовые отчеты</h2>
@@ -1897,6 +1938,9 @@
         // УДАЛЕНА expensesChart из списка
         let marketplaceChart, salesChart, topProductsChart, revenueExpensesChart;
         let userNamesCache = {};
+        // НОВЫЕ ГРАФИКИ ДЛЯ АНАЛИТИКИ
+        let analyticsTopProductsChart, analyticsBottomProductsChart;
+
         // ======================
         // ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ СОРТИРОВКИ МЕСЯЦЕВ
         // ======================
@@ -3651,7 +3695,136 @@
             );
             topProductsChart.update();
         }
-        // Функция для обновления аналитики
+
+        // === НОВАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ ГРАФИКОВ ===
+        function initCharts() {
+            const marketplaceCtx = document.getElementById('marketplace-chart').getContext('2d');
+            marketplaceChart = new Chart(marketplaceCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Яндекс', 'Озон'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['#ffcc00', '#005bff']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            const salesCtx = document.getElementById('sales-chart').getContext('2d');
+            salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Выручка',
+                            data: [],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Прибыль',
+                            data: [],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            const topProductsCtx = document.getElementById('top-products-chart').getContext('2d');
+            topProductsChart = new Chart(topProductsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Прибыль',
+                        data: [],
+                        backgroundColor: '#8b5cf6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            // НОВОЕ: Инициализация графика "Выручка vs Расходы по месяцам"
+            const revenueExpensesCtx = document.getElementById('revenue-expenses-chart').getContext('2d');
+            revenueExpensesChart = new Chart(revenueExpensesCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Выручка',
+                            data: [],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Расходы',
+                            data: [],
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            // === НОВЫЕ ГРАФИКИ ДЛЯ АНАЛИТИКИ ===
+            const analyticsTopProductsCtx = document.getElementById('analytics-top-products-chart')?.getContext('2d');
+            if (analyticsTopProductsCtx) {
+                analyticsTopProductsChart = new Chart(analyticsTopProductsCtx, {
+                    type: 'bar',
+                    data: { labels: [], datasets: [{ label: 'Прибыль (₽)', data: [], backgroundColor: '#8b5cf6' }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
+            }
+
+            const analyticsBottomProductsCtx = document.getElementById('analytics-bottom-products-chart')?.getContext('2d');
+            if (analyticsBottomProductsCtx) {
+                analyticsBottomProductsChart = new Chart(analyticsBottomProductsCtx, {
+                    type: 'bar',
+                    data: { labels: [], datasets: [{ label: 'Прибыль (₽)', data: [], backgroundColor: '#ef4444' }] },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        indexAxis: 'y', 
+                        scales: { x: { beginAtZero: true } } 
+                    }
+                });
+            }
+        }
+
+        // === ПОЛНОСТЬЮ ОБНОВЛЁННАЯ ФУНКЦИЯ АНАЛИТИКИ ===
         function updateAnalytics() {
             // === ПРИМЕНЯЕМ ФИЛЬТРЫ ИЗ АНАЛИТИКИ ===
             const period = document.getElementById('analytics-period').value;
@@ -3691,7 +3864,7 @@
             document.getElementById('average-check').textContent = formatCurrency(averageCheck);
             document.getElementById('return-conversion').textContent = returnConversion.toFixed(2) + '%';
 
-            // Аналитика по маркетплейсам
+            // === АНАЛИТИКА ПО МАРКЕТПЛЕЙСАМ ===
             const marketplaceAnalytics = document.getElementById('marketplace-analytics');
             marketplaceAnalytics.innerHTML = '';
             const marketplaceData = {
@@ -3708,24 +3881,35 @@
             Object.keys(marketplaceData).forEach(key => {
                 const data = marketplaceData[key];
                 const avgCheck = data.count > 0 ? data.revenue / data.count : 0;
+                const margin = data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100);
+                const marginPercent = Math.max(0, Math.min(100, margin));
                 const div = document.createElement('div');
-                div.className = 'expense-item';
+                div.style.marginBottom = '12px';
+                div.style.padding = '12px';
+                div.style.borderRadius = '8px';
+                div.style.backgroundColor = key === 'Яндекс' ? 'rgba(255,204,0,0.1)' : 'rgba(0,91,255,0.1)';
                 div.innerHTML = `
-                    <div>
-                        <strong>${key}</strong><br>
-                        <small>Выручка ${formatCurrency(data.revenue)}<br>
-                        Прибыль ${formatCurrency(data.profit)}<br>
-                        Продаж ${data.count}<br>
-                        Средний чек ${formatCurrency(avgCheck)}</small>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <strong>${key}</strong>
+                        <span style="font-weight:bold;color:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'}">${margin}%</span>
                     </div>
-                    <div>
-                        Маржа ${data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100)}%
+                    <div style="font-size:0.9rem;color:var(--gray);margin-bottom:8px;">
+                        Выручка: ${formatCurrency(data.revenue)}<br>
+                        Прибыль: ${formatCurrency(data.profit)}<br>
+                        Продаж: ${data.count}
                     </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;background:var(--light-gray);border-radius:4px;height:6px;">
+                            <div style="width:${marginPercent}%;background:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'};height:6px;border-radius:4px;"></div>
+                        </div>
+                        <span style="font-size:0.8rem;color:var(--gray);">${Math.round(avgCheck)} ₽</span>
+                    </div>
+                    <div style="font-size:0.8rem;color:var(--gray);text-align:right;">Средний чек</div>
                 `;
                 marketplaceAnalytics.appendChild(div);
             });
 
-            // === НОВОЕ: Аналитика по магазинам ===
+            // === АНАЛИТИКА ПО МАГАЗИНАМ ===
             const shopsAnalytics = document.getElementById('shops-analytics');
             shopsAnalytics.innerHTML = '';
             const shopsData = {};
@@ -3741,26 +3925,35 @@
             Object.keys(shopsData).forEach(shop => {
                 const data = shopsData[shop];
                 const avgCheck = data.count > 0 ? data.revenue / data.count : 0;
+                const margin = data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100);
+                const marginPercent = Math.max(0, Math.min(100, margin));
                 const div = document.createElement('div');
-                div.className = 'expense-item';
+                div.style.marginBottom = '12px';
+                div.style.padding = '12px';
+                div.style.borderRadius = '8px';
+                div.style.backgroundColor = 'rgba(156, 163, 175, 0.1)';
                 div.innerHTML = `
-                    <div>
-                        <strong>${shop}</strong><br>
-                        <small>Выручка ${formatCurrency(data.revenue)}<br>
-                        Прибыль ${formatCurrency(data.profit)}<br>
-                        Продаж ${data.count}<br>
-                        Средний чек ${formatCurrency(avgCheck)}</small>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <strong>${shop}</strong>
+                        <span style="font-weight:bold;color:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'}">${margin}%</span>
                     </div>
-                    <div>
-                        Маржа ${data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100)}%
+                    <div style="font-size:0.9rem;color:var(--gray);margin-bottom:8px;">
+                        Выручка: ${formatCurrency(data.revenue)}<br>
+                        Прибыль: ${formatCurrency(data.profit)}<br>
+                        Продаж: ${data.count}
                     </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;background:var(--light-gray);border-radius:4px;height:6px;">
+                            <div style="width:${marginPercent}%;background:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'};height:6px;border-radius:4px;"></div>
+                        </div>
+                        <span style="font-size:0.8rem;color:var(--gray);">${Math.round(avgCheck)} ₽</span>
+                    </div>
+                    <div style="font-size:0.8rem;color:var(--gray);text-align:right;">Средний чек</div>
                 `;
                 shopsAnalytics.appendChild(div);
             });
 
-            // Топ-5 самых прибыльных товаров
-            const topProductsAnalytics = document.getElementById('top-products-analytics');
-            topProductsAnalytics.innerHTML = '';
+            // === ТОП-5 ПРИБЫЛЬНЫХ ТОВАРОВ ===
             const groupedProducts = groupSalesByProduct(filteredData);
             const analyticsSortByMargin = document.getElementById('analytics-top-products-sort-margin')?.classList.contains('active') || false;
             let topProductsList = [];
@@ -3768,51 +3961,36 @@
                 topProductsList = [...groupedProducts]
                     .sort((a, b) => b.margin - a.margin)
                     .slice(0, 5);
+                analyticsTopProductsChart.data.datasets[0].label = 'Маржа (%)';
+                analyticsTopProductsChart.data.datasets[0].data = topProductsList.map(p => p.margin);
+                analyticsTopProductsChart.options.scales.y = {
+                    beginAtZero: true,
+                    ticks: { callback: v => v + '%' }
+                };
             } else {
                 topProductsList = [...groupedProducts]
                     .sort((a, b) => b.totalProfit - a.totalProfit)
                     .slice(0, 5);
+                analyticsTopProductsChart.data.datasets[0].label = 'Прибыль (₽)';
+                analyticsTopProductsChart.data.datasets[0].data = topProductsList.map(p => p.totalProfit);
+                analyticsTopProductsChart.options.scales.y = { beginAtZero: true };
             }
-            topProductsList.forEach(product => {
-                const div = document.createElement('div');
-                div.className = 'expense-item';
-                div.innerHTML = `
-                    <div>
-                        <strong>${product.name}</strong><br>
-                        <small>Выручка ${formatCurrency(product.totalRevenue)}<br>
-                        Прибыль ${formatCurrency(product.totalProfit)}<br>
-                        Кол-во ${product.totalQuantity}</small>
-                    </div>
-                    <div>
-                        Маржа ${product.margin}%
-                    </div>
-                `;
-                topProductsAnalytics.appendChild(div);
-            });
+            analyticsTopProductsChart.data.labels = topProductsList.map(p => 
+                p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name
+            );
+            analyticsTopProductsChart.update();
 
-            // НОВОЕ: Топ-5 самых убыточных товаров
-            const bottomProductsAnalytics = document.getElementById('bottom-products-analytics');
-            bottomProductsAnalytics.innerHTML = '';
+            // === ТОП-5 УБЫТОЧНЫХ ТОВАРОВ ===
             const bottomProducts = [...filteredData]
-                .sort((a, b) => a.profit - b.profit) // Сортируем по возрастанию прибыли
-                .slice(0, 5); // Берем первые 5 (самые убыточные)
-            bottomProducts.forEach(sale => {
-                const div = document.createElement('div');
-                div.className = 'expense-item';
-                div.innerHTML = `
-                    <div>
-                        <strong>${sale.name}</strong><br>
-                        <small>Выручка ${formatCurrency(sale.selling_price * sale.quantity)}<br>
-                        Прибыль ${formatCurrency(sale.profit)}</small>
-                    </div>
-                    <div>
-                        Маржа ${sale.margin}%
-                    </div>
-                `;
-                bottomProductsAnalytics.appendChild(div);
-            });
+                .sort((a, b) => a.profit - b.profit)
+                .slice(0, 5);
+            analyticsBottomProductsChart.data.labels = bottomProducts.map(s => 
+                s.name.length > 20 ? s.name.substring(0, 20) + '...' : s.name
+            );
+            analyticsBottomProductsChart.data.datasets[0].data = bottomProducts.map(s => s.profit);
+            analyticsBottomProductsChart.update();
 
-            // НОВОЕ: Расходы по категориям (дублируем из вкладки "Расходы")
+            // === РАСХОДЫ ПО КАТЕГОРИЯМ ===
             const expensesByCategoryAnalytics = document.getElementById('expenses-by-category-analytics');
             expensesByCategoryAnalytics.innerHTML = '';
             const categoryTotals = {};
@@ -3825,21 +4003,24 @@
             Object.keys(categoryTotals).forEach(category => {
                 const total = categoryTotals[category];
                 const div = document.createElement('div');
-                div.className = 'expense-item';
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.padding = '10px';
+                div.style.marginBottom = '5px';
+                div.style.backgroundColor = 'white';
+                div.style.borderRadius = '4px';
                 div.innerHTML = `
-                    <div>
-                        <strong>${category}</strong>
-                    </div>
-                    <div>
-                        ${formatCurrency(total)}
-                    </div>
+                    <strong>${category}</strong>
+                    <span>${formatCurrency(total)}</span>
                 `;
                 expensesByCategoryAnalytics.appendChild(div);
             });
 
-            // Продажи по месяцам
+            // === ПРОДАЖИ ПО МЕСЯЦАМ ===
             const monthlySalesTable = document.querySelector('#monthly-sales-table tbody');
+            const monthlySalesTotal = document.querySelector('#monthly-sales-total');
             monthlySalesTable.innerHTML = '';
+            monthlySalesTotal.innerHTML = '';
             const salesByMonth = {};
             filteredData.forEach(sale => {
                 const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
@@ -3850,7 +4031,6 @@
                 salesByMonth[month].profit += sale.profit;
                 salesByMonth[month].count += 1;
             });
-            // НОВОЕ: Расходы по месяцам для таблицы
             const expensesByMonth = {};
             expensesData.forEach(expense => {
                 const month = new Date(expense.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
@@ -3859,7 +4039,6 @@
                 }
                 expensesByMonth[month] += expense.amount;
             });
-            // === СОРТИРОВКА МЕСЯЦЕВ ПО ВОЗРАСТАНИЮ ===
             const months = Object.keys(salesByMonth)
                 .map(m => {
                     const [month, year] = m.split(' ');
@@ -3868,12 +4047,20 @@
                 })
                 .sort((a, b) => a.date - b.date)
                 .map(item => item.label);
+
+            let totalRevenueAll = 0, totalExpensesAll = 0, totalProfitAll = 0, totalCountAll = 0;
             months.forEach(month => {
                 const data = salesByMonth[month];
                 const expense = expensesByMonth[month] || 0;
                 const netProfit = data.profit - expense;
                 const margin = data.revenue === 0 ? 0 : Math.round((netProfit / data.revenue) * 100);
                 const tr = document.createElement('tr');
+                if (netProfit < 0) {
+                    tr.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                    tr.style.color = 'var(--danger)';
+                } else if (netProfit > 0) {
+                    tr.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                }
                 tr.innerHTML = `
                     <td>${month}</td>
                     <td>${formatCurrency(data.revenue)}</td>
@@ -3883,17 +4070,36 @@
                     <td>${data.count}</td>
                 `;
                 monthlySalesTable.appendChild(tr);
+                totalRevenueAll += data.revenue;
+                totalExpensesAll += expense;
+                totalProfitAll += netProfit;
+                totalCountAll += data.count;
             });
 
-            // НОВОЕ: Обновление графика "Выручка vs Расходы по месяцам"
+            // === ИТОГОВАЯ СТРОКА ===
+            const totalMarginAll = totalRevenueAll === 0 ? 0 : Math.round((totalProfitAll / totalRevenueAll) * 100);
+            const totalRow = document.createElement('tr');
+            totalRow.style.fontWeight = 'bold';
+            totalRow.style.borderTop = '2px solid var(--border)';
+            totalRow.innerHTML = `
+                <td>Итого</td>
+                <td>${formatCurrency(totalRevenueAll)}</td>
+                <td>${formatCurrency(totalExpensesAll)}</td>
+                <td>${formatCurrency(totalProfitAll)}</td>
+                <td>${totalMarginAll}%</td>
+                <td>${totalCountAll}</td>
+            `;
+            monthlySalesTotal.appendChild(totalRow);
+
+            // === ОБНОВЛЕНИЕ ГРАФИКА "ВЫРУЧКА VS РАСХОДЫ" ===
             const revenues = months.map(month => salesByMonth[month].revenue);
             const expenses = months.map(month => expensesByMonth[month] || 0);
-            window.revenueExpensesChart.data.labels = months;
-            window.revenueExpensesChart.data.datasets[0].data = revenues;
-            window.revenueExpensesChart.data.datasets[1].data = expenses;
-            window.revenueExpensesChart.update();
+            revenueExpensesChart.data.labels = months;
+            revenueExpensesChart.data.datasets[0].data = revenues;
+            revenueExpensesChart.data.datasets[1].data = expenses;
+            revenueExpensesChart.update();
 
-            // Продажи по сотрудникам
+            // === ПРОДАЖИ ПО СОТРУДНИКАМ ===
             const employeeSalesTable = document.querySelector('#employee-sales-table tbody');
             employeeSalesTable.innerHTML = '';
             const salesByEmployee = {};
@@ -3914,15 +4120,24 @@
             });
             Object.values(salesByEmployee).forEach(employee => {
                 const tr = document.createElement('tr');
+                const initials = employee.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
                 tr.innerHTML = `
-                    <td>${employee.name}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="avatar" style="width:28px;height:28px;font-size:0.8rem;">${initials}</div>
+                            ${employee.name}
+                        </div>
+                    </td>
                     <td>${formatCurrency(employee.revenue)}</td>
-                    <td>${formatCurrency(employee.profit)}</td>
+                    <td class="${employee.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        ${formatCurrency(employee.profit)}
+                    </td>
                     <td>${employee.count}</td>
                 `;
                 employeeSalesTable.appendChild(tr);
             });
         }
+
         // Функция для обновления отчетов
         function updateReports() {
             // Получаем фильтры с вкладки "Отчеты"
@@ -4560,110 +4775,6 @@
                         }
                     }
                 });
-            });
-        }
-        // Функция для инициализации графиков
-        function initCharts() {
-            const marketplaceCtx = document.getElementById('marketplace-chart').getContext('2d');
-            marketplaceChart = new Chart(marketplaceCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['Яндекс', 'Озон'],
-                    datasets: [{
-                        data: [0, 0],
-                        backgroundColor: ['#ffcc00', '#005bff']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-            const salesCtx = document.getElementById('sales-chart').getContext('2d');
-            salesChart = new Chart(salesCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'Выручка',
-                            data: [],
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Прибыль',
-                            data: [],
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            tension: 0.1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            const topProductsCtx = document.getElementById('top-products-chart').getContext('2d');
-            topProductsChart = new Chart(topProductsCtx, {
-                type: 'bar',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Прибыль',
-                        data: [],
-                        backgroundColor: '#8b5cf6'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            // НОВОЕ: Инициализация графика "Выручка vs Расходы по месяцам"
-            const revenueExpensesCtx = document.getElementById('revenue-expenses-chart').getContext('2d');
-            window.revenueExpensesChart = new Chart(revenueExpensesCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'Выручка',
-                            data: [],
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Расходы',
-                            data: [],
-                            borderColor: '#ef4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            tension: 0.1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
             });
         }
         // Функция для записи логов активности
