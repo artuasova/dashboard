@@ -1904,11 +1904,9 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         const notyf = new Notyf({ duration: 3000, position: { x: 'right', y: 'top' } });
-
         function formatCurrency(value) {
             return Math.round(value).toLocaleString('ru-RU') + ' ₽';
         }
-
         let currentUser = null;
         let salesData = [];
         let returnsData = [];
@@ -1936,18 +1934,15 @@
         const deleteIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
         let marketplaceChart, salesChart, topProductsChart, revenueExpensesChart;
         let userNamesCache = {};
-
         function getMonthNumber(monthName) {
             const months = { 'янв.': '01', 'февр.': '02', 'мар.': '03', 'апр.': '04', 'мая': '05', 'июня': '06', 'июля': '07', 'авг.': '08', 'сент.': '09', 'окт.': '10', 'нояб.': '11', 'дек.': '12' };
             return months[monthName] || '01';
         }
-
         function validateRequired(value, fieldName = "Поле") {
             if (!value || value.toString().trim() === "") {
                 throw new Error(`${fieldName} обязательно для заполнения`);
             }
         }
-
         function validateNumber(value, fieldName = "Число", min = null, max = null) {
             const num = parseFloat(value);
             if (isNaN(num)) throw new Error(`${fieldName} должно быть числом`);
@@ -1955,7 +1950,6 @@
             if (max !== null && num > max) throw new Error(`${fieldName} должно быть не больше ${max}`);
             return num;
         }
-
         // === ИСПРАВЛЕНА ФУНКЦИЯ РАСЧЕТА ПРИБЫЛИ ===
         function calculateProfit(sale, overrideQuantity = null) {
             const quantity = overrideQuantity !== null ? overrideQuantity : (parseInt(sale.quantity) || 0);
@@ -1975,13 +1969,11 @@
             const taxCost = (1 - taxRate) * revenueAfterAdvertising;
             return revenueAfterAdvertising - purchaseCost - commissionCost - logisticsCost - deliveryCost - taxCost;
         }
-
         function calculateMargin(sale, overrideQuantity = null) {
             const profit = calculateProfit(sale, overrideQuantity);
             const revenue = parseFloat(sale.selling_price) * (overrideQuantity !== null ? overrideQuantity : parseInt(sale.quantity) || 0);
             return revenue === 0 ? 0 : Math.round((profit / revenue) * 100);
         }
-
         async function loadSalesData() {
             try {
                 let salesQuery = db.collection('sales');
@@ -2008,7 +2000,6 @@
                 throw error;
             }
         }
-
         async function loadReturnsData() {
             try {
                 let returnsQuery = db.collection('returns');
@@ -2026,7 +2017,6 @@
                 throw error;
             }
         }
-
         async function loadExpensesData() {
             try {
                 let expensesQuery = db.collection('expenses');
@@ -2053,7 +2043,6 @@
                 throw error;
             }
         }
-
         async function addSale() {
             try {
                 const name = document.getElementById('product-name').value.trim();
@@ -2112,7 +2101,6 @@
                 notyf.error(error.message);
             }
         }
-
         // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ДОБАВЛЕНИЯ ВОЗВРАТА ===
         async function addReturn() {
             try {
@@ -2122,27 +2110,21 @@
                 const deliveryMvBack = parseFloat(document.getElementById('return-delivery-mv-back').value) || 0;
                 const reason = document.getElementById('return-reason').value;
                 const date = document.getElementById('return-date').value;
-
                 validateRequired(saleId, "Продажа");
                 validateNumber(returnQuantity, "Количество", 1);
                 validateRequired(date, "Дата возврата");
-
                 const sale = salesData.find(s => s.id === saleId);
                 if (!sale) throw new Error("Продажа не найдена");
-
                 const maxReturnable = parseInt(sale.quantity) || 0;
                 const alreadyReturned = returnsData
                     .filter(r => r.sale_id === saleId)
                     .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
                 const availableToReturn = maxReturnable - alreadyReturned;
-
                 if (parseInt(returnQuantity) > availableToReturn) {
                     throw new Error(`Можно вернуть не более ${availableToReturn} шт.`);
                 }
-
                 const sellingPrice = parseFloat(sale.selling_price) || 0;
                 const returnAmount = sellingPrice * parseInt(returnQuantity);
-
                 const returnItem = {
                     sale_id: saleId,
                     return_quantity: parseInt(returnQuantity),
@@ -2154,22 +2136,18 @@
                     user_id: currentUser.uid,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
-
                 showLoading('Сохраняем возврат...');
                 const docRef = await db.collection('returns').add(returnItem);
                 returnsData.push({...returnItem, id: docRef.id});
-
                 // === АВТОМАТИЧЕСКИЕ РАСХОДЫ ===
                 const newExpenseCategories = [];
                 if (logisticsBack > 0) newExpenseCategories.push("Возврат: логистика");
                 if (deliveryMvBack > 0) newExpenseCategories.push("Возврат: Доставка до МВ");
-
                 newExpenseCategories.forEach(cat => {
                     if (!expenseCategories.includes(cat)) {
                         expenseCategories.push(cat);
                     }
                 });
-
                 const expensePromises = [];
                 if (logisticsBack > 0) {
                     expensePromises.push(
@@ -2195,12 +2173,10 @@
                         })
                     );
                 }
-
                 if (expensePromises.length > 0) {
                     await Promise.all(expensePromises);
                     await loadExpensesData();
                 }
-
                 // Сбрасываем форму
                 document.getElementById('return-sale').value = '';
                 document.getElementById('return-quantity').value = '';
@@ -2210,7 +2186,6 @@
                 document.getElementById('return-tracking-search').value = '';
                 document.getElementById('return-date').value = new Date().toISOString().split('T')[0];
                 document.getElementById('return-modal').style.display = 'none';
-
                 hideLoading();
                 await logActivity('добавил возврат', `Товар: ${sale.name}, Кол-во: ${returnQuantity}`);
                 updateDashboard();
@@ -2222,7 +2197,6 @@
                 notyf.error(error.message);
             }
         }
-
         // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАПОЛНЕНИЯ СПИСКА ПРОДАЖ ===
         function populateReturnSales() {
             const select = document.getElementById('return-sale');
@@ -2244,32 +2218,26 @@
                 select.appendChild(option);
             });
         }
-
         // === НОВЫЙ ОБРАБОТЧИК ПОИСКА ПО ТРЕКУ ===
         function initReturnSearch() {
             document.getElementById('return-tracking-search').addEventListener('input', function() {
                 const searchTerm = this.value.trim().toLowerCase();
                 const select = document.getElementById('return-sale');
                 const options = Array.from(select.querySelectorAll('option:not(:first-child)'));
-
                 select.innerHTML = '<option value="">Выберите продажу</option>';
-
                 options.forEach(opt => {
                     const saleId = opt.value;
                     const sale = salesData.find(s => s.id === saleId);
                     if (!sale) return;
-
                     const matchesTrack = sale.tracking_number && 
                         sale.tracking_number.toLowerCase().includes(searchTerm);
                     const matchesName = sale.name.toLowerCase().includes(searchTerm);
-
                     if (searchTerm === '' || matchesTrack || matchesName) {
                         select.appendChild(opt);
                     }
                 });
             });
         }
-
         async function updateAllSalesTable() {
             const tbody = document.querySelector('#all-sales-table tbody');
             tbody.innerHTML = '';
@@ -2334,14 +2302,13 @@
                 const actualMargin = calculateMargin(sale, actualQuantity);
                 const isFullyReturned = actualQuantity === 0;
                 const isPartiallyReturned = totalReturned > 0 && !isFullyReturned;
-
                 const tr = document.createElement('tr');
                 if (isFullyReturned) {
                     tr.classList.add('sale-with-return');
                 } else if (isPartiallyReturned) {
                     tr.classList.add('sale-partially-returned');
                 }
-
+                // === КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: отображаем actualQuantity и actualRevenue ===
                 tr.innerHTML = `
                     <td title="${sale.name}">${sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name}</td>
                     <td>${sale.article}</td>
@@ -2349,11 +2316,11 @@
                     <td>${sale.shop || '-'}</td>
                     <td>${userName}</td>
                     <td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
-                    <td>${formatCurrency(actualRevenue)}</td>
+                    <td>${isFullyReturned ? '0 ₽' : formatCurrency(actualRevenue)}</td>
                     <td class="${actualProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        ${formatCurrency(actualProfit)}
+                        ${isFullyReturned ? '0 ₽' : formatCurrency(actualProfit)}
                     </td>
-                    <td>${actualMargin}%</td>
+                    <td>${isFullyReturned ? '0%' : actualMargin + '%'}</td>
                     <td class="actions-cell">
                         <button class="icon-btn" onclick="editSale('${sale.id}')" title="Редактировать">${editIcon}</button>
                         <button class="icon-btn" onclick="deleteSale('${sale.id}')" title="Удалить">${deleteIcon}</button>
@@ -2363,7 +2330,6 @@
             });
             updatePagination();
         }
-
         function updateReturns() {
             const tbody = document.querySelector('#returns-table tbody');
             tbody.innerHTML = '';
@@ -2388,8 +2354,1661 @@
             });
             updatePagination();
         }
+        // === ИСПРАВЛЕНА ФУНКЦИЯ РАСЧЕТА МЕТРИК ===
+        function calculateMetrics(filteredData) {
+            // Защита от пустого массива
+            if (!filteredData || filteredData.length === 0) {
+                return {
+                    totalRevenue: 0,
+                    totalCost: 0,
+                    totalProfit: 0,
+                    averageMargin: 0,
+                    totalReturns: 0
+                };
+            }
 
-        // === ИНИЦИАЛИЗАЦИЯ ===
+            // === СЧИТАЕМ ФАКТИЧЕСКУЮ ВЫРУЧКУ С УЧЁТОМ ВОЗВРАТОВ ===
+            let totalRevenue = 0;
+            filteredData.forEach(sale => {
+                const sellingPrice = parseFloat(sale.selling_price) || 0;
+                const quantity = parseInt(sale.quantity) || 0;
+                const totalReturned = returnsData
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, quantity - totalReturned);
+                totalRevenue += sellingPrice * actualQuantity;
+            });
+
+            // === СЧИТАЕМ СУММУ ВОЗВРАТОВ ===
+            const totalReturns = returnsData.reduce((sum, ret) => {
+                return sum + (parseFloat(ret.amount) || 0);
+            }, 0);
+
+            // === ПРЯМЫЕ РАСХОДЫ: только по фактически проданным товарам ===
+            let totalDirectCosts = 0;
+            filteredData.forEach(sale => {
+                const quantity = parseInt(sale.quantity) || 0;
+                const totalReturned = returnsData
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, quantity - totalReturned);
+
+                const purchasePrice = parseFloat(sale.purchase_price) || 0;
+                const commission = parseFloat(sale.commission) || 0;
+                const logistics = parseFloat(sale.logistics) || 0;
+                const deliveryToMV = parseFloat(sale.delivery_to_mv) || 0;
+                const advertising = parseFloat(sale.advertising) || 0.98;
+                const taxRate = parseFloat(sale.tax_rate) || 0.99;
+                const sellingPrice = parseFloat(sale.selling_price) || 0;
+
+                const revenue = sellingPrice * actualQuantity;
+                const purchaseCost = purchasePrice * actualQuantity;
+                const commissionCost = commission * actualQuantity;
+                const logisticsCost = logistics * actualQuantity;
+                const deliveryCost = deliveryToMV * actualQuantity;
+                const revenueAfterAdvertising = revenue * advertising;
+                const taxCost = (1 - taxRate) * revenueAfterAdvertising;
+
+                totalDirectCosts += purchaseCost + commissionCost + logisticsCost + deliveryCost + taxCost;
+            });
+
+            const totalOperatingExpenses = expensesData.reduce((sum, expense) => {
+                return sum + (parseFloat(expense.amount) || 0);
+            }, 0);
+
+            const totalCost = totalDirectCosts + totalOperatingExpenses;
+            const totalProfit = totalRevenue - totalCost;
+            const averageMargin = totalRevenue === 0 ? 0 : Math.round((totalProfit / totalRevenue) * 100);
+
+            return {
+                totalRevenue,
+                totalCost,
+                totalProfit,
+                averageMargin,
+                totalReturns
+            };
+        }
+        // Функция для обновления дашборда
+        function updateDashboard() {
+            const filteredData = filterSalesData();
+            const metrics = calculateMetrics(filteredData);
+            document.getElementById('total-revenue').textContent = formatCurrency(metrics.totalRevenue);
+            document.getElementById('total-cost').textContent = formatCurrency(metrics.totalCost);
+            document.getElementById('total-profit').textContent = formatCurrency(metrics.totalProfit);
+            document.getElementById('average-margin').textContent = metrics.averageMargin + '%';
+            document.getElementById('total-returns').textContent = formatCurrency(metrics.totalReturns);
+            updateCharts(filteredData);
+            updateRecentAddedSales();
+        }
+        // Функция для фильтрации продаж
+        function filterSalesData() {
+            const period = document.getElementById('period').value;
+            const marketplace = document.getElementById('marketplace').value;
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            let filtered = [...salesData];
+            if (marketplace !== 'all') {
+                filtered = filtered.filter(sale => sale.marketplace === marketplace);
+            }
+            if (startDate) {
+                filtered = filtered.filter(sale => sale.date >= startDate);
+            }
+            if (endDate) {
+                filtered = filtered.filter(sale => sale.date <= endDate);
+            }
+            if (period !== 'all') {
+                let startDatePeriod;
+                if (period === 'day') {
+                    startDatePeriod = dateFns.startOfDay(new Date());
+                } else if (period === 'week') {
+                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
+                } else if (period === 'month') {
+                    startDatePeriod = dateFns.startOfMonth(new Date());
+                } else if (period === 'quarter') {
+                    startDatePeriod = dateFns.startOfQuarter(new Date());
+                } else if (period === 'year') {
+                    startDatePeriod = dateFns.startOfYear(new Date());
+                }
+                if (startDatePeriod) {
+                    filtered = filtered.filter(sale => new Date(sale.date) >= startDatePeriod);
+                }
+            }
+            return filtered;
+        }
+        // === ИСПРАВЛЕНА ФУНКЦИЯ ОБНОВЛЕНИЯ ГРАФИКОВ ===
+        function updateCharts(filteredData) {
+            const marketplaceData = {
+                'Яндекс': { revenue: 0, profit: 0 },
+                'Озон': { revenue: 0, profit: 0 }
+            };
+            filteredData.forEach(sale => {
+                const mp = sale.marketplace;
+                if (marketplaceData[mp]) {
+                    const quantity = parseInt(sale.quantity) || 0;
+                    const totalReturned = returnsData
+                        .filter(r => r.sale_id === sale.id)
+                        .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                    const actualQuantity = Math.max(0, quantity - totalReturned);
+                    const sellingPrice = parseFloat(sale.selling_price) || 0;
+                    marketplaceData[mp].revenue += sellingPrice * actualQuantity;
+                    marketplaceData[mp].profit += calculateProfit(sale, actualQuantity); // Гарантированно число
+                }
+            });
+            marketplaceChart.data.datasets[0].data = [
+                marketplaceData['Яндекс'].revenue,
+                marketplaceData['Озон'].revenue
+            ];
+            marketplaceChart.update();
+            // Расчет данных для графика продаж по месяцам
+            const salesByMonth = {};
+            filteredData.forEach(sale => {
+                const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+                if (!salesByMonth[month]) {
+                    salesByMonth[month] = { revenue: 0, grossProfit: 0 };
+                }
+                const quantity = parseInt(sale.quantity) || 0;
+                const totalReturned = returnsData
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, quantity - totalReturned);
+                const sellingPrice = parseFloat(sale.selling_price) || 0;
+                salesByMonth[month].revenue += sellingPrice * actualQuantity;
+                salesByMonth[month].grossProfit += calculateProfit(sale, actualQuantity);
+            });
+            const expensesByMonth = {};
+            expensesData.forEach(expense => {
+                const month = new Date(expense.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+                if (!expensesByMonth[month]) {
+                    expensesByMonth[month] = 0;
+                }
+                expensesByMonth[month] += (parseFloat(expense.amount) || 0);
+            });
+            // === СОРТИРОВКА МЕСЯЦЕВ ПО ВОЗРАСТАНИЮ ===
+            const months = Object.keys(salesByMonth)
+                .map(m => {
+                    const [month, year] = m.split(' ');
+                    const date = new Date(`${year}-${getMonthNumber(month)}-01`);
+                    return { label: m, date: date };
+                })
+                .sort((a, b) => a.date - b.date)
+                .map(item => item.label);
+            const revenues = months.map(month => salesByMonth[month].revenue);
+            const netProfits = months.map(month => {
+                const gross = salesByMonth[month].grossProfit;
+                const expense = expensesByMonth[month] || 0;
+                return gross - expense;
+            });
+            salesChart.data.labels = months;
+            salesChart.data.datasets[0].data = revenues;
+            salesChart.data.datasets[1].data = netProfits;
+            salesChart.update();
+            // === НОВОЕ: ГРУППИРОВКА И ОБНОВЛЕНИЕ ТОП-5 ===
+            const groupedProducts = groupSalesByProduct(filteredData);
+            let topProducts = [];
+            const sortByMargin = document.getElementById('top-products-sort-margin')?.classList.contains('active') || false;
+            if (sortByMargin) {
+                topProducts = [...groupedProducts]
+                    .sort((a, b) => b.margin - a.margin)
+                    .slice(0, 5);
+                topProductsChart.data.datasets[0].label = 'Маржа (%)';
+                topProductsChart.data.datasets[0].data = topProducts.map(p => p.margin);
+                topProductsChart.options.scales.y = {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) { return value + '%'; }
+                    }
+                };
+            } else {
+                topProducts = [...groupedProducts]
+                    .sort((a, b) => b.totalProfit - a.totalProfit)
+                    .slice(0, 5);
+                topProductsChart.data.datasets[0].label = 'Прибыль (₽)';
+                topProductsChart.data.datasets[0].data = topProducts.map(p => p.totalProfit);
+                topProductsChart.options.scales.y = { beginAtZero: true };
+            }
+            topProductsChart.data.labels = topProducts.map(p => 
+                p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name
+            );
+            topProductsChart.update();
+        }
+        // === НОВАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ ГРАФИКОВ ===
+        function initCharts() {
+            const marketplaceCtx = document.getElementById('marketplace-chart').getContext('2d');
+            marketplaceChart = new Chart(marketplaceCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Яндекс', 'Озон'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['#ffcc00', '#005bff']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            const salesCtx = document.getElementById('sales-chart').getContext('2d');
+            salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Выручка',
+                            data: [],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Прибыль',
+                            data: [],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            const topProductsCtx = document.getElementById('top-products-chart').getContext('2d');
+            topProductsChart = new Chart(topProductsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Прибыль',
+                        data: [],
+                        backgroundColor: '#8b5cf6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            // НОВОЕ: Инициализация графика "Выручка vs Расходы по месяцам"
+            const revenueExpensesCtx = document.getElementById('revenue-expenses-chart').getContext('2d');
+            revenueExpensesChart = new Chart(revenueExpensesCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Выручка',
+                            data: [],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Расходы',
+                            data: [],
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            // === НОВЫЕ ГРАФИКИ ДЛЯ АНАЛИТИКИ ===
+            const analyticsTopProductsCtx = document.getElementById('analytics-top-products-chart')?.getContext('2d');
+            if (analyticsTopProductsCtx) {
+                analyticsTopProductsChart = new Chart(analyticsTopProductsCtx, {
+                    type: 'bar',
+                    data: { labels: [], datasets: [{ label: 'Прибыль (₽)', data: [], backgroundColor: '#8b5cf6' }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
+            }
+            const analyticsBottomProductsCtx = document.getElementById('analytics-bottom-products-chart')?.getContext('2d');
+            if (analyticsBottomProductsCtx) {
+                analyticsBottomProductsChart = new Chart(analyticsBottomProductsCtx, {
+                    type: 'bar',
+                    data: { labels: [], datasets: [{ label: 'Прибыль (₽)', data: [], backgroundColor: '#ef4444' }] },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        indexAxis: 'y', 
+                        scales: { x: { beginAtZero: true } } 
+                    }
+                });
+            }
+        }
+        // === ПОЛНОСТЬЮ ОБНОВЛЁННАЯ ФУНКЦИЯ АНАЛИТИКИ ===
+        function updateAnalytics() {
+            // === ПРИМЕНЯЕМ ФИЛЬТРЫ ИЗ АНАЛИТИКИ ===
+            const period = document.getElementById('analytics-period').value;
+            const startDate = document.getElementById('analytics-start-date').value;
+            const endDate = document.getElementById('analytics-end-date').value;
+            let filteredData = [...salesData];
+            if (startDate) {
+                filteredData = filteredData.filter(sale => sale.date >= startDate);
+            }
+            if (endDate) {
+                filteredData = filteredData.filter(sale => sale.date <= endDate);
+            }
+            if (period !== 'all') {
+                let startDatePeriod;
+                if (period === 'day') {
+                    startDatePeriod = dateFns.startOfDay(new Date());
+                } else if (period === 'week') {
+                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
+                } else if (period === 'month') {
+                    startDatePeriod = dateFns.startOfMonth(new Date());
+                } else if (period === 'quarter') {
+                    startDatePeriod = dateFns.startOfQuarter(new Date());
+                } else if (period === 'year') {
+                    startDatePeriod = dateFns.startOfYear(new Date());
+                }
+                if (startDatePeriod) {
+                    filteredData = filteredData.filter(sale => new Date(sale.date) >= startDatePeriod);
+                }
+            }
+            // НОВОЕ: Расчет и отображение среднего чека и конверсии возвратов
+            let totalRevenue = 0;
+            filteredData.forEach(sale => {
+                const sellingPrice = parseFloat(sale.selling_price) || 0;
+                const quantity = parseInt(sale.quantity) || 0;
+                const totalReturned = returnsData
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, quantity - totalReturned);
+                totalRevenue += sellingPrice * actualQuantity;
+            });
+            const totalReturns = returnsData.reduce((sum, ret) => sum + (parseFloat(ret.amount) || 0), 0);
+            const totalSalesCount = filteredData.length;
+            const averageCheck = totalSalesCount > 0 ? totalRevenue / totalSalesCount : 0;
+            const returnConversion = totalRevenue > 0 ? (totalReturns / totalRevenue) * 100 : 0;
+            document.getElementById('average-check').textContent = formatCurrency(averageCheck);
+            document.getElementById('return-conversion').textContent = returnConversion.toFixed(2) + '%';
+            // === АНАЛИТИКА ПО МАРКЕТПЛЕЙСАМ ===
+            const marketplaceAnalytics = document.getElementById('marketplace-analytics');
+            marketplaceAnalytics.innerHTML = '';
+            const marketplaceData = {
+                'Яндекс': { revenue: 0, profit: 0, count: 0 },
+                'Озон': { revenue: 0, profit: 0, count: 0 }
+            };
+            filteredData.forEach(sale => {
+                const mp = sale.marketplace;
+                if (marketplaceData[mp]) {
+                    const quantity = parseInt(sale.quantity) || 0;
+                    const totalReturned = returnsData
+                        .filter(r => r.sale_id === sale.id)
+                        .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                    const actualQuantity = Math.max(0, quantity - totalReturned);
+                    const sellingPrice = parseFloat(sale.selling_price) || 0;
+                    marketplaceData[mp].revenue += sellingPrice * actualQuantity;
+                    marketplaceData[mp].profit += calculateProfit(sale, actualQuantity);
+                    marketplaceData[mp].count += actualQuantity > 0 ? 1 : 0;
+                }
+            });
+            Object.keys(marketplaceData).forEach(key => {
+                const data = marketplaceData[key];
+                const avgCheck = data.count > 0 ? data.revenue / data.count : 0;
+                const margin = data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100);
+                const marginPercent = Math.max(0, Math.min(100, margin));
+                const div = document.createElement('div');
+                div.style.marginBottom = '12px';
+                div.style.padding = '12px';
+                div.style.borderRadius = '8px';
+                div.style.backgroundColor = key === 'Яндекс' ? 'rgba(255,204,0,0.1)' : 'rgba(0,91,255,0.1)';
+                div.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <strong>${key}</strong>
+                        <span style="font-weight:bold;color:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'}">${margin}%</span>
+                    </div>
+                    <div style="font-size:0.9rem;color:var(--gray);margin-bottom:8px;">
+                        Выручка: ${formatCurrency(data.revenue)}<br>
+                        Прибыль: ${formatCurrency(data.profit)}<br>
+                        Продаж: ${data.count}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;background:var(--light-gray);border-radius:4px;height:6px;">
+                            <div style="width:${marginPercent}%;background:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'};height:6px;border-radius:4px;"></div>
+                        </div>
+                        <span style="font-size:0.8rem;color:var(--gray);">${Math.round(avgCheck)} ₽</span>
+                    </div>
+                    <div style="font-size:0.8rem;color:var(--gray);text-align:right;">Средний чек</div>
+                `;
+                marketplaceAnalytics.appendChild(div);
+            });
+            // === АНАЛИТИКА ПО МАГАЗИНАМ ===
+            const shopsAnalytics = document.getElementById('shops-analytics');
+            shopsAnalytics.innerHTML = '';
+            const shopsData = {};
+            filteredData.forEach(sale => {
+                const shop = sale.shop || 'Без магазина';
+                if (!shopsData[shop]) {
+                    shopsData[shop] = { revenue: 0, profit: 0, count: 0 };
+                }
+                const quantity = parseInt(sale.quantity) || 0;
+                const totalReturned = returnsData
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, quantity - totalReturned);
+                const sellingPrice = parseFloat(sale.selling_price) || 0;
+                shopsData[shop].revenue += sellingPrice * actualQuantity;
+                shopsData[shop].profit += calculateProfit(sale, actualQuantity);
+                shopsData[shop].count += actualQuantity > 0 ? 1 : 0;
+            });
+            Object.keys(shopsData).forEach(shop => {
+                const data = shopsData[shop];
+                const avgCheck = data.count > 0 ? data.revenue / data.count : 0;
+                const margin = data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100);
+                const marginPercent = Math.max(0, Math.min(100, margin));
+                const div = document.createElement('div');
+                div.style.marginBottom = '12px';
+                div.style.padding = '12px';
+                div.style.borderRadius = '8px';
+                div.style.backgroundColor = 'rgba(156, 163, 175, 0.1)';
+                div.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <strong>${shop}</strong>
+                        <span style="font-weight:bold;color:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'}">${margin}%</span>
+                    </div>
+                    <div style="font-size:0.9rem;color:var(--gray);margin-bottom:8px;">
+                        Выручка: ${formatCurrency(data.revenue)}<br>
+                        Прибыль: ${formatCurrency(data.profit)}<br>
+                        Продаж: ${data.count}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;background:var(--light-gray);border-radius:4px;height:6px;">
+                            <div style="width:${marginPercent}%;background:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'};height:6px;border-radius:4px;"></div>
+                        </div>
+                        <span style="font-size:0.8rem;color:var(--gray);">${Math.round(avgCheck)} ₽</span>
+                    </div>
+                    <div style="font-size:0.8rem;color:var(--gray);text-align:right;">Средний чек</div>
+                `;
+                shopsAnalytics.appendChild(div);
+            });
+            // === ТОП-5 ПРИБЫЛЬНЫХ ТОВАРОВ ===
+            const groupedProducts = groupSalesByProduct(filteredData);
+            const analyticsSortByMargin = document.getElementById('analytics-top-products-sort-margin')?.classList.contains('active') || false;
+            let topProductsList = [];
+            if (analyticsSortByMargin) {
+                topProductsList = [...groupedProducts]
+                    .sort((a, b) => b.margin - a.margin)
+                    .slice(0, 5);
+                analyticsTopProductsChart.data.datasets[0].label = 'Маржа (%)';
+                analyticsTopProductsChart.data.datasets[0].data = topProductsList.map(p => p.margin);
+                analyticsTopProductsChart.options.scales.y = {
+                    beginAtZero: true,
+                    ticks: { callback: v => v + '%' }
+                };
+            } else {
+                topProductsList = [...groupedProducts]
+                    .sort((a, b) => b.totalProfit - a.totalProfit)
+                    .slice(0, 5);
+                analyticsTopProductsChart.data.datasets[0].label = 'Прибыль (₽)';
+                analyticsTopProductsChart.data.datasets[0].data = topProductsList.map(p => p.totalProfit);
+                analyticsTopProductsChart.options.scales.y = { beginAtZero: true };
+            }
+            analyticsTopProductsChart.data.labels = topProductsList.map(p => 
+                p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name
+            );
+            analyticsTopProductsChart.update();
+            // === ТОП-5 УБЫТОЧНЫХ ТОВАРОВ ===
+            const bottomProducts = [...filteredData]
+                .map(sale => ({ ...sale, profit: calculateProfit(sale) }))
+                .sort((a, b) => a.profit - b.profit)
+                .slice(0, 5);
+            analyticsBottomProductsChart.data.labels = bottomProducts.map(s => 
+                s.name.length > 20 ? s.name.substring(0, 20) + '...' : s.name
+            );
+            analyticsBottomProductsChart.data.datasets[0].data = bottomProducts.map(s => s.profit);
+            analyticsBottomProductsChart.update();
+            // === РАСХОДЫ ПО КАТЕГОРИЯМ ===
+            const expensesByCategoryAnalytics = document.getElementById('expenses-by-category-analytics');
+            expensesByCategoryAnalytics.innerHTML = '';
+            const categoryTotals = {};
+            expensesData.forEach(expense => {
+                if (!categoryTotals[expense.category]) {
+                    categoryTotals[expense.category] = 0;
+                }
+                categoryTotals[expense.category] += (parseFloat(expense.amount) || 0);
+            });
+            Object.keys(categoryTotals).forEach(category => {
+                const total = categoryTotals[category];
+                const div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.padding = '10px';
+                div.style.marginBottom = '5px';
+                div.style.backgroundColor = 'white';
+                div.style.borderRadius = '4px';
+                div.innerHTML = `
+                    <strong>${category}</strong>
+                    <span>${formatCurrency(total)}</span>
+                `;
+                expensesByCategoryAnalytics.appendChild(div);
+            });
+            // === ПРОДАЖИ ПО МЕСЯЦАМ ===
+            const monthlySalesTable = document.querySelector('#monthly-sales-table tbody');
+            const monthlySalesTotal = document.querySelector('#monthly-sales-total');
+            monthlySalesTable.innerHTML = '';
+            monthlySalesTotal.innerHTML = '';
+            const salesByMonth = {};
+            filteredData.forEach(sale => {
+                const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+                if (!salesByMonth[month]) {
+                    salesByMonth[month] = { revenue: 0, cost: 0, profit: 0, count: 0 };
+                }
+                const quantity = parseInt(sale.quantity) || 0;
+                const totalReturned = returnsData
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, quantity - totalReturned);
+                const sellingPrice = parseFloat(sale.selling_price) || 0;
+                salesByMonth[month].revenue += sellingPrice * actualQuantity;
+                salesByMonth[month].profit += calculateProfit(sale, actualQuantity);
+                salesByMonth[month].count += actualQuantity > 0 ? 1 : 0;
+            });
+            const expensesByMonth = {};
+            expensesData.forEach(expense => {
+                const month = new Date(expense.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+                if (!expensesByMonth[month]) {
+                    expensesByMonth[month] = 0;
+                }
+                expensesByMonth[month] += (parseFloat(expense.amount) || 0);
+            });
+            const months = Object.keys(salesByMonth)
+                .map(m => {
+                    const [month, year] = m.split(' ');
+                    const date = new Date(`${year}-${getMonthNumber(month)}-01`);
+                    return { label: m, date: date };
+                })
+                .sort((a, b) => a.date - b.date)
+                .map(item => item.label);
+            let totalRevenueAll = 0, totalExpensesAll = 0, totalProfitAll = 0, totalCountAll = 0;
+            months.forEach(month => {
+                const data = salesByMonth[month];
+                const expense = expensesByMonth[month] || 0;
+                const netProfit = data.profit - expense;
+                const margin = data.revenue === 0 ? 0 : Math.round((netProfit / data.revenue) * 100);
+                const tr = document.createElement('tr');
+                if (netProfit < 0) {
+                    tr.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                    tr.style.color = 'var(--danger)';
+                } else if (netProfit > 0) {
+                    tr.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                }
+                tr.innerHTML = `
+                    <td>${month}</td>
+                    <td>${formatCurrency(data.revenue)}</td>
+                    <td>${formatCurrency(expense)}</td>
+                    <td>${formatCurrency(netProfit)}</td>
+                    <td>${margin}%</td>
+                    <td>${data.count}</td>
+                `;
+                monthlySalesTable.appendChild(tr);
+                totalRevenueAll += data.revenue;
+                totalExpensesAll += expense;
+                totalProfitAll += netProfit;
+                totalCountAll += data.count;
+            });
+            // === ИТОГОВАЯ СТРОКА ===
+            const totalMarginAll = totalRevenueAll === 0 ? 0 : Math.round((totalProfitAll / totalRevenueAll) * 100);
+            const totalRow = document.createElement('tr');
+            totalRow.style.fontWeight = 'bold';
+            totalRow.style.borderTop = '2px solid var(--border)';
+            totalRow.innerHTML = `
+                <td>Итого</td>
+                <td>${formatCurrency(totalRevenueAll)}</td>
+                <td>${formatCurrency(totalExpensesAll)}</td>
+                <td>${formatCurrency(totalProfitAll)}</td>
+                <td>${totalMarginAll}%</td>
+                <td>${totalCountAll}</td>
+            `;
+            monthlySalesTotal.appendChild(totalRow);
+            // === ОБНОВЛЕНИЕ ГРАФИКА "ВЫРУЧКА VS РАСХОДЫ" ===
+            const revenues = months.map(month => salesByMonth[month].revenue);
+            const expenses = months.map(month => expensesByMonth[month] || 0);
+            revenueExpensesChart.data.labels = months;
+            revenueExpensesChart.data.datasets[0].data = revenues;
+            revenueExpensesChart.data.datasets[1].data = expenses;
+            revenueExpensesChart.update();
+            // === ПРОДАЖИ ПО СОТРУДНИКАМ ===
+            const employeeSalesTable = document.querySelector('#employee-sales-table tbody');
+            employeeSalesTable.innerHTML = '';
+            const salesByEmployee = {};
+            filteredData.forEach(sale => {
+                const employeeId = sale.user_id;
+                const employeeName = userNamesCache[employeeId] || 'Неизвестный';
+                if (!salesByEmployee[employeeId]) {
+                    salesByEmployee[employeeId] = {
+                        name: employeeName,
+                        revenue: 0,
+                        profit: 0,
+                        count: 0
+                    };
+                }
+                const quantity = parseInt(sale.quantity) || 0;
+                const totalReturned = returnsData
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, quantity - totalReturned);
+                const sellingPrice = parseFloat(sale.selling_price) || 0;
+                salesByEmployee[employeeId].revenue += sellingPrice * actualQuantity;
+                salesByEmployee[employeeId].profit += calculateProfit(sale, actualQuantity);
+                salesByEmployee[employeeId].count += actualQuantity > 0 ? 1 : 0;
+            });
+            Object.values(salesByEmployee).forEach(employee => {
+                const tr = document.createElement('tr');
+                const initials = employee.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                tr.innerHTML = `
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="avatar" style="width:28px;height:28px;font-size:0.8rem;">${initials}</div>
+                            ${employee.name}
+                        </div>
+                    </td>
+                    <td>${formatCurrency(employee.revenue)}</td>
+                    <td class="${employee.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        ${formatCurrency(employee.profit)}
+                    </td>
+                    <td>${employee.count}</td>
+                `;
+                employeeSalesTable.appendChild(tr);
+            });
+        }
+        // Функция для обновления отчетов
+        function updateReports() {
+            // Получаем фильтры с вкладки "Отчеты"
+            const period = document.getElementById('report-period').value;
+            const marketplace = document.getElementById('report-marketplace').value;
+            const startDate = document.getElementById('report-start-date').value;
+            const endDate = document.getElementById('report-end-date').value;
+            // Фильтруем продажи
+            let filteredData = [...salesData];
+            if (marketplace !== 'all') {
+                filteredData = filteredData.filter(sale => sale.marketplace === marketplace);
+            }
+            if (startDate) {
+                filteredData = filteredData.filter(sale => sale.date >= startDate);
+            }
+            if (endDate) {
+                filteredData = filteredData.filter(sale => sale.date <= endDate);
+            }
+            if (period !== 'all') {
+                let startDatePeriod;
+                if (period === 'day') {
+                    startDatePeriod = dateFns.startOfDay(new Date());
+                } else if (period === 'week') {
+                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
+                } else if (period === 'month') {
+                    startDatePeriod = dateFns.startOfMonth(new Date());
+                } else if (period === 'quarter') {
+                    startDatePeriod = dateFns.startOfQuarter(new Date());
+                } else if (period === 'year') {
+                    startDatePeriod = dateFns.startOfYear(new Date());
+                }
+                if (startDatePeriod) {
+                    filteredData = filteredData.filter(sale => new Date(sale.date) >= startDatePeriod);
+                }
+            }
+            // Фильтруем расходы и возвраты по датам (для согласованности)
+            let filteredExpenses = [...expensesData];
+            let filteredReturns = [...returnsData];
+            if (startDate) {
+                filteredExpenses = filteredExpenses.filter(exp => exp.date >= startDate);
+                filteredReturns = filteredReturns.filter(ret => ret.date >= startDate);
+            }
+            if (endDate) {
+                filteredExpenses = filteredExpenses.filter(exp => exp.date <= endDate);
+                filteredReturns = filteredReturns.filter(ret => ret.date <= endDate);
+            }
+            let totalRevenue = 0;
+            filteredData.forEach(sale => {
+                const sellingPrice = parseFloat(sale.selling_price) || 0;
+                const quantity = parseInt(sale.quantity) || 0;
+                const totalReturned = filteredReturns
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, quantity - totalReturned);
+                totalRevenue += sellingPrice * actualQuantity;
+            });
+            const totalReturnsAmount = filteredReturns.reduce((sum, ret) => sum + (parseFloat(ret.amount) || 0), 0);
+            const adjustedRevenue = totalRevenue; // уже с учётом возвратов
+            let totalPurchaseCost = 0;
+            let totalCommissionCost = 0;
+            let totalTaxCost = 0;
+            filteredData.forEach(sale => {
+                const quantity = parseInt(sale.quantity) || 0;
+                const totalReturned = filteredReturns
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, quantity - totalReturned);
+                const purchasePrice = parseFloat(sale.purchase_price) || 0;
+                const commission = parseFloat(sale.commission) || 0;
+                const advertising = parseFloat(sale.advertising) || 0.98;
+                const taxRate = parseFloat(sale.tax_rate) || 0.99;
+                const sellingPrice = parseFloat(sale.selling_price) || 0;
+                totalPurchaseCost += purchasePrice * actualQuantity;
+                totalCommissionCost += commission * actualQuantity;
+                const revenueAfterAdvertising = (sellingPrice * actualQuantity) * advertising;
+                totalTaxCost += (1 - taxRate) * revenueAfterAdvertising;
+            });
+            const totalOperatingExpenses = filteredExpenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+            const totalProfit = (adjustedRevenue - totalPurchaseCost - totalCommissionCost - totalTaxCost) - totalOperatingExpenses;
+            document.getElementById('report-revenue').textContent = formatCurrency(adjustedRevenue);
+            document.getElementById('report-direct-costs').textContent = formatCurrency(totalPurchaseCost + totalCommissionCost + totalTaxCost);
+            document.getElementById('report-purchase-cost').textContent = formatCurrency(totalPurchaseCost);
+            document.getElementById('report-commission-cost').textContent = formatCurrency(totalCommissionCost);
+            document.getElementById('report-tax-cost').textContent = formatCurrency(totalTaxCost);
+            document.getElementById('report-operating-expenses').textContent = formatCurrency(totalOperatingExpenses);
+            document.getElementById('report-profit').textContent = formatCurrency(totalProfit);
+            document.getElementById('report-direct-costs-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round(((totalPurchaseCost + totalCommissionCost + totalTaxCost) / adjustedRevenue) * 100) + '%';
+            document.getElementById('report-purchase-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalPurchaseCost / adjustedRevenue) * 100) + '%';
+            document.getElementById('report-commission-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalCommissionCost / adjustedRevenue) * 100) + '%';
+            document.getElementById('report-tax-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalTaxCost / adjustedRevenue) * 100) + '%';
+            document.getElementById('report-operating-expenses-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalOperatingExpenses / adjustedRevenue) * 100) + '%';
+            document.getElementById('report-profit-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalProfit / adjustedRevenue) * 100) + '%';
+        }
+        // Функция для экспорта в CSV
+        function exportToCSV() {
+            // Получаем фильтры с вкладки "Отчеты"
+            const period = document.getElementById('report-period').value;
+            const marketplace = document.getElementById('report-marketplace').value;
+            const startDate = document.getElementById('report-start-date').value;
+            const endDate = document.getElementById('report-end-date').value;
+            // Фильтруем продажи
+            let filteredSales = [...salesData];
+            if (marketplace !== 'all') {
+                filteredSales = filteredSales.filter(sale => sale.marketplace === marketplace);
+            }
+            if (startDate) {
+                filteredSales = filteredSales.filter(sale => sale.date >= startDate);
+            }
+            if (endDate) {
+                filteredSales = filteredSales.filter(sale => sale.date <= endDate);
+            }
+            if (period !== 'all') {
+                let startDatePeriod;
+                if (period === 'day') {
+                    startDatePeriod = dateFns.startOfDay(new Date());
+                } else if (period === 'week') {
+                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
+                } else if (period === 'month') {
+                    startDatePeriod = dateFns.startOfMonth(new Date());
+                } else if (period === 'quarter') {
+                    startDatePeriod = dateFns.startOfQuarter(new Date());
+                } else if (period === 'year') {
+                    startDatePeriod = dateFns.startOfYear(new Date());
+                }
+                if (startDatePeriod) {
+                    filteredSales = filteredSales.filter(sale => new Date(sale.date) >= startDatePeriod);
+                }
+            }
+            // Фильтруем расходы и возвраты по датам (для согласованности)
+            let filteredExpenses = [...expensesData];
+            let filteredReturns = [...returnsData];
+            if (startDate) {
+                filteredExpenses = filteredExpenses.filter(exp => exp.date >= startDate);
+                filteredReturns = filteredReturns.filter(ret => ret.date >= startDate);
+            }
+            if (endDate) {
+                filteredExpenses = filteredExpenses.filter(exp => exp.date <= endDate);
+                filteredReturns = filteredReturns.filter(ret => ret.date <= endDate);
+            }
+            // Формируем массив для CSV
+            const csvData = [];
+            // Заголовки
+            const headers = [
+                'Дата', 'Тип', 'Товар / Категория', 'Артикул', 'Маркетплейс', 'Магазин', 'Сотрудник',
+                'Цена закупки', 'Цена продажи', 'Комиссия', 'Логистика', 'Доставка до МВ', 'РК + Эквайринг (коэф.)',
+                'Налог (%)', 'Количество', 'Выручка', 'Прибыль', 'Маржа', 'Сумма (для расходов/возвратов)',
+                'Причина (для возвратов)', 'Описание (для расходов)'
+            ];
+            csvData.push(headers);
+            // Добавляем продажи
+            filteredSales.forEach(sale => {
+                const totalReturned = filteredReturns
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, (parseInt(sale.quantity) || 0) - totalReturned);
+                const actualRevenue = (parseFloat(sale.selling_price) || 0) * actualQuantity;
+                const actualProfit = calculateProfit(sale, actualQuantity);
+                const actualMargin = calculateMargin(sale, actualQuantity);
+                csvData.push([
+                    sale.date,
+                    'Продажа',
+                    sale.name,
+                    sale.article,
+                    sale.marketplace,
+                    sale.shop || '',
+                    userNamesCache[sale.user_id] || 'Неизвестный',
+                    sale.purchase_price,
+                    sale.selling_price,
+                    sale.commission,
+                    sale.logistics || '',
+                    sale.delivery_to_mv || '',
+                    sale.advertising,
+                    Math.round((1 - sale.tax_rate) * 100),
+                    actualQuantity,
+                    Math.round(actualRevenue),
+                    Math.round(actualProfit),
+                    actualMargin,
+                    '', // Сумма для расходов/возвратов
+                    '', // Причина для возвратов
+                    ''  // Описание для расходов
+                ]);
+            });
+            // Добавляем расходы
+            filteredExpenses.forEach(expense => {
+                csvData.push([
+                    expense.date,
+                    'Расход',
+                    expense.category,
+                    '', // Артикул
+                    '', // Маркетплейс
+                    '', // Магазин
+                    userNamesCache[expense.user_id] || 'Неизвестный',
+                    '', // Цена закупки
+                    '', // Цена продажи
+                    '', // Комиссия
+                    '', // Логистика
+                    '', // Доставка до МВ
+                    '', // РК + Эквайринг
+                    '', // Налог
+                    '', // Количество
+                    '', // Выручка
+                    '', // Прибыль
+                    '', // Маржа
+                    Math.round(parseFloat(expense.amount) || 0),
+                    '', // Причина для возвратов
+                    expense.description || ''
+                ]);
+            });
+            // Добавляем возвраты
+            filteredReturns.forEach(ret => {
+                const sale = salesData.find(s => s.id === ret.sale_id);
+                const actualQuantity = sale ? (parseInt(sale.quantity) || 0) - (filteredReturns
+                    .filter(r => r.sale_id === ret.sale_id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0)) : 0;
+                const actualRevenue = sale ? (parseFloat(sale.selling_price) || 0) * actualQuantity : 0;
+                const actualProfit = sale ? calculateProfit(sale, actualQuantity) : 0;
+                const actualMargin = sale ? calculateMargin(sale, actualQuantity) : 0;
+                csvData.push([
+                    ret.date,
+                    'Возврат',
+                    sale ? sale.name : 'Неизвестный товар',
+                    sale ? sale.article : '',
+                    sale ? sale.marketplace : '',
+                    sale ? sale.shop : '',
+                    userNamesCache[ret.user_id] || 'Неизвестный',
+                    sale ? sale.purchase_price : '',
+                    sale ? sale.selling_price : '',
+                    sale ? sale.commission : '',
+                    sale ? sale.logistics : '',
+                    sale ? sale.delivery_to_mv : '',
+                    sale ? sale.advertising : '',
+                    sale ? Math.round((1 - sale.tax_rate) * 100) : '',
+                    actualQuantity,
+                    Math.round(actualRevenue),
+                    Math.round(actualProfit),
+                    actualMargin,
+                    Math.round(parseFloat(ret.amount) || 0),
+                    ret.reason,
+                    '' // Описание для расходов
+                ]);
+            });
+            // Генерируем CSV-строку
+            let csvContent = "text/csv;charset=utf-8,\uFEFF"; // Добавляем BOM для корректной кодировки в Excel
+            csvData.forEach(row => {
+                const escapedRow = row.map(field => {
+                    if (typeof field === 'string' && (field.includes(',') || field.includes('"') || field.includes('\n'))) {
+                        return `"${field.replace(/"/g, '""')}"`;
+                    }
+                    return field;
+                });
+                csvContent += escapedRow.join(',') + "\r\n";
+            });
+            // Создаем и кликаем по ссылке для скачивания
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "отчет_продаж_расходов_возвратов.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            notyf.success('Данные успешно экспортированы в CSV');
+        }
+        // ======================
+        // ФУНКЦИИ ДЛЯ ТАБЛИЦ
+        // ======================
+        // Функция для обновления таблицы расходов
+        function updateExpenses() {
+            // Обновление статистики по категориям
+            const expensesByCategory = document.getElementById('expenses-by-category');
+            expensesByCategory.innerHTML = '';
+            const categoryTotals = {};
+            expensesData.forEach(expense => {
+                if (!categoryTotals[expense.category]) {
+                    categoryTotals[expense.category] = 0;
+                }
+                categoryTotals[expense.category] += (parseFloat(expense.amount) || 0);
+            });
+            Object.keys(categoryTotals).forEach(category => {
+                const total = categoryTotals[category];
+                const div = document.createElement('div');
+                div.className = 'expense-item';
+                div.innerHTML = `
+                    <div>
+                        <strong>${category}</strong>
+                    </div>
+                    <div>
+                        ${formatCurrency(total)}
+                    </div>
+                `;
+                expensesByCategory.appendChild(div);
+            });
+            // Обновление таблицы расходов
+            const expensesTable = document.querySelector('#expenses-table tbody');
+            expensesTable.innerHTML = '';
+            // НОВОЕ: Сортируем по дате (новые сверху)
+            const sortedExpenses = [...expensesData].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const paginatedExpenses = paginateArray(sortedExpenses, expenseCurrentPage, itemsPerPage);
+            paginatedExpenses.forEach(expense => {
+                const userName = userNamesCache[expense.user_id] || 'Неизвестный';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${expense.category}</td>
+                    <td>${formatCurrency(parseFloat(expense.amount) || 0)}</td>
+                    <td>${new Date(expense.date).toLocaleDateString('ru-RU')}</td>
+                    <td>${expense.description || '-'}</td>
+                    <td>${userName}</td>
+                    <td class="actions-cell">
+                        <button class="icon-btn" onclick="editExpense('${expense.id}')" title="Редактировать">${editIcon}</button>
+                        <button class="icon-btn" onclick="deleteExpense('${expense.id}')" title="Удалить">${deleteIcon}</button>
+                    </td>
+                `;
+                expensesTable.appendChild(tr);
+            });
+            updatePagination();
+            // Обновляем график
+            updateExpensesStackedChart();
+        }
+        // Функция для обновления таблицы "Таблица"
+        function updateSpreadsheetView() {
+            const tbody = document.querySelector('#spreadsheet-table tbody');
+            tbody.innerHTML = '';
+            let combinedData = [];
+            // Добавляем продажи
+            salesData.forEach(sale => {
+                const totalReturned = returnsData
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, (parseInt(sale.quantity) || 0) - totalReturned);
+                const actualRevenue = (parseFloat(sale.selling_price) || 0) * actualQuantity;
+                const actualProfit = calculateProfit(sale, actualQuantity);
+                const actualMargin = calculateMargin(sale, actualQuantity);
+                combinedData.push({
+                    type: 'Продажа',
+                    date: sale.date,
+                    name: sale.name,
+                    article: sale.article,
+                    marketplace: sale.marketplace,
+                    shop: sale.shop,
+                    user_id: sale.user_id,
+                    purchase_price: sale.purchase_price,
+                    selling_price: sale.selling_price,
+                    commission: sale.commission,
+                    logistics: sale.logistics,
+                    delivery_to_mv: sale.delivery_to_mv,
+                    advertising: sale.advertising,
+                    tax_rate: sale.tax_rate,
+                    quantity: actualQuantity,
+                    revenue: actualRevenue,
+                    profit: actualProfit,
+                    margin: actualMargin,
+                    amount: null,
+                    reason: null,
+                    description: null,
+                    id: sale.id,
+                    isFullyReturned: actualQuantity === 0,
+                    isPartiallyReturned: totalReturned > 0 && actualQuantity > 0
+                });
+            });
+            // Добавляем расходы
+            expensesData.forEach(expense => {
+                combinedData.push({
+                    type: 'Расход',
+                    date: expense.date,
+                    name: expense.category,
+                    article: '',
+                    marketplace: '',
+                    shop: '',
+                    user_id: expense.user_id,
+                    purchase_price: null,
+                    selling_price: null,
+                    commission: null,
+                    logistics: null,
+                    delivery_to_mv: null,
+                    advertising: null,
+                    tax_rate: null,
+                    quantity: null,
+                    revenue: null,
+                    profit: null,
+                    margin: null,
+                    amount: parseFloat(expense.amount) || 0,
+                    reason: null,
+                    description: expense.description,
+                    id: expense.id
+                });
+            });
+            // Добавляем возвраты
+            returnsData.forEach(ret => {
+                const sale = salesData.find(s => s.id === ret.sale_id);
+                combinedData.push({
+                    type: 'Возврат',
+                    date: ret.date,
+                    name: sale ? sale.name : 'Неизвестный товар',
+                    article: sale ? sale.article : '',
+                    marketplace: sale ? sale.marketplace : '',
+                    shop: sale ? sale.shop : '',
+                    user_id: ret.user_id,
+                    purchase_price: sale ? sale.purchase_price : null,
+                    selling_price: sale ? sale.selling_price : null,
+                    commission: sale ? sale.commission : null,
+                    logistics: sale ? sale.logistics : null,
+                    delivery_to_mv: sale ? sale.delivery_to_mv : null,
+                    advertising: sale ? sale.advertising : null,
+                    tax_rate: sale ? sale.tax_rate : null,
+                    quantity: sale ? (returnsData
+                        .filter(r => r.sale_id === ret.sale_id)
+                        .reduce((sum, r) => sum + (r.return_quantity || 0), 0)) : 0,
+                    revenue: sale ? (parseFloat(sale.selling_price) || 0) * (parseInt(sale.quantity) || 0) : null,
+                    profit: sale ? calculateProfit(sale) : null,
+                    margin: sale ? calculateMargin(sale) : null,
+                    amount: parseFloat(ret.amount) || 0,
+                    reason: ret.reason,
+                    description: null,
+                    id: ret.id
+                });
+            });
+            // Применяем новые фильтры
+            const typeFilter = document.getElementById('spreadsheet-type-filter').value;
+            const marketplaceFilter = document.getElementById('spreadsheet-marketplace-filter').value;
+            const employeeFilter = document.getElementById('spreadsheet-employee-filter').value;
+            if (typeFilter !== 'all') {
+                combinedData = combinedData.filter(item => item.type === typeFilter);
+            }
+            if (marketplaceFilter !== 'all') {
+                combinedData = combinedData.filter(item => item.marketplace === marketplaceFilter);
+            }
+            if (employeeFilter !== 'all') {
+                combinedData = combinedData.filter(item => item.user_id === employeeFilter);
+            }
+            // НОВОЕ: Сортируем по дате (новые сверху)
+            combinedData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            // Отображаем данные
+            combinedData.forEach(item => {
+                const userName = userNamesCache[item.user_id] || 'Неизвестный';
+                const tr = document.createElement('tr');
+                if (item.type === 'Возврат') {
+                    tr.classList.add('sale-with-return');
+                } else if (item.type === 'Расход') {
+                    tr.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
+                } else if (item.isFullyReturned) {
+                    tr.classList.add('sale-with-return');
+                } else if (item.isPartiallyReturned) {
+                    tr.classList.add('sale-partially-returned');
+                }
+                tr.innerHTML = `
+                    <td>${new Date(item.date).toLocaleDateString('ru-RU')}</td>
+                    <td><strong>${item.type}</strong></td>
+                    <td title="${item.name}">${item.name.length > 30 ? item.name.substring(0, 30) + '...' : item.name}</td>
+                    <td>${item.article || '-'}</td>
+                    <td>${item.marketplace || '-'}</td>
+                    <td>${item.shop || '-'}</td>
+                    <td>${userName}</td>
+                    <td>${item.purchase_price ? formatCurrency(item.purchase_price) : '-'}</td>
+                    <td>${item.selling_price ? formatCurrency(item.selling_price) : '-'}</td>
+                    <td>${item.commission ? formatCurrency(item.commission) : '-'}</td>
+                    <td>${item.logistics ? formatCurrency(item.logistics) : '-'}</td>
+                    <td>${item.delivery_to_mv ? formatCurrency(item.delivery_to_mv) : '-'}</td>
+                    <td>${item.advertising ? item.advertising : '-'}</td>
+                    <td>${item.tax_rate ? Math.round((1 - item.tax_rate) * 100) : '-'}</td>
+                    <td>${item.quantity || '-'}</td>
+                    <td>${item.revenue ? formatCurrency(item.revenue) : '-'}</td>
+                    <td class="${item.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        ${item.profit ? formatCurrency(item.profit) : '-'}
+                    </td>
+                    <td>${item.margin ? item.margin + '%' : '-'}</td>
+                    <td>${item.amount ? formatCurrency(item.amount) : '-'}</td>
+                    <td>${item.reason || '-'}</td>
+                    <td>${item.description || '-'}</td>
+                    <td class="actions-cell">
+                        ${item.type === 'Продажа' ? `
+                            <button class="icon-btn" onclick="editSale('${item.id}')" title="Редактировать">${editIcon}</button>
+                            <button class="icon-btn" onclick="deleteSale('${item.id}')" title="Удалить">${deleteIcon}</button>
+                        ` : item.type === 'Расход' ? `
+                            <button class="icon-btn" onclick="editExpense('${item.id}')" title="Редактировать">${editIcon}</button>
+                            <button class="icon-btn" onclick="deleteExpense('${item.id}')" title="Удалить">${deleteIcon}</button>
+                        ` : item.type === 'Возврат' ? `
+                            <button class="icon-btn" onclick="editReturn('${item.id}')" title="Редактировать">${editIcon}</button>
+                            <button class="icon-btn" onclick="deleteReturn('${item.id}')" title="Удалить">${deleteIcon}</button>
+                        ` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        // Функция для пагинации массива
+        function paginateArray(array, page, itemsPerPage) {
+            if (!array || !Array.isArray(array)) {
+                return [];
+            }
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            return array.slice(startIndex, endIndex);
+        }
+        // Функция для обновления пагинации
+        function updatePagination() {
+            const totalItems = salesData.length;
+            const totalPages = totalItems > 0 ? Math.ceil(totalItems / itemsPerPage) : 1;
+            document.getElementById('page-info').textContent = `Страница ${currentPage} из ${totalPages}`;
+            document.getElementById('prev-page').disabled = currentPage === 1;
+            document.getElementById('next-page').disabled = currentPage === totalPages;
+            const totalExpenseItems = expensesData.length;
+            const totalExpensePages = totalExpenseItems > 0 ? Math.ceil(totalExpenseItems / itemsPerPage) : 1;
+            document.getElementById('expense-page-info').textContent = `Страница ${expenseCurrentPage} из ${totalExpensePages}`;
+            document.getElementById('prev-expense-page').disabled = expenseCurrentPage === 1;
+            document.getElementById('next-expense-page').disabled = expenseCurrentPage === totalExpensePages;
+            const totalReturnItems = returnsData.length;
+            const totalReturnPages = totalReturnItems > 0 ? Math.ceil(totalReturnItems / itemsPerPage) : 1;
+            document.getElementById('return-page-info').textContent = `Страница ${returnCurrentPage} из ${totalReturnPages}`;
+            document.getElementById('prev-return-page').disabled = returnCurrentPage === 1;
+            document.getElementById('next-return-page').disabled = returnCurrentPage === totalReturnPages;
+        }
+        // Функция для отображения вкладки
+        function showTab(tabId) {
+            const role = getRoleFromToken();
+            if (role === 'viewer' && ['sales', 'all-sales', 'expenses', 'returns', 'spreadsheet'].includes(tabId)) {
+                notyf.error('У вас нет прав для доступа к этому разделу');
+                return;
+            }
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+            if (tabId === 'dashboard') {
+                updateDashboard();
+            } else if (tabId === 'analytics') {
+                updateAnalytics();
+            } else if (tabId === 'reports') {
+                updateReports();
+            } else if (tabId === 'all-sales') {
+                updateAllSalesTable();
+            } else if (tabId === 'expenses') {
+                updateExpenses();
+            } else if (tabId === 'returns') {
+                updateReturns();
+                populateReturnSales();
+            } else if (tabId === 'sales') {
+                updateRecentAddedSales();
+            } else if (tabId === 'spreadsheet') {
+                updateSpreadsheetView();
+            } else if (tabId === 'admin-panel') {
+                if (getRoleFromToken() === 'admin') {
+                    loadAllUsers();
+                    loadActivityLogs();
+                }
+            }
+        }
+        // Функция для инициализации перетаскивания метрик
+        function initMetricDragAndDrop() {
+            const container = document.getElementById('metrics-container');
+            const metrics = container.querySelectorAll('.metric-card');
+            metrics.forEach(metric => {
+                metric.setAttribute('draggable', true);
+                metric.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', this.dataset.metric);
+                    this.classList.add('dragging');
+                });
+                metric.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                });
+                metric.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                });
+                metric.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    const draggedMetric = e.dataTransfer.getData('text/plain');
+                    const draggedElement = container.querySelector(`[data-metric="${draggedMetric}"]`);
+                    if (draggedElement !== this) {
+                        const allMetrics = Array.from(container.querySelectorAll('.metric-card'));
+                        const thisIndex = allMetrics.indexOf(this);
+                        const draggedIndex = allMetrics.indexOf(draggedElement);
+                        if (thisIndex < draggedIndex) {
+                            container.insertBefore(draggedElement, this);
+                        } else {
+                            container.insertBefore(draggedElement, this.nextSibling);
+                        }
+                    }
+                });
+            });
+        }
+        // Функция для записи логов активности
+        async function logActivity(action, target = '') {
+            try {
+                if (!currentUser) return;
+                const logEntry = {
+                    user_id: currentUser.uid,
+                    action: action,
+                    target: target,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                await db.collection('activity_logs').add(logEntry);
+                if (document.querySelector('.tab-content#admin-panel').classList.contains('active')) {
+                    loadActivityLogs();
+                }
+            } catch (error) {
+                console.error('Ошибка записи лога активности:', error);
+            }
+        }
+        // НОВОЕ: Функция для сортировки таблицы по столбцу
+        function sortTableByColumn(tableId, columnIndex, isNumeric = false, isDate = false) {
+            const table = document.getElementById(tableId);
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            let currentOrder = 'asc';
+            // Проверяем, есть ли уже активный сортировщик на этом столбце
+            const currentHeader = table.querySelector('th[data-sort-active]');
+            if (currentHeader) {
+                if (currentHeader.cellIndex === columnIndex) {
+                    // Меняем порядок сортировки
+                    currentOrder = currentHeader.getAttribute('data-sort-order') === 'asc' ? 'desc' : 'asc';
+                }
+                // Убираем индикаторы со всех заголовков
+                table.querySelectorAll('th').forEach(th => {
+                    th.removeAttribute('data-sort-active');
+                    th.removeAttribute('data-sort-order');
+                    th.innerHTML = th.innerHTML.replace(/ [▲▼]$/, '');
+                });
+            }
+            // Сортируем строки
+            rows.sort((a, b) => {
+                let aValue = a.cells[columnIndex].textContent.trim();
+                let bValue = b.cells[columnIndex].textContent.trim();
+                if (isDate) {
+                    aValue = new Date(aValue.split('.').reverse().join('-'));
+                    bValue = new Date(bValue.split('.').reverse().join('-'));
+                } else if (isNumeric) {
+                    aValue = parseFloat(aValue.replace(/[^\d.-]/g, '')) || 0;
+                    bValue = parseFloat(bValue.replace(/[^\d.-]/g, '')) || 0;
+                }
+                if (currentOrder === 'asc') {
+                    return aValue > bValue ? 1 : -1;
+                } else {
+                    return aValue < bValue ? 1 : -1;
+                }
+            });
+            // Обновляем содержимое tbody
+            while (tbody.firstChild) {
+                tbody.removeChild(tbody.firstChild);
+            }
+            rows.forEach(row => tbody.appendChild(row));
+            // Добавляем индикатор на заголовок
+            const header = table.querySelector(`th:nth-child(${columnIndex + 1})`);
+            header.setAttribute('data-sort-active', 'true');
+            header.setAttribute('data-sort-order', currentOrder);
+            const arrow = currentOrder === 'asc' ? ' ▲' : ' ▼';
+            header.innerHTML = header.textContent.trim() + arrow;
+        }
+        // Функция для обновления фильтра сотрудников (только для админа)
+        async function updateEmployeeFilter() {
+            if (getRoleFromToken() !== 'admin') {
+                return;
+            }
+            const select = document.getElementById('employee-filter');
+            if (!select) return;
+            select.innerHTML = '<option value="all">Все сотрудники</option>';
+            if (Object.keys(userNamesCache).length === 0) {
+                const usersSnapshot = await db.collection('users').get();
+                userNamesCache = {};
+                usersSnapshot.forEach(doc => {
+                    userNamesCache[doc.id] = doc.data().full_name || doc.data().email;
+                });
+            }
+            Object.keys(userNamesCache).forEach(userId => {
+                const option = document.createElement('option');
+                option.value = userId;
+                option.textContent = userNamesCache[userId];
+                select.appendChild(option);
+            });
+            if (settings.filters.employeeFilter && settings.filters.employeeFilter !== 'all') {
+                select.value = settings.filters.employeeFilter;
+            }
+        }
+        // НОВОЕ: Функция для обновления фильтра сотрудников в таблице "Таблица"
+        function updateSpreadsheetEmployeeFilter() {
+            const select = document.getElementById('spreadsheet-employee-filter');
+            if (!select) return;
+            select.innerHTML = '<option value="all">Все сотрудники</option>';
+            Object.keys(userNamesCache).forEach(userId => {
+                const option = document.createElement('option');
+                option.value = userId;
+                option.textContent = userNamesCache[userId];
+                select.appendChild(option);
+            });
+        }
+        // Функция для обновления фильтров в таблице "Все продажи"
+        function updateAllSalesFilters() {
+            // Обновление фильтра магазинов
+            const shopSelect = document.getElementById('all-sales-shop');
+            if (shopSelect) {
+                shopSelect.innerHTML = '<option value="all">Все магазины</option>';
+                shops.forEach(shop => {
+                    const option = document.createElement('option');
+                    option.value = shop;
+                    option.textContent = shop;
+                    shopSelect.appendChild(option);
+                });
+            }
+        }
+        // Функция для показа прелоадера
+        function showLoading(message = 'Пожалуйста, подождите...') {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const loadingText = document.querySelector('.loading-text');
+            loadingText.textContent = message;
+            loadingOverlay.style.display = 'flex';
+        }
+        // Функция для скрытия прелоадера
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+        // Функция для показа модального окна подтверждения
+        function showModal(title, message, onConfirm, onCancel = null) {
+            const modal = document.getElementById('confirm-modal');
+            const titleEl = document.getElementById('confirm-modal-title');
+            const messageEl = document.getElementById('confirm-modal-message');
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            const confirmBtn = document.getElementById('confirm-modal-confirm');
+            const cancelBtn = document.getElementById('confirm-modal-cancel');
+            const closeBtn = document.getElementById('confirm-modal-close');
+            confirmBtn.onclick = function() {
+                modal.style.display = 'none';
+                if (onConfirm) onConfirm();
+            };
+            cancelBtn.onclick = function() {
+                modal.style.display = 'none';
+                if (onCancel) onCancel();
+            };
+            closeBtn.onclick = function() {
+                modal.style.display = 'none';
+                if (onCancel) onCancel();
+            };
+            modal.style.display = 'flex';
+        }
+        // Функция для обновления последних продаж
+        function updateRecentAddedSales() {
+            const tbody = document.querySelector('#recent-sales-table tbody');
+            tbody.innerHTML = '';
+            const recentSales = [...salesData]
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 10);
+            recentSales.forEach(sale => {
+                const userName = userNamesCache[sale.user_id] || 'Неизвестный';
+                const totalReturned = returnsData
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const actualQuantity = Math.max(0, (parseInt(sale.quantity) || 0) - totalReturned);
+                const actualRevenue = (parseFloat(sale.selling_price) || 0) * actualQuantity;
+                const actualProfit = calculateProfit(sale, actualQuantity);
+                const actualMargin = calculateMargin(sale, actualQuantity);
+                const tr = document.createElement('tr');
+                if (sale.marketplace === 'Яндекс') {
+                    tr.className = 'marketplace-yandex';
+                } else if (sale.marketplace === 'Озон') {
+                    tr.className = 'marketplace-ozon';
+                }
+                if (actualQuantity === 0) {
+                    tr.classList.add('sale-with-return');
+                } else if (totalReturned > 0) {
+                    tr.classList.add('sale-partially-returned');
+                }
+                tr.innerHTML = `
+                    <td title="${sale.name}">${sale.name.length > 30 ? sale.name.substring(0, 30) + '...' : sale.name}</td>
+                    <td>${sale.marketplace}</td>
+                    <td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
+                    <td class="${actualProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        ${formatCurrency(actualProfit)}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        // Функция для обновления графика расходов с категориями
+        function updateExpensesStackedChart() {
+            if (expensesData.length === 0) {
+                const ctx = document.getElementById('expenses-stacked-chart').getContext('2d');
+                if (window.expensesStackedChart) window.expensesStackedChart.destroy();
+                window.expensesStackedChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: [], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+                return;
+            }
+            const allCategories = [...new Set(expensesData.map(e => e.category))];
+            const monthsSet = new Set(
+                expensesData.map(e =>
+                    new Date(e.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' })
+                )
+            );
+            const months = Array.from(monthsSet)
+                .map(m => {
+                    const [month, year] = m.split(' ');
+                    const date = new Date(`${year}-${getMonthNumber(month)}-01`);
+                    return { label: m, date: date };
+                })
+                .sort((a, b) => a.date - b.date)
+                .map(item => item.label);
+            const dataByMonth = {};
+            months.forEach(month => {
+                dataByMonth[month] = {};
+                allCategories.forEach(cat => {
+                    dataByMonth[month][cat] = 0;
+                });
+            });
+            expensesData.forEach(exp => {
+                const month = new Date(exp.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
+                if (dataByMonth[month]) {
+                    dataByMonth[month][exp.category] += (parseFloat(exp.amount) || 0);
+                }
+            });
+            const datasets = allCategories.map((category, index) => ({
+                label: category,
+                data: months.map(month => dataByMonth[month][category] || 0),
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                    '#FF9F40', '#8AC926', '#1982C4', '#6A4C93', '#F15BB5',
+                    '#00BBF9', '#00F5D4', '#FEE440', '#9B5DE5', '#00C1D4'
+                ][index % 15]
+            }));
+            const ctx = document.getElementById('expenses-stacked-chart').getContext('2d');
+            if (window.expensesStackedChart) {
+                window.expensesStackedChart.destroy();
+            }
+            window.expensesStackedChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                footer: (tooltipItems) => {
+                                    let total = 0;
+                                    tooltipItems.forEach(item => total += item.parsed.y);
+                                    return `Итого: ${formatCurrency(total)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true }
+                    }
+                }
+            });
+        }
+        // Функция для группировки продаж по товару
+        function groupSalesByProduct(sales) {
+            const grouped = {};
+            sales.forEach(sale => {
+                const key = sale.name || 'Без названия';
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        name: key,
+                        totalRevenue: 0,
+                        totalProfit: 0,
+                        totalQuantity: 0
+                    };
+                }
+                const sellingPrice = parseFloat(sale.selling_price) || 0;
+                const quantity = parseInt(sale.quantity) || 0;
+                const revenue = sellingPrice * quantity;
+                grouped[key].totalRevenue += revenue;
+                grouped[key].totalProfit += calculateProfit(sale);
+                grouped[key].totalQuantity += quantity;
+            });
+            return Object.values(grouped).map(item => {
+                const margin = item.totalRevenue > 0 
+                    ? Math.round((item.totalProfit / item.totalRevenue) * 100) 
+                    : 0;
+                return {
+                    ...item,
+                    margin
+                };
+            });
+        }
+        // Функция для калькулятора прибыли
+        function updateProfitCalculator() {
+            const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
+            const quantity = parseInt(document.getElementById('quantity').value) || 1;
+            const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
+            const commission = parseFloat(document.getElementById('commission').value) || 0;
+            const logistics = parseFloat(document.getElementById('logistics').value) || 0;
+            const deliveryToMV = parseFloat(document.getElementById('delivery-mv').value) || 0;
+            const advertising = parseFloat(document.getElementById('advertising').value) || 0.98;
+            const taxRate = parseFloat(document.getElementById('tax-rate').value) || 0.99;
+            const revenue = sellingPrice * quantity;
+            const purchaseCost = purchasePrice * quantity;
+            const commissionCost = commission * quantity;
+            const logisticsCost = logistics * quantity;
+            const deliveryCost = deliveryToMV * quantity;
+            const revenueAfterAdvertising = revenue * advertising;
+            const taxCost = (1 - taxRate) * revenueAfterAdvertising;
+            const cost = purchaseCost + commissionCost + logisticsCost + deliveryCost + taxCost;
+            const profit = revenueAfterAdvertising - cost;
+            const margin = revenue === 0 ? 0 : Math.round((profit / revenue) * 100);
+            animateValue(document.getElementById('revenue-calc'), revenue);
+            animateValue(document.getElementById('cost-calc'), cost);
+            animateValue(document.getElementById('profit-calc'), profit);
+            animateValue(document.getElementById('margin-calc'), margin, true);
+        }
+        // Функция для анимации значений
+        function animateValue(element, newValue, isPercent = false) {
+            const currentValue = parseFloat(element.textContent.replace(/[^\d.-]/g, '')) || 0;
+            const duration = 500;
+            const startTime = performance.now();
+            function updateValue(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const currentValueAnimated = currentValue + (newValue - currentValue) * progress;
+                if (isPercent) {
+                    element.textContent = Math.round(currentValueAnimated) + '%';
+                } else {
+                    element.textContent = formatCurrency(currentValueAnimated);
+                }
+                if (progress < 1) {
+                    requestAnimationFrame(updateValue);
+                }
+            }
+            requestAnimationFrame(updateValue);
+        }
+        // Функция для загрузки пользователей (только для админа)
+        async function loadAllUsers() {
+            try {
+                const usersSnapshot = await db.collection('users').orderBy('createdAt', 'desc').get();
+                const userListContainer = document.getElementById('user-list');
+                userListContainer.innerHTML = '';
+                usersSnapshot.forEach(doc => {
+                    const user = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'user-list-item';
+                    div.innerHTML = `
+                        <strong>${user.full_name} (${user.email})</strong>
+                        <span>Роль: ${getRoleDisplayName(user.role)}</span>
+                    `;
+                    userListContainer.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки пользователей:', error);
+                notyf.error('Ошибка загрузки списка пользователей');
+            }
+        }
+        // Функция для загрузки логов активности (только для админа)
+        async function loadActivityLogs() {
+            try {
+                const logsSnapshot = await db.collection('activity_logs')
+                    .orderBy('timestamp', 'desc')
+                    .limit(50)
+                    .get();
+                const logsContainer = document.getElementById('activity-logs');
+                logsContainer.innerHTML = '';
+                logsSnapshot.forEach(doc => {
+                    const log = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'activity-log-item';
+                    const userName = userNamesCache[log.user_id] || 'Неизвестный';
+                    const timestamp = new Date(log.timestamp.toDate()).toLocaleString('ru-RU');
+                    div.innerHTML = `
+                        <div><strong>${userName}</strong> ${log.action} <em>${log.target || ''}</em></div>
+                        <div class="timestamp">${timestamp}</div>
+                    `;
+                    logsContainer.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки логов активности:', error);
+                notyf.error('Ошибка загрузки логов активности');
+            }
+        }
+        // ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ
         document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('confirm-modal-close').addEventListener('click', function() {
                 document.getElementById('confirm-modal').style.display = 'none';
@@ -2605,9 +4224,6 @@
             // === ИНИЦИАЛИЗАЦИЯ ПОИСКА ПО ТРЕКУ ===
             initReturnSearch();
         });
-
-        // === ОСТАЛЬНЫЕ ФУНКЦИИ (handleSuccessfulLogin, stringToColor, getRoleDisplayName, loadData, loadGlobalSettings, updateAdminSettingsUI, updateAllSelects, updateShopsSelects, updateExpenseCategoriesSelects, updateTaxRateSelects, saveSettingsToFirestore, saveTaxSettings, saveAdminFieldSettings, saveAdminShopsSettings, saveAdminExpenseCategoriesSettings, addAdminTaxSystem, addAdminShop, addAdminExpenseCategory, removeTaxSystem, removeShop, removeExpenseCategory, updateAdminTaxSystemsList, updateAdminShopsList, updateAdminExpenseCategoriesList, updateShopsList, updateExpenseCategoriesList, updateTaxSystemsList, updateTaxRate, applySettings, restoreLastValues, saveLastValues, saveData, getRoleFromToken, editSale, saveEditedSale, deleteSale, editReturn, saveEditedReturn, deleteReturn, addExpense, editExpense, saveEditedExpense, deleteExpense, calculateMetrics, filterSalesData, updateCharts, initCharts, updateAnalytics, updateReports, exportToCSV, updateExpenses, updateExpensesStackedChart, updateSpreadsheetView, paginateArray, updatePagination, showTab, initMetricDragAndDrop, logActivity, sortTableByColumn) ===
-
         // Функция для обработки успешного входа
         async function handleSuccessfulLogin(user) {
             currentUser = user;
@@ -2652,7 +4268,6 @@
                 document.getElementById('user-avatar').style.backgroundColor = '#3b82f6';
             }
         }
-
         // Функция для генерации цвета на основе строки
         function stringToColor(string) {
             let hash = 0;
@@ -2666,7 +4281,6 @@
             }
             return color;
         }
-
         // Функция для получения отображаемого названия роли
         function getRoleDisplayName(role) {
             switch(role) {
@@ -2680,7 +4294,6 @@
                     return 'Пользователь';
             }
         }
-
         // Функция для загрузки данных пользователя
         async function loadData() {
             try {
@@ -2713,7 +4326,6 @@
                 notyf.error('Ошибка загрузки данных');
             }
         }
-
         // Функция для загрузки глобальных настроек из Firestore
         async function loadGlobalSettings() {
             try {
@@ -2758,7 +4370,6 @@
                 notyf.error('Ошибка загрузки настроек');
             }
         }
-
         // Функция для обновления интерфейса админ-панели
         function updateAdminSettingsUI() {
             // Обновляем настройки полей
@@ -2776,14 +4387,12 @@
             updateExpenseCategoriesList();
             updateTaxSystemsList();
         }
-
         // Функция для обновления всех выпадающих списков
         function updateAllSelects() {
             updateShopsSelects();
             updateExpenseCategoriesSelects();
             updateTaxRateSelects();
         }
-
         // Функция для обновления выпадающих списков магазинов
         function updateShopsSelects() {
             const shopSelect = document.getElementById('shop-select');
@@ -2818,7 +4427,6 @@
                 });
             }
         }
-
         // Функция для обновления выпадающих списков категорий расходов
         function updateExpenseCategoriesSelects() {
             const expenseCategorySelect = document.getElementById('expense-category');
@@ -2840,7 +4448,6 @@
                 });
             }
         }
-
         // Функция для обновления выпадающих списков налоговых ставок
         function updateTaxRateSelects() {
             const taxSelect = document.getElementById('tax-rate');
@@ -2855,7 +4462,6 @@
                 editTaxSelect.appendChild(option);
             });
         }
-
         // Функция для сохранения настроек в Firestore
         async function saveSettingsToFirestore(settingsData) {
             try {
@@ -2871,7 +4477,6 @@
                 return false;
             }
         }
-
         // ======================
         // ФУНКЦИИ ДЛЯ АДМИН-ПАНЕЛИ
         // ======================
@@ -2888,7 +4493,6 @@
                 updateAdminTaxSystemsList();
             }
         }
-
         // Сохранение настроек полей
         async function saveAdminFieldSettings() {
             const settingsData = {
@@ -2912,7 +4516,6 @@
                 updateAdminSettingsUI();
             }
         }
-
         // Сохранение настроек магазинов
         async function saveAdminShopsSettings() {
             const settingsData = {
@@ -2927,7 +4530,6 @@
                 updateAdminShopsList();
             }
         }
-
         // Сохранение настроек категорий расходов
         async function saveAdminExpenseCategoriesSettings() {
             const settingsData = {
@@ -2942,7 +4544,6 @@
                 updateAdminExpenseCategoriesList();
             }
         }
-
         // Добавление новой системы налогообложения
         function addAdminTaxSystem() {
             const taxName = document.getElementById('admin-new-tax-name').value.trim();
@@ -2956,7 +4557,6 @@
                 notyf.error('Пожалуйста, заполните все поля');
             }
         }
-
         // Добавление нового магазина
         function addAdminShop() {
             const shopName = document.getElementById('admin-new-shop-name').value.trim();
@@ -2970,7 +4570,6 @@
                 notyf.error('Пожалуйста, введите название магазина');
             }
         }
-
         // Добавление новой категории расходов
         function addAdminExpenseCategory() {
             const categoryName = document.getElementById('admin-new-expense-category').value.trim();
@@ -2986,28 +4585,24 @@
                 notyf.error('Пожалуйста, введите название категории');
             }
         }
-
         // Удаление системы налогообложения
         function removeTaxSystem(taxName) {
             taxSystems = taxSystems.filter(tax => tax.name !== taxName);
             updateAdminTaxSystemsList();
             updateTaxRateSelects();
         }
-
         // Удаление магазина
         function removeShop(shopName) {
             shops = shops.filter(shop => shop !== shopName);
             updateAdminShopsList();
             updateShopsSelects();
         }
-
         // Удаление категории расходов
         function removeExpenseCategory(categoryName) {
             expenseCategories = expenseCategories.filter(category => category !== categoryName);
             updateAdminExpenseCategoriesList();
             updateExpenseCategoriesSelects();
         }
-
         // Обновление интерфейса для систем налогообложения в админ-панели
         function updateAdminTaxSystemsList() {
             const taxSystemsList = document.getElementById('admin-tax-systems-list');
@@ -3025,7 +4620,6 @@
                 taxSystemsList.appendChild(div);
             });
         }
-
         // Обновление интерфейса для магазинов в админ-панели
         function updateAdminShopsList() {
             const shopsList = document.getElementById('admin-shops-list');
@@ -3040,7 +4634,6 @@
                 shopsList.appendChild(div);
             });
         }
-
         // Обновление интерфейса для категорий расходов в админ-панели
         function updateAdminExpenseCategoriesList() {
             const expenseCategoriesList = document.getElementById('admin-expense-categories-list');
@@ -3055,7 +4648,6 @@
                 expenseCategoriesList.appendChild(div);
             });
         }
-
         // Обновление интерфейса для обычных настроек (вкладка "Настройки")
         function updateShopsList() {
             const shopsList = document.getElementById('shops-list');
@@ -3070,7 +4662,6 @@
                 shopsList.appendChild(div);
             });
         }
-
         function updateExpenseCategoriesList() {
             const expenseCategoriesList = document.getElementById('expense-categories-list');
             expenseCategoriesList.innerHTML = '';
@@ -3084,7 +4675,6 @@
                 expenseCategoriesList.appendChild(div);
             });
         }
-
         function updateTaxSystemsList() {
             const taxSystemsList = document.getElementById('tax-systems-list');
             taxSystemsList.innerHTML = '';
@@ -3101,7 +4691,6 @@
                 taxSystemsList.appendChild(div);
             });
         }
-
         // Обновление налоговой ставки
         function updateTaxRate(taxName, newRate) {
             const tax = taxSystems.find(t => t.name === taxName);
@@ -3109,7 +4698,6 @@
                 tax.rate = parseFloat(newRate);
             }
         }
-
         // Функция для применения настроек
         function applySettings() {
             document.getElementById('marketplace-field').style.display = settings.showMarketplace ? 'block' : 'none';
@@ -3123,7 +4711,6 @@
             document.getElementById('edit-logistics-field').style.display = settings.showLogistics ? 'block' : 'none';
             document.getElementById('edit-delivery-mv-field').style.display = settings.showDeliveryMV ? 'block' : 'none';
         }
-
         // Функция для восстановления последних значений
         function restoreLastValues() {
             document.getElementById('marketplace-select').value = lastValues.marketplace;
@@ -3131,7 +4718,6 @@
             document.getElementById('advertising').value = lastValues.advertising;
             document.getElementById('tax-rate').value = lastValues.taxRate;
         }
-
         // Функция для сохранения последних значений
         function saveLastValues() {
             lastValues.marketplace = document.getElementById('marketplace-select').value;
@@ -3140,7 +4726,6 @@
             lastValues.taxRate = document.getElementById('tax-rate').value;
             saveData();
         }
-
         // Функция для сохранения данных в localStorage
         function saveData() {
             localStorage.setItem('shops', JSON.stringify(shops));
@@ -3149,7 +4734,6 @@
             localStorage.setItem('settings', JSON.stringify(settings));
             localStorage.setItem('lastValues', JSON.stringify(lastValues));
         }
-
         // Функция для получения роли пользователя
         function getRoleFromToken() {
             if (!currentUser) return null;
@@ -3162,7 +4746,6 @@
             }
             return 'user';
         }
-
         // Функция для редактирования продажи
         async function editSale(saleId) {
             const sale = salesData.find(s => s.id === saleId);
@@ -3184,7 +4767,6 @@
             document.getElementById('edit-shop-select').value = sale.shop || '';
             document.getElementById('edit-sale-modal').style.display = 'flex';
         }
-
         // Функция для сохранения изменений продажи
         async function saveEditedSale() {
             try {
@@ -3230,7 +4812,6 @@
                 notyf.error('Ошибка обновления продажи: ' + error.message);
             }
         }
-
         // Функция для удаления продажи
         async function deleteSale(saleId) {
             showModal(
@@ -3257,7 +4838,6 @@
                 }
             );
         }
-
         // Функция для редактирования возврата
         async function editReturn(returnId) {
             const ret = returnsData.find(r => r.id === returnId);
@@ -3290,7 +4870,6 @@
             saleSelect.value = ret.sale_id;
             document.getElementById('edit-return-modal').style.display = 'flex';
         }
-
         // Функция для сохранения изменений возврата
         async function saveEditedReturn() {
             try {
@@ -3313,20 +4892,16 @@
                 };
                 const sale = salesData.find(s => s.id === updatedReturn.sale_id);
                 if (!sale) throw new Error("Продажа не найдена");
-
                 const maxReturnable = parseInt(sale.quantity) || 0;
                 const alreadyReturned = returnsData
                     .filter(r => r.sale_id === updatedReturn.sale_id && r.id !== returnId)
                     .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
                 const availableToReturn = maxReturnable - alreadyReturned;
-
                 if (updatedReturn.return_quantity > availableToReturn) {
                     throw new Error(`Можно вернуть не более ${availableToReturn} шт.`);
                 }
-
                 const sellingPrice = parseFloat(sale.selling_price) || 0;
                 updatedReturn.amount = sellingPrice * updatedReturn.return_quantity;
-
                 showLoading('Сохраняем изменения...');
                 await db.collection('returns').doc(returnId).update(updatedReturn);
                 await logActivity('отредактировал возврат', `Товар: ${sale ? sale.name : 'неизвестный'}, Причина: ${updatedReturn.reason}`);
@@ -3342,7 +4917,6 @@
                 notyf.error('Ошибка обновления возврата: ' + error.message);
             }
         }
-
         // Функция для удаления возврата
         async function deleteReturn(returnId) {
             showModal(
@@ -3370,7 +4944,6 @@
                 }
             );
         }
-
         // Функция для добавления расхода
         async function addExpense() {
             try {
@@ -3415,7 +4988,6 @@
                 notyf.error(error.message);
             }
         }
-
         // Функция для редактирования расхода
         async function editExpense(expenseId) {
             const expense = expensesData.find(e => e.id === expenseId);
@@ -3427,7 +4999,6 @@
             document.getElementById('edit-expense-description').value = expense.description || '';
             document.getElementById('edit-expense-modal').style.display = 'flex';
         }
-
         // Функция для сохранения изменений расхода
         async function saveEditedExpense() {
             try {
@@ -3460,7 +5031,6 @@
                 notyf.error('Ошибка обновления расхода: ' + error.message);
             }
         }
-
         // Функция для удаления расхода
         async function deleteExpense(expenseId) {
             showModal(
@@ -3485,1630 +5055,6 @@
                     }
                 }
             );
-        }
-
-        // ======================
-        // ФУНКЦИИ ДЛЯ ДАШБОРДА И АНАЛИТИКИ
-        // ======================
-        // === ИСПРАВЛЕНА ФУНКЦИЯ РАСЧЕТА МЕТРИК ===
-        function calculateMetrics(filteredData) {
-            // Защита от пустого массива
-            if (!filteredData || filteredData.length === 0) {
-                return {
-                    totalRevenue: 0,
-                    totalCost: 0,
-                    totalProfit: 0,
-                    averageMargin: 0,
-                    totalReturns: 0
-                };
-            }
-            const totalRevenue = filteredData.reduce((sum, sale) => {
-                const sellingPrice = parseFloat(sale.selling_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                return sum + (sellingPrice * quantity);
-            }, 0);
-            const totalReturns = returnsData.reduce((sum, ret) => {
-                return sum + (parseFloat(ret.amount) || 0);
-            }, 0);
-            const adjustedRevenue = totalRevenue - totalReturns;
-            const totalDirectCosts = filteredData.reduce((sum, sale) => {
-                const purchasePrice = parseFloat(sale.purchase_price) || 0;
-                const commission = parseFloat(sale.commission) || 0;
-                const logistics = parseFloat(sale.logistics) || 0;
-                const deliveryToMV = parseFloat(sale.delivery_to_mv) || 0;
-                const advertising = parseFloat(sale.advertising) || 0.98;
-                const taxRate = parseFloat(sale.tax_rate) || 0.99;
-                const quantity = parseInt(sale.quantity) || 0;
-                const revenue = (parseFloat(sale.selling_price) || 0) * quantity;
-                const purchaseCost = purchasePrice * quantity;
-                const commissionCost = commission * quantity;
-                const logisticsCost = logistics * quantity;
-                const deliveryCost = deliveryToMV * quantity;
-                const revenueAfterAdvertising = revenue * advertising;
-                const taxCost = (1 - taxRate) * revenueAfterAdvertising;
-                return sum + purchaseCost + commissionCost + logisticsCost + deliveryCost + taxCost;
-            }, 0);
-            const totalOperatingExpenses = expensesData.reduce((sum, expense) => {
-                return sum + (parseFloat(expense.amount) || 0);
-            }, 0);
-            const totalCost = totalDirectCosts + totalOperatingExpenses;
-            const totalProfit = adjustedRevenue - totalCost;
-            const averageMargin = adjustedRevenue === 0 ? 0 : Math.round((totalProfit / adjustedRevenue) * 100);
-            return {
-                totalRevenue: adjustedRevenue,
-                totalCost: totalCost,
-                totalProfit,
-                averageMargin,
-                totalReturns
-            };
-        }
-
-        // Функция для обновления дашборда
-        function updateDashboard() {
-            const filteredData = filterSalesData();
-            const metrics = calculateMetrics(filteredData);
-            document.getElementById('total-revenue').textContent = formatCurrency(metrics.totalRevenue);
-            document.getElementById('total-cost').textContent = formatCurrency(metrics.totalCost);
-            document.getElementById('total-profit').textContent = formatCurrency(metrics.totalProfit);
-            document.getElementById('average-margin').textContent = metrics.averageMargin + '%';
-            document.getElementById('total-returns').textContent = formatCurrency(metrics.totalReturns);
-            updateCharts(filteredData);
-            updateRecentAddedSales();
-        }
-
-        // Функция для фильтрации продаж
-        function filterSalesData() {
-            const period = document.getElementById('period').value;
-            const marketplace = document.getElementById('marketplace').value;
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            let filtered = [...salesData];
-            if (marketplace !== 'all') {
-                filtered = filtered.filter(sale => sale.marketplace === marketplace);
-            }
-            if (startDate) {
-                filtered = filtered.filter(sale => sale.date >= startDate);
-            }
-            if (endDate) {
-                filtered = filtered.filter(sale => sale.date <= endDate);
-            }
-            if (period !== 'all') {
-                let startDatePeriod;
-                if (period === 'day') {
-                    startDatePeriod = dateFns.startOfDay(new Date());
-                } else if (period === 'week') {
-                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
-                } else if (period === 'month') {
-                    startDatePeriod = dateFns.startOfMonth(new Date());
-                } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.startOfQuarter(new Date());
-                } else if (period === 'year') {
-                    startDatePeriod = dateFns.startOfYear(new Date());
-                }
-                if (startDatePeriod) {
-                    filtered = filtered.filter(sale => new Date(sale.date) >= startDatePeriod);
-                }
-            }
-            return filtered;
-        }
-
-        // === ИСПРАВЛЕНА ФУНКЦИЯ ОБНОВЛЕНИЯ ГРАФИКОВ ===
-        function updateCharts(filteredData) {
-            const marketplaceData = {
-                'Яндекс': { revenue: 0, profit: 0 },
-                'Озон': { revenue: 0, profit: 0 }
-            };
-            filteredData.forEach(sale => {
-                const mp = sale.marketplace;
-                if (marketplaceData[mp]) {
-                    const sellingPrice = parseFloat(sale.selling_price) || 0;
-                    const quantity = parseInt(sale.quantity) || 0;
-                    marketplaceData[mp].revenue += sellingPrice * quantity;
-                    marketplaceData[mp].profit += calculateProfit(sale); // Гарантированно число
-                }
-            });
-            marketplaceChart.data.datasets[0].data = [
-                marketplaceData['Яндекс'].revenue,
-                marketplaceData['Озон'].revenue
-            ];
-            marketplaceChart.update();
-            // Расчет данных для графика продаж по месяцам
-            const salesByMonth = {};
-            filteredData.forEach(sale => {
-                const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-                if (!salesByMonth[month]) {
-                    salesByMonth[month] = { revenue: 0, grossProfit: 0 };
-                }
-                const sellingPrice = parseFloat(sale.selling_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                salesByMonth[month].revenue += sellingPrice * quantity;
-                salesByMonth[month].grossProfit += calculateProfit(sale);
-            });
-            const expensesByMonth = {};
-            expensesData.forEach(expense => {
-                const month = new Date(expense.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-                if (!expensesByMonth[month]) {
-                    expensesByMonth[month] = 0;
-                }
-                expensesByMonth[month] += (parseFloat(expense.amount) || 0);
-            });
-            // === СОРТИРОВКА МЕСЯЦЕВ ПО ВОЗРАСТАНИЮ ===
-            const months = Object.keys(salesByMonth)
-                .map(m => {
-                    const [month, year] = m.split(' ');
-                    const date = new Date(`${year}-${getMonthNumber(month)}-01`);
-                    return { label: m, date: date };
-                })
-                .sort((a, b) => a.date - b.date)
-                .map(item => item.label);
-            const revenues = months.map(month => salesByMonth[month].revenue);
-            const netProfits = months.map(month => {
-                const gross = salesByMonth[month].grossProfit;
-                const expense = expensesByMonth[month] || 0;
-                return gross - expense;
-            });
-            salesChart.data.labels = months;
-            salesChart.data.datasets[0].data = revenues;
-            salesChart.data.datasets[1].data = netProfits;
-            salesChart.update();
-            // === НОВОЕ: ГРУППИРОВКА И ОБНОВЛЕНИЕ ТОП-5 ===
-            const groupedProducts = groupSalesByProduct(filteredData);
-            let topProducts = [];
-            const sortByMargin = document.getElementById('top-products-sort-margin')?.classList.contains('active') || false;
-            if (sortByMargin) {
-                topProducts = [...groupedProducts]
-                    .sort((a, b) => b.margin - a.margin)
-                    .slice(0, 5);
-                topProductsChart.data.datasets[0].label = 'Маржа (%)';
-                topProductsChart.data.datasets[0].data = topProducts.map(p => p.margin);
-                topProductsChart.options.scales.y = {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) { return value + '%'; }
-                    }
-                };
-            } else {
-                topProducts = [...groupedProducts]
-                    .sort((a, b) => b.totalProfit - a.totalProfit)
-                    .slice(0, 5);
-                topProductsChart.data.datasets[0].label = 'Прибыль (₽)';
-                topProductsChart.data.datasets[0].data = topProducts.map(p => p.totalProfit);
-                topProductsChart.options.scales.y = { beginAtZero: true };
-            }
-            topProductsChart.data.labels = topProducts.map(p => 
-                p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name
-            );
-            topProductsChart.update();
-        }
-
-        // === НОВАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ ГРАФИКОВ ===
-        function initCharts() {
-            const marketplaceCtx = document.getElementById('marketplace-chart').getContext('2d');
-            marketplaceChart = new Chart(marketplaceCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['Яндекс', 'Озон'],
-                    datasets: [{
-                        data: [0, 0],
-                        backgroundColor: ['#ffcc00', '#005bff']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-            const salesCtx = document.getElementById('sales-chart').getContext('2d');
-            salesChart = new Chart(salesCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'Выручка',
-                            data: [],
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Прибыль',
-                            data: [],
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            tension: 0.1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            const topProductsCtx = document.getElementById('top-products-chart').getContext('2d');
-            topProductsChart = new Chart(topProductsCtx, {
-                type: 'bar',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Прибыль',
-                        data: [],
-                        backgroundColor: '#8b5cf6'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            // НОВОЕ: Инициализация графика "Выручка vs Расходы по месяцам"
-            const revenueExpensesCtx = document.getElementById('revenue-expenses-chart').getContext('2d');
-            revenueExpensesChart = new Chart(revenueExpensesCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'Выручка',
-                            data: [],
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Расходы',
-                            data: [],
-                            borderColor: '#ef4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            tension: 0.1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            // === НОВЫЕ ГРАФИКИ ДЛЯ АНАЛИТИКИ ===
-            const analyticsTopProductsCtx = document.getElementById('analytics-top-products-chart')?.getContext('2d');
-            if (analyticsTopProductsCtx) {
-                analyticsTopProductsChart = new Chart(analyticsTopProductsCtx, {
-                    type: 'bar',
-                    data: { labels: [], datasets: [{ label: 'Прибыль (₽)', data: [], backgroundColor: '#8b5cf6' }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-                });
-            }
-            const analyticsBottomProductsCtx = document.getElementById('analytics-bottom-products-chart')?.getContext('2d');
-            if (analyticsBottomProductsCtx) {
-                analyticsBottomProductsChart = new Chart(analyticsBottomProductsCtx, {
-                    type: 'bar',
-                    data: { labels: [], datasets: [{ label: 'Прибыль (₽)', data: [], backgroundColor: '#ef4444' }] },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
-                        indexAxis: 'y', 
-                        scales: { x: { beginAtZero: true } } 
-                    }
-                });
-            }
-        }
-
-        // === ПОЛНОСТЬЮ ОБНОВЛЁННАЯ ФУНКЦИЯ АНАЛИТИКИ ===
-        function updateAnalytics() {
-            // === ПРИМЕНЯЕМ ФИЛЬТРЫ ИЗ АНАЛИТИКИ ===
-            const period = document.getElementById('analytics-period').value;
-            const startDate = document.getElementById('analytics-start-date').value;
-            const endDate = document.getElementById('analytics-end-date').value;
-            let filteredData = [...salesData];
-            if (startDate) {
-                filteredData = filteredData.filter(sale => sale.date >= startDate);
-            }
-            if (endDate) {
-                filteredData = filteredData.filter(sale => sale.date <= endDate);
-            }
-            if (period !== 'all') {
-                let startDatePeriod;
-                if (period === 'day') {
-                    startDatePeriod = dateFns.startOfDay(new Date());
-                } else if (period === 'week') {
-                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
-                } else if (period === 'month') {
-                    startDatePeriod = dateFns.startOfMonth(new Date());
-                } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.startOfQuarter(new Date());
-                } else if (period === 'year') {
-                    startDatePeriod = dateFns.startOfYear(new Date());
-                }
-                if (startDatePeriod) {
-                    filteredData = filteredData.filter(sale => new Date(sale.date) >= startDatePeriod);
-                }
-            }
-            // НОВОЕ: Расчет и отображение среднего чека и конверсии возвратов
-            const totalRevenue = filteredData.reduce((sum, sale) => {
-                const sellingPrice = parseFloat(sale.selling_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                return sum + (sellingPrice * quantity);
-            }, 0);
-            const totalReturns = returnsData.reduce((sum, ret) => sum + (parseFloat(ret.amount) || 0), 0);
-            const totalSalesCount = filteredData.length;
-            const averageCheck = totalSalesCount > 0 ? totalRevenue / totalSalesCount : 0;
-            const returnConversion = totalRevenue > 0 ? (totalReturns / totalRevenue) * 100 : 0;
-            document.getElementById('average-check').textContent = formatCurrency(averageCheck);
-            document.getElementById('return-conversion').textContent = returnConversion.toFixed(2) + '%';
-            // === АНАЛИТИКА ПО МАРКЕТПЛЕЙСАМ ===
-            const marketplaceAnalytics = document.getElementById('marketplace-analytics');
-            marketplaceAnalytics.innerHTML = '';
-            const marketplaceData = {
-                'Яндекс': { revenue: 0, profit: 0, count: 0 },
-                'Озон': { revenue: 0, profit: 0, count: 0 }
-            };
-            filteredData.forEach(sale => {
-                const mp = sale.marketplace;
-                if (marketplaceData[mp]) {
-                    const sellingPrice = parseFloat(sale.selling_price) || 0;
-                    const quantity = parseInt(sale.quantity) || 0;
-                    marketplaceData[mp].revenue += sellingPrice * quantity;
-                    marketplaceData[mp].profit += calculateProfit(sale);
-                    marketplaceData[mp].count += 1;
-                }
-            });
-            Object.keys(marketplaceData).forEach(key => {
-                const data = marketplaceData[key];
-                const avgCheck = data.count > 0 ? data.revenue / data.count : 0;
-                const margin = data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100);
-                const marginPercent = Math.max(0, Math.min(100, margin));
-                const div = document.createElement('div');
-                div.style.marginBottom = '12px';
-                div.style.padding = '12px';
-                div.style.borderRadius = '8px';
-                div.style.backgroundColor = key === 'Яндекс' ? 'rgba(255,204,0,0.1)' : 'rgba(0,91,255,0.1)';
-                div.innerHTML = `
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <strong>${key}</strong>
-                        <span style="font-weight:bold;color:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'}">${margin}%</span>
-                    </div>
-                    <div style="font-size:0.9rem;color:var(--gray);margin-bottom:8px;">
-                        Выручка: ${formatCurrency(data.revenue)}<br>
-                        Прибыль: ${formatCurrency(data.profit)}<br>
-                        Продаж: ${data.count}
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <div style="flex:1;background:var(--light-gray);border-radius:4px;height:6px;">
-                            <div style="width:${marginPercent}%;background:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'};height:6px;border-radius:4px;"></div>
-                        </div>
-                        <span style="font-size:0.8rem;color:var(--gray);">${Math.round(avgCheck)} ₽</span>
-                    </div>
-                    <div style="font-size:0.8rem;color:var(--gray);text-align:right;">Средний чек</div>
-                `;
-                marketplaceAnalytics.appendChild(div);
-            });
-            // === АНАЛИТИКА ПО МАГАЗИНАМ ===
-            const shopsAnalytics = document.getElementById('shops-analytics');
-            shopsAnalytics.innerHTML = '';
-            const shopsData = {};
-            filteredData.forEach(sale => {
-                const shop = sale.shop || 'Без магазина';
-                if (!shopsData[shop]) {
-                    shopsData[shop] = { revenue: 0, profit: 0, count: 0 };
-                }
-                const sellingPrice = parseFloat(sale.selling_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                shopsData[shop].revenue += sellingPrice * quantity;
-                shopsData[shop].profit += calculateProfit(sale);
-                shopsData[shop].count += 1;
-            });
-            Object.keys(shopsData).forEach(shop => {
-                const data = shopsData[shop];
-                const avgCheck = data.count > 0 ? data.revenue / data.count : 0;
-                const margin = data.revenue === 0 ? 0 : Math.round((data.profit / data.revenue) * 100);
-                const marginPercent = Math.max(0, Math.min(100, margin));
-                const div = document.createElement('div');
-                div.style.marginBottom = '12px';
-                div.style.padding = '12px';
-                div.style.borderRadius = '8px';
-                div.style.backgroundColor = 'rgba(156, 163, 175, 0.1)';
-                div.innerHTML = `
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <strong>${shop}</strong>
-                        <span style="font-weight:bold;color:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'}">${margin}%</span>
-                    </div>
-                    <div style="font-size:0.9rem;color:var(--gray);margin-bottom:8px;">
-                        Выручка: ${formatCurrency(data.revenue)}<br>
-                        Прибыль: ${formatCurrency(data.profit)}<br>
-                        Продаж: ${data.count}
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <div style="flex:1;background:var(--light-gray);border-radius:4px;height:6px;">
-                            <div style="width:${marginPercent}%;background:${margin >= 0 ? 'var(--secondary)' : 'var(--danger)'};height:6px;border-radius:4px;"></div>
-                        </div>
-                        <span style="font-size:0.8rem;color:var(--gray);">${Math.round(avgCheck)} ₽</span>
-                    </div>
-                    <div style="font-size:0.8rem;color:var(--gray);text-align:right;">Средний чек</div>
-                `;
-                shopsAnalytics.appendChild(div);
-            });
-            // === ТОП-5 ПРИБЫЛЬНЫХ ТОВАРОВ ===
-            const groupedProducts = groupSalesByProduct(filteredData);
-            const analyticsSortByMargin = document.getElementById('analytics-top-products-sort-margin')?.classList.contains('active') || false;
-            let topProductsList = [];
-            if (analyticsSortByMargin) {
-                topProductsList = [...groupedProducts]
-                    .sort((a, b) => b.margin - a.margin)
-                    .slice(0, 5);
-                analyticsTopProductsChart.data.datasets[0].label = 'Маржа (%)';
-                analyticsTopProductsChart.data.datasets[0].data = topProductsList.map(p => p.margin);
-                analyticsTopProductsChart.options.scales.y = {
-                    beginAtZero: true,
-                    ticks: { callback: v => v + '%' }
-                };
-            } else {
-                topProductsList = [...groupedProducts]
-                    .sort((a, b) => b.totalProfit - a.totalProfit)
-                    .slice(0, 5);
-                analyticsTopProductsChart.data.datasets[0].label = 'Прибыль (₽)';
-                analyticsTopProductsChart.data.datasets[0].data = topProductsList.map(p => p.totalProfit);
-                analyticsTopProductsChart.options.scales.y = { beginAtZero: true };
-            }
-            analyticsTopProductsChart.data.labels = topProductsList.map(p => 
-                p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name
-            );
-            analyticsTopProductsChart.update();
-            // === ТОП-5 УБЫТОЧНЫХ ТОВАРОВ ===
-            const bottomProducts = [...filteredData]
-                .map(sale => ({ ...sale, profit: calculateProfit(sale) }))
-                .sort((a, b) => a.profit - b.profit)
-                .slice(0, 5);
-            analyticsBottomProductsChart.data.labels = bottomProducts.map(s => 
-                s.name.length > 20 ? s.name.substring(0, 20) + '...' : s.name
-            );
-            analyticsBottomProductsChart.data.datasets[0].data = bottomProducts.map(s => s.profit);
-            analyticsBottomProductsChart.update();
-            // === РАСХОДЫ ПО КАТЕГОРИЯМ ===
-            const expensesByCategoryAnalytics = document.getElementById('expenses-by-category-analytics');
-            expensesByCategoryAnalytics.innerHTML = '';
-            const categoryTotals = {};
-            expensesData.forEach(expense => {
-                if (!categoryTotals[expense.category]) {
-                    categoryTotals[expense.category] = 0;
-                }
-                categoryTotals[expense.category] += (parseFloat(expense.amount) || 0);
-            });
-            Object.keys(categoryTotals).forEach(category => {
-                const total = categoryTotals[category];
-                const div = document.createElement('div');
-                div.style.display = 'flex';
-                div.style.justifyContent = 'space-between';
-                div.style.padding = '10px';
-                div.style.marginBottom = '5px';
-                div.style.backgroundColor = 'white';
-                div.style.borderRadius = '4px';
-                div.innerHTML = `
-                    <strong>${category}</strong>
-                    <span>${formatCurrency(total)}</span>
-                `;
-                expensesByCategoryAnalytics.appendChild(div);
-            });
-            // === ПРОДАЖИ ПО МЕСЯЦАМ ===
-            const monthlySalesTable = document.querySelector('#monthly-sales-table tbody');
-            const monthlySalesTotal = document.querySelector('#monthly-sales-total');
-            monthlySalesTable.innerHTML = '';
-            monthlySalesTotal.innerHTML = '';
-            const salesByMonth = {};
-            filteredData.forEach(sale => {
-                const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-                if (!salesByMonth[month]) {
-                    salesByMonth[month] = { revenue: 0, cost: 0, profit: 0, count: 0 };
-                }
-                const sellingPrice = parseFloat(sale.selling_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                salesByMonth[month].revenue += sellingPrice * quantity;
-                salesByMonth[month].profit += calculateProfit(sale);
-                salesByMonth[month].count += 1;
-            });
-            const expensesByMonth = {};
-            expensesData.forEach(expense => {
-                const month = new Date(expense.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-                if (!expensesByMonth[month]) {
-                    expensesByMonth[month] = 0;
-                }
-                expensesByMonth[month] += (parseFloat(expense.amount) || 0);
-            });
-            const months = Object.keys(salesByMonth)
-                .map(m => {
-                    const [month, year] = m.split(' ');
-                    const date = new Date(`${year}-${getMonthNumber(month)}-01`);
-                    return { label: m, date: date };
-                })
-                .sort((a, b) => a.date - b.date)
-                .map(item => item.label);
-            let totalRevenueAll = 0, totalExpensesAll = 0, totalProfitAll = 0, totalCountAll = 0;
-            months.forEach(month => {
-                const data = salesByMonth[month];
-                const expense = expensesByMonth[month] || 0;
-                const netProfit = data.profit - expense;
-                const margin = data.revenue === 0 ? 0 : Math.round((netProfit / data.revenue) * 100);
-                const tr = document.createElement('tr');
-                if (netProfit < 0) {
-                    tr.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-                    tr.style.color = 'var(--danger)';
-                } else if (netProfit > 0) {
-                    tr.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-                }
-                tr.innerHTML = `
-                    <td>${month}</td>
-                    <td>${formatCurrency(data.revenue)}</td>
-                    <td>${formatCurrency(expense)}</td>
-                    <td>${formatCurrency(netProfit)}</td>
-                    <td>${margin}%</td>
-                    <td>${data.count}</td>
-                `;
-                monthlySalesTable.appendChild(tr);
-                totalRevenueAll += data.revenue;
-                totalExpensesAll += expense;
-                totalProfitAll += netProfit;
-                totalCountAll += data.count;
-            });
-            // === ИТОГОВАЯ СТРОКА ===
-            const totalMarginAll = totalRevenueAll === 0 ? 0 : Math.round((totalProfitAll / totalRevenueAll) * 100);
-            const totalRow = document.createElement('tr');
-            totalRow.style.fontWeight = 'bold';
-            totalRow.style.borderTop = '2px solid var(--border)';
-            totalRow.innerHTML = `
-                <td>Итого</td>
-                <td>${formatCurrency(totalRevenueAll)}</td>
-                <td>${formatCurrency(totalExpensesAll)}</td>
-                <td>${formatCurrency(totalProfitAll)}</td>
-                <td>${totalMarginAll}%</td>
-                <td>${totalCountAll}</td>
-            `;
-            monthlySalesTotal.appendChild(totalRow);
-            // === ОБНОВЛЕНИЕ ГРАФИКА "ВЫРУЧКА VS РАСХОДЫ" ===
-            const revenues = months.map(month => salesByMonth[month].revenue);
-            const expenses = months.map(month => expensesByMonth[month] || 0);
-            revenueExpensesChart.data.labels = months;
-            revenueExpensesChart.data.datasets[0].data = revenues;
-            revenueExpensesChart.data.datasets[1].data = expenses;
-            revenueExpensesChart.update();
-            // === ПРОДАЖИ ПО СОТРУДНИКАМ ===
-            const employeeSalesTable = document.querySelector('#employee-sales-table tbody');
-            employeeSalesTable.innerHTML = '';
-            const salesByEmployee = {};
-            filteredData.forEach(sale => {
-                const employeeId = sale.user_id;
-                const employeeName = userNamesCache[employeeId] || 'Неизвестный';
-                if (!salesByEmployee[employeeId]) {
-                    salesByEmployee[employeeId] = {
-                        name: employeeName,
-                        revenue: 0,
-                        profit: 0,
-                        count: 0
-                    };
-                }
-                const sellingPrice = parseFloat(sale.selling_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                salesByEmployee[employeeId].revenue += sellingPrice * quantity;
-                salesByEmployee[employeeId].profit += calculateProfit(sale);
-                salesByEmployee[employeeId].count += 1;
-            });
-            Object.values(salesByEmployee).forEach(employee => {
-                const tr = document.createElement('tr');
-                const initials = employee.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-                tr.innerHTML = `
-                    <td>
-                        <div style="display:flex;align-items:center;gap:10px;">
-                            <div class="avatar" style="width:28px;height:28px;font-size:0.8rem;">${initials}</div>
-                            ${employee.name}
-                        </div>
-                    </td>
-                    <td>${formatCurrency(employee.revenue)}</td>
-                    <td class="${employee.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        ${formatCurrency(employee.profit)}
-                    </td>
-                    <td>${employee.count}</td>
-                `;
-                employeeSalesTable.appendChild(tr);
-            });
-        }
-
-        // Функция для обновления отчетов
-        function updateReports() {
-            // Получаем фильтры с вкладки "Отчеты"
-            const period = document.getElementById('report-period').value;
-            const marketplace = document.getElementById('report-marketplace').value;
-            const startDate = document.getElementById('report-start-date').value;
-            const endDate = document.getElementById('report-end-date').value;
-            // Фильтруем продажи
-            let filteredData = [...salesData];
-            if (marketplace !== 'all') {
-                filteredData = filteredData.filter(sale => sale.marketplace === marketplace);
-            }
-            if (startDate) {
-                filteredData = filteredData.filter(sale => sale.date >= startDate);
-            }
-            if (endDate) {
-                filteredData = filteredData.filter(sale => sale.date <= endDate);
-            }
-            if (period !== 'all') {
-                let startDatePeriod;
-                if (period === 'day') {
-                    startDatePeriod = dateFns.startOfDay(new Date());
-                } else if (period === 'week') {
-                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
-                } else if (period === 'month') {
-                    startDatePeriod = dateFns.startOfMonth(new Date());
-                } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.startOfQuarter(new Date());
-                } else if (period === 'year') {
-                    startDatePeriod = dateFns.startOfYear(new Date());
-                }
-                if (startDatePeriod) {
-                    filteredData = filteredData.filter(sale => new Date(sale.date) >= startDatePeriod);
-                }
-            }
-            // Фильтруем расходы и возвраты по датам (для согласованности)
-            let filteredExpenses = [...expensesData];
-            let filteredReturns = [...returnsData];
-            if (startDate) {
-                filteredExpenses = filteredExpenses.filter(exp => exp.date >= startDate);
-                filteredReturns = filteredReturns.filter(ret => ret.date >= startDate);
-            }
-            if (endDate) {
-                filteredExpenses = filteredExpenses.filter(exp => exp.date <= endDate);
-                filteredReturns = filteredReturns.filter(ret => ret.date <= endDate);
-            }
-            const totalRevenue = filteredData.reduce((sum, sale) => {
-                const sellingPrice = parseFloat(sale.selling_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                return sum + (sellingPrice * quantity);
-            }, 0);
-            const totalReturnsAmount = filteredReturns.reduce((sum, ret) => sum + (parseFloat(ret.amount) || 0), 0);
-            const adjustedRevenue = totalRevenue - totalReturnsAmount;
-            const totalPurchaseCost = filteredData.reduce((sum, sale) => {
-                const purchasePrice = parseFloat(sale.purchase_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                return sum + (purchasePrice * quantity);
-            }, 0);
-            const totalCommissionCost = filteredData.reduce((sum, sale) => {
-                const commission = parseFloat(sale.commission) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                return sum + (commission * quantity);
-            }, 0);
-            const totalTaxCost = filteredData.reduce((sum, sale) => {
-                const sellingPrice = parseFloat(sale.selling_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                const advertising = parseFloat(sale.advertising) || 0.98;
-                const taxRate = parseFloat(sale.tax_rate) || 0.99;
-                const revenueAfterAdvertising = (sellingPrice * quantity) * advertising;
-                return sum + ((1 - taxRate) * revenueAfterAdvertising);
-            }, 0);
-            const totalOperatingExpenses = filteredExpenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
-            const totalProfit = (adjustedRevenue - totalPurchaseCost - totalCommissionCost - totalTaxCost) - totalOperatingExpenses;
-            document.getElementById('report-revenue').textContent = formatCurrency(adjustedRevenue);
-            document.getElementById('report-direct-costs').textContent = formatCurrency(totalPurchaseCost + totalCommissionCost + totalTaxCost);
-            document.getElementById('report-purchase-cost').textContent = formatCurrency(totalPurchaseCost);
-            document.getElementById('report-commission-cost').textContent = formatCurrency(totalCommissionCost);
-            document.getElementById('report-tax-cost').textContent = formatCurrency(totalTaxCost);
-            document.getElementById('report-operating-expenses').textContent = formatCurrency(totalOperatingExpenses);
-            document.getElementById('report-profit').textContent = formatCurrency(totalProfit);
-            document.getElementById('report-direct-costs-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round(((totalPurchaseCost + totalCommissionCost + totalTaxCost) / adjustedRevenue) * 100) + '%';
-            document.getElementById('report-purchase-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalPurchaseCost / adjustedRevenue) * 100) + '%';
-            document.getElementById('report-commission-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalCommissionCost / adjustedRevenue) * 100) + '%';
-            document.getElementById('report-tax-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalTaxCost / adjustedRevenue) * 100) + '%';
-            document.getElementById('report-operating-expenses-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalOperatingExpenses / adjustedRevenue) * 100) + '%';
-            document.getElementById('report-profit-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalProfit / adjustedRevenue) * 100) + '%';
-        }
-
-        // Функция для экспорта в CSV
-        function exportToCSV() {
-            // Получаем фильтры с вкладки "Отчеты"
-            const period = document.getElementById('report-period').value;
-            const marketplace = document.getElementById('report-marketplace').value;
-            const startDate = document.getElementById('report-start-date').value;
-            const endDate = document.getElementById('report-end-date').value;
-            // Фильтруем продажи
-            let filteredSales = [...salesData];
-            if (marketplace !== 'all') {
-                filteredSales = filteredSales.filter(sale => sale.marketplace === marketplace);
-            }
-            if (startDate) {
-                filteredSales = filteredSales.filter(sale => sale.date >= startDate);
-            }
-            if (endDate) {
-                filteredSales = filteredSales.filter(sale => sale.date <= endDate);
-            }
-            if (period !== 'all') {
-                let startDatePeriod;
-                if (period === 'day') {
-                    startDatePeriod = dateFns.startOfDay(new Date());
-                } else if (period === 'week') {
-                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
-                } else if (period === 'month') {
-                    startDatePeriod = dateFns.startOfMonth(new Date());
-                } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.startOfQuarter(new Date());
-                } else if (period === 'year') {
-                    startDatePeriod = dateFns.startOfYear(new Date());
-                }
-                if (startDatePeriod) {
-                    filteredSales = filteredSales.filter(sale => new Date(sale.date) >= startDatePeriod);
-                }
-            }
-            // Фильтруем расходы и возвраты по датам (для согласованности)
-            let filteredExpenses = [...expensesData];
-            let filteredReturns = [...returnsData];
-            if (startDate) {
-                filteredExpenses = filteredExpenses.filter(exp => exp.date >= startDate);
-                filteredReturns = filteredReturns.filter(ret => ret.date >= startDate);
-            }
-            if (endDate) {
-                filteredExpenses = filteredExpenses.filter(exp => exp.date <= endDate);
-                filteredReturns = filteredReturns.filter(ret => ret.date <= endDate);
-            }
-            // Формируем массив для CSV
-            const csvData = [];
-            // Заголовки
-            const headers = [
-                'Дата', 'Тип', 'Товар / Категория', 'Артикул', 'Маркетплейс', 'Магазин', 'Сотрудник',
-                'Цена закупки', 'Цена продажи', 'Комиссия', 'Логистика', 'Доставка до МВ', 'РК + Эквайринг (коэф.)',
-                'Налог (%)', 'Количество', 'Выручка', 'Прибыль', 'Маржа', 'Сумма (для расходов/возвратов)',
-                'Причина (для возвратов)', 'Описание (для расходов)'
-            ];
-            csvData.push(headers);
-            // Добавляем продажи
-            filteredSales.forEach(sale => {
-                const profit = calculateProfit(sale);
-                const margin = calculateMargin(sale);
-                csvData.push([
-                    sale.date,
-                    'Продажа',
-                    sale.name,
-                    sale.article,
-                    sale.marketplace,
-                    sale.shop || '',
-                    userNamesCache[sale.user_id] || 'Неизвестный',
-                    sale.purchase_price,
-                    sale.selling_price,
-                    sale.commission,
-                    sale.logistics || '',
-                    sale.delivery_to_mv || '',
-                    sale.advertising,
-                    Math.round((1 - sale.tax_rate) * 100),
-                    sale.quantity,
-                    Math.round((parseFloat(sale.selling_price) || 0) * (parseInt(sale.quantity) || 0)),
-                    Math.round(profit),
-                    margin,
-                    '', // Сумма для расходов/возвратов
-                    '', // Причина для возвратов
-                    ''  // Описание для расходов
-                ]);
-            });
-            // Добавляем расходы
-            filteredExpenses.forEach(expense => {
-                csvData.push([
-                    expense.date,
-                    'Расход',
-                    expense.category,
-                    '', // Артикул
-                    '', // Маркетплейс
-                    '', // Магазин
-                    userNamesCache[expense.user_id] || 'Неизвестный',
-                    '', // Цена закупки
-                    '', // Цена продажи
-                    '', // Комиссия
-                    '', // Логистика
-                    '', // Доставка до МВ
-                    '', // РК + Эквайринг
-                    '', // Налог
-                    '', // Количество
-                    '', // Выручка
-                    '', // Прибыль
-                    '', // Маржа
-                    Math.round(parseFloat(expense.amount) || 0),
-                    '', // Причина для возвратов
-                    expense.description || ''
-                ]);
-            });
-            // Добавляем возвраты
-            filteredReturns.forEach(ret => {
-                const sale = salesData.find(s => s.id === ret.sale_id);
-                const actualQuantity = sale ? (parseInt(sale.quantity) || 0) - (returnsData
-                    .filter(r => r.sale_id === ret.sale_id)
-                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0)) : 0;
-                const actualRevenue = sale ? (parseFloat(sale.selling_price) || 0) * actualQuantity : 0;
-                const actualProfit = sale ? calculateProfit(sale, actualQuantity) : 0;
-                const actualMargin = sale ? calculateMargin(sale, actualQuantity) : 0;
-                csvData.push([
-                    ret.date,
-                    'Возврат',
-                    sale ? sale.name : 'Неизвестный товар',
-                    sale ? sale.article : '',
-                    sale ? sale.marketplace : '',
-                    sale ? sale.shop : '',
-                    userNamesCache[ret.user_id] || 'Неизвестный',
-                    sale ? sale.purchase_price : '',
-                    sale ? sale.selling_price : '',
-                    sale ? sale.commission : '',
-                    sale ? sale.logistics : '',
-                    sale ? sale.delivery_to_mv : '',
-                    sale ? sale.advertising : '',
-                    sale ? Math.round((1 - sale.tax_rate) * 100) : '',
-                    actualQuantity,
-                    Math.round(actualRevenue),
-                    Math.round(actualProfit),
-                    actualMargin,
-                    Math.round(parseFloat(ret.amount) || 0),
-                    ret.reason,
-                    '' // Описание для расходов
-                ]);
-            });
-            // Генерируем CSV-строку
-            let csvContent = "text/csv;charset=utf-8,\uFEFF"; // Добавляем BOM для корректной кодировки в Excel
-            csvData.forEach(row => {
-                const escapedRow = row.map(field => {
-                    if (typeof field === 'string' && (field.includes(',') || field.includes('"') || field.includes('\n'))) {
-                        return `"${field.replace(/"/g, '""')}"`;
-                    }
-                    return field;
-                });
-                csvContent += escapedRow.join(',') + "\r\n";
-            });
-            // Создаем и кликаем по ссылке для скачивания
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "отчет_продаж_расходов_возвратов.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            notyf.success('Данные успешно экспортированы в CSV');
-        }
-
-        // ======================
-        // ФУНКЦИИ ДЛЯ ТАБЛИЦ
-        // ======================
-        // Функция для обновления таблицы расходов
-        function updateExpenses() {
-            // Обновление статистики по категориям
-            const expensesByCategory = document.getElementById('expenses-by-category');
-            expensesByCategory.innerHTML = '';
-            const categoryTotals = {};
-            expensesData.forEach(expense => {
-                if (!categoryTotals[expense.category]) {
-                    categoryTotals[expense.category] = 0;
-                }
-                categoryTotals[expense.category] += (parseFloat(expense.amount) || 0);
-            });
-            Object.keys(categoryTotals).forEach(category => {
-                const total = categoryTotals[category];
-                const div = document.createElement('div');
-                div.className = 'expense-item';
-                div.innerHTML = `
-                    <div>
-                        <strong>${category}</strong>
-                    </div>
-                    <div>
-                        ${formatCurrency(total)}
-                    </div>
-                `;
-                expensesByCategory.appendChild(div);
-            });
-            // Обновление таблицы расходов
-            const expensesTable = document.querySelector('#expenses-table tbody');
-            expensesTable.innerHTML = '';
-            // НОВОЕ: Сортируем по дате (новые сверху)
-            const sortedExpenses = [...expensesData].sort((a, b) => new Date(b.date) - new Date(a.date));
-            const paginatedExpenses = paginateArray(sortedExpenses, expenseCurrentPage, itemsPerPage);
-            paginatedExpenses.forEach(expense => {
-                const userName = userNamesCache[expense.user_id] || 'Неизвестный';
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${expense.category}</td>
-                    <td>${formatCurrency(parseFloat(expense.amount) || 0)}</td>
-                    <td>${new Date(expense.date).toLocaleDateString('ru-RU')}</td>
-                    <td>${expense.description || '-'}</td>
-                    <td>${userName}</td>
-                    <td class="actions-cell">
-                        <button class="icon-btn" onclick="editExpense('${expense.id}')" title="Редактировать">${editIcon}</button>
-                        <button class="icon-btn" onclick="deleteExpense('${expense.id}')" title="Удалить">${deleteIcon}</button>
-                    </td>
-                `;
-                expensesTable.appendChild(tr);
-            });
-            updatePagination();
-            // Обновляем график
-            updateExpensesStackedChart();
-        }
-
-        // Функция для обновления таблицы "Таблица"
-        function updateSpreadsheetView() {
-            const tbody = document.querySelector('#spreadsheet-table tbody');
-            tbody.innerHTML = '';
-            let combinedData = [];
-            // Добавляем продажи
-            salesData.forEach(sale => {
-                const totalReturned = returnsData
-                    .filter(r => r.sale_id === sale.id)
-                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
-                const actualQuantity = Math.max(0, (parseInt(sale.quantity) || 0) - totalReturned);
-                const actualRevenue = (parseFloat(sale.selling_price) || 0) * actualQuantity;
-                const actualProfit = calculateProfit(sale, actualQuantity);
-                const actualMargin = calculateMargin(sale, actualQuantity);
-                combinedData.push({
-                    type: 'Продажа',
-                    date: sale.date,
-                    name: sale.name,
-                    article: sale.article,
-                    marketplace: sale.marketplace,
-                    shop: sale.shop,
-                    user_id: sale.user_id,
-                    purchase_price: sale.purchase_price,
-                    selling_price: sale.selling_price,
-                    commission: sale.commission,
-                    logistics: sale.logistics,
-                    delivery_to_mv: sale.delivery_to_mv,
-                    advertising: sale.advertising,
-                    tax_rate: sale.tax_rate,
-                    quantity: actualQuantity,
-                    revenue: actualRevenue,
-                    profit: actualProfit,
-                    margin: actualMargin,
-                    amount: null,
-                    reason: null,
-                    description: null,
-                    id: sale.id,
-                    isFullyReturned: actualQuantity === 0,
-                    isPartiallyReturned: totalReturned > 0 && actualQuantity > 0
-                });
-            });
-            // Добавляем расходы
-            expensesData.forEach(expense => {
-                combinedData.push({
-                    type: 'Расход',
-                    date: expense.date,
-                    name: expense.category,
-                    article: '',
-                    marketplace: '',
-                    shop: '',
-                    user_id: expense.user_id,
-                    purchase_price: null,
-                    selling_price: null,
-                    commission: null,
-                    logistics: null,
-                    delivery_to_mv: null,
-                    advertising: null,
-                    tax_rate: null,
-                    quantity: null,
-                    revenue: null,
-                    profit: null,
-                    margin: null,
-                    amount: parseFloat(expense.amount) || 0,
-                    reason: null,
-                    description: expense.description,
-                    id: expense.id
-                });
-            });
-            // Добавляем возвраты
-            returnsData.forEach(ret => {
-                const sale = salesData.find(s => s.id === ret.sale_id);
-                combinedData.push({
-                    type: 'Возврат',
-                    date: ret.date,
-                    name: sale ? sale.name : 'Неизвестный товар',
-                    article: sale ? sale.article : '',
-                    marketplace: sale ? sale.marketplace : '',
-                    shop: sale ? sale.shop : '',
-                    user_id: ret.user_id,
-                    purchase_price: sale ? sale.purchase_price : null,
-                    selling_price: sale ? sale.selling_price : null,
-                    commission: sale ? sale.commission : null,
-                    logistics: sale ? sale.logistics : null,
-                    delivery_to_mv: sale ? sale.delivery_to_mv : null,
-                    advertising: sale ? sale.advertising : null,
-                    tax_rate: sale ? sale.tax_rate : null,
-                    quantity: sale ? (returnsData
-                        .filter(r => r.sale_id === ret.sale_id)
-                        .reduce((sum, r) => sum + (r.return_quantity || 0), 0)) : 0,
-                    revenue: sale ? (parseFloat(sale.selling_price) || 0) * (parseInt(sale.quantity) || 0) : null,
-                    profit: sale ? calculateProfit(sale) : null,
-                    margin: sale ? calculateMargin(sale) : null,
-                    amount: parseFloat(ret.amount) || 0,
-                    reason: ret.reason,
-                    description: null,
-                    id: ret.id
-                });
-            });
-            // Применяем новые фильтры
-            const typeFilter = document.getElementById('spreadsheet-type-filter').value;
-            const marketplaceFilter = document.getElementById('spreadsheet-marketplace-filter').value;
-            const employeeFilter = document.getElementById('spreadsheet-employee-filter').value;
-            if (typeFilter !== 'all') {
-                combinedData = combinedData.filter(item => item.type === typeFilter);
-            }
-            if (marketplaceFilter !== 'all') {
-                combinedData = combinedData.filter(item => item.marketplace === marketplaceFilter);
-            }
-            if (employeeFilter !== 'all') {
-                combinedData = combinedData.filter(item => item.user_id === employeeFilter);
-            }
-            // НОВОЕ: Сортируем по дате (новые сверху)
-            combinedData.sort((a, b) => new Date(b.date) - new Date(a.date));
-            // Отображаем данные
-            combinedData.forEach(item => {
-                const userName = userNamesCache[item.user_id] || 'Неизвестный';
-                const tr = document.createElement('tr');
-                if (item.type === 'Возврат') {
-                    tr.classList.add('sale-with-return');
-                } else if (item.type === 'Расход') {
-                    tr.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
-                } else if (item.isFullyReturned) {
-                    tr.classList.add('sale-with-return');
-                } else if (item.isPartiallyReturned) {
-                    tr.classList.add('sale-partially-returned');
-                }
-                tr.innerHTML = `
-                    <td>${new Date(item.date).toLocaleDateString('ru-RU')}</td>
-                    <td><strong>${item.type}</strong></td>
-                    <td title="${item.name}">${item.name.length > 30 ? item.name.substring(0, 30) + '...' : item.name}</td>
-                    <td>${item.article || '-'}</td>
-                    <td>${item.marketplace || '-'}</td>
-                    <td>${item.shop || '-'}</td>
-                    <td>${userName}</td>
-                    <td>${item.purchase_price ? formatCurrency(item.purchase_price) : '-'}</td>
-                    <td>${item.selling_price ? formatCurrency(item.selling_price) : '-'}</td>
-                    <td>${item.commission ? formatCurrency(item.commission) : '-'}</td>
-                    <td>${item.logistics ? formatCurrency(item.logistics) : '-'}</td>
-                    <td>${item.delivery_to_mv ? formatCurrency(item.delivery_to_mv) : '-'}</td>
-                    <td>${item.advertising ? item.advertising : '-'}</td>
-                    <td>${item.tax_rate ? Math.round((1 - item.tax_rate) * 100) : '-'}</td>
-                    <td>${item.quantity || '-'}</td>
-                    <td>${item.revenue ? formatCurrency(item.revenue) : '-'}</td>
-                    <td class="${item.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        ${item.profit ? formatCurrency(item.profit) : '-'}
-                    </td>
-                    <td>${item.margin ? item.margin + '%' : '-'}</td>
-                    <td>${item.amount ? formatCurrency(item.amount) : '-'}</td>
-                    <td>${item.reason || '-'}</td>
-                    <td>${item.description || '-'}</td>
-                    <td class="actions-cell">
-                        ${item.type === 'Продажа' ? `
-                            <button class="icon-btn" onclick="editSale('${item.id}')" title="Редактировать">${editIcon}</button>
-                            <button class="icon-btn" onclick="deleteSale('${item.id}')" title="Удалить">${deleteIcon}</button>
-                        ` : item.type === 'Расход' ? `
-                            <button class="icon-btn" onclick="editExpense('${item.id}')" title="Редактировать">${editIcon}</button>
-                            <button class="icon-btn" onclick="deleteExpense('${item.id}')" title="Удалить">${deleteIcon}</button>
-                        ` : item.type === 'Возврат' ? `
-                            <button class="icon-btn" onclick="editReturn('${item.id}')" title="Редактировать">${editIcon}</button>
-                            <button class="icon-btn" onclick="deleteReturn('${item.id}')" title="Удалить">${deleteIcon}</button>
-                        ` : ''}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Функция для пагинации массива
-        function paginateArray(array, page, itemsPerPage) {
-            if (!array || !Array.isArray(array)) {
-                return [];
-            }
-            const startIndex = (page - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            return array.slice(startIndex, endIndex);
-        }
-
-        // Функция для обновления пагинации
-        function updatePagination() {
-            const totalItems = salesData.length;
-            const totalPages = totalItems > 0 ? Math.ceil(totalItems / itemsPerPage) : 1;
-            document.getElementById('page-info').textContent = `Страница ${currentPage} из ${totalPages}`;
-            document.getElementById('prev-page').disabled = currentPage === 1;
-            document.getElementById('next-page').disabled = currentPage === totalPages;
-            const totalExpenseItems = expensesData.length;
-            const totalExpensePages = totalExpenseItems > 0 ? Math.ceil(totalExpenseItems / itemsPerPage) : 1;
-            document.getElementById('expense-page-info').textContent = `Страница ${expenseCurrentPage} из ${totalExpensePages}`;
-            document.getElementById('prev-expense-page').disabled = expenseCurrentPage === 1;
-            document.getElementById('next-expense-page').disabled = expenseCurrentPage === totalExpensePages;
-            const totalReturnItems = returnsData.length;
-            const totalReturnPages = totalReturnItems > 0 ? Math.ceil(totalReturnItems / itemsPerPage) : 1;
-            document.getElementById('return-page-info').textContent = `Страница ${returnCurrentPage} из ${totalReturnPages}`;
-            document.getElementById('prev-return-page').disabled = returnCurrentPage === 1;
-            document.getElementById('next-return-page').disabled = returnCurrentPage === totalReturnPages;
-        }
-
-        // Функция для отображения вкладки
-        function showTab(tabId) {
-            const role = getRoleFromToken();
-            if (role === 'viewer' && ['sales', 'all-sales', 'expenses', 'returns', 'spreadsheet'].includes(tabId)) {
-                notyf.error('У вас нет прав для доступа к этому разделу');
-                return;
-            }
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            document.getElementById(tabId).classList.add('active');
-            document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
-            if (tabId === 'dashboard') {
-                updateDashboard();
-            } else if (tabId === 'analytics') {
-                updateAnalytics();
-            } else if (tabId === 'reports') {
-                updateReports();
-            } else if (tabId === 'all-sales') {
-                updateAllSalesTable();
-            } else if (tabId === 'expenses') {
-                updateExpenses();
-            } else if (tabId === 'returns') {
-                updateReturns();
-                populateReturnSales();
-            } else if (tabId === 'sales') {
-                updateRecentAddedSales();
-            } else if (tabId === 'spreadsheet') {
-                updateSpreadsheetView();
-            } else if (tabId === 'admin-panel') {
-                if (getRoleFromToken() === 'admin') {
-                    loadAllUsers();
-                    loadActivityLogs();
-                }
-            }
-        }
-
-        // Функция для инициализации перетаскивания метрик
-        function initMetricDragAndDrop() {
-            const container = document.getElementById('metrics-container');
-            const metrics = container.querySelectorAll('.metric-card');
-            metrics.forEach(metric => {
-                metric.setAttribute('draggable', true);
-                metric.addEventListener('dragstart', function(e) {
-                    e.dataTransfer.setData('text/plain', this.dataset.metric);
-                    this.classList.add('dragging');
-                });
-                metric.addEventListener('dragend', function() {
-                    this.classList.remove('dragging');
-                });
-                metric.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                });
-                metric.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    const draggedMetric = e.dataTransfer.getData('text/plain');
-                    const draggedElement = container.querySelector(`[data-metric="${draggedMetric}"]`);
-                    if (draggedElement !== this) {
-                        const allMetrics = Array.from(container.querySelectorAll('.metric-card'));
-                        const thisIndex = allMetrics.indexOf(this);
-                        const draggedIndex = allMetrics.indexOf(draggedElement);
-                        if (thisIndex < draggedIndex) {
-                            container.insertBefore(draggedElement, this);
-                        } else {
-                            container.insertBefore(draggedElement, this.nextSibling);
-                        }
-                    }
-                });
-            });
-        }
-
-        // Функция для записи логов активности
-        async function logActivity(action, target = '') {
-            try {
-                if (!currentUser) return;
-                const logEntry = {
-                    user_id: currentUser.uid,
-                    action: action,
-                    target: target,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                await db.collection('activity_logs').add(logEntry);
-                if (document.querySelector('.tab-content#admin-panel').classList.contains('active')) {
-                    loadActivityLogs();
-                }
-            } catch (error) {
-                console.error('Ошибка записи лога активности:', error);
-            }
-        }
-
-        // НОВОЕ: Функция для сортировки таблицы по столбцу
-        function sortTableByColumn(tableId, columnIndex, isNumeric = false, isDate = false) {
-            const table = document.getElementById(tableId);
-            const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-            let currentOrder = 'asc';
-            // Проверяем, есть ли уже активный сортировщик на этом столбце
-            const currentHeader = table.querySelector('th[data-sort-active]');
-            if (currentHeader) {
-                if (currentHeader.cellIndex === columnIndex) {
-                    // Меняем порядок сортировки
-                    currentOrder = currentHeader.getAttribute('data-sort-order') === 'asc' ? 'desc' : 'asc';
-                }
-                // Убираем индикаторы со всех заголовков
-                table.querySelectorAll('th').forEach(th => {
-                    th.removeAttribute('data-sort-active');
-                    th.removeAttribute('data-sort-order');
-                    th.innerHTML = th.innerHTML.replace(/ [▲▼]$/, '');
-                });
-            }
-            // Сортируем строки
-            rows.sort((a, b) => {
-                let aValue = a.cells[columnIndex].textContent.trim();
-                let bValue = b.cells[columnIndex].textContent.trim();
-                if (isDate) {
-                    aValue = new Date(aValue.split('.').reverse().join('-'));
-                    bValue = new Date(bValue.split('.').reverse().join('-'));
-                } else if (isNumeric) {
-                    aValue = parseFloat(aValue.replace(/[^\d.-]/g, '')) || 0;
-                    bValue = parseFloat(bValue.replace(/[^\d.-]/g, '')) || 0;
-                }
-                if (currentOrder === 'asc') {
-                    return aValue > bValue ? 1 : -1;
-                } else {
-                    return aValue < bValue ? 1 : -1;
-                }
-            });
-            // Обновляем содержимое tbody
-            while (tbody.firstChild) {
-                tbody.removeChild(tbody.firstChild);
-            }
-            rows.forEach(row => tbody.appendChild(row));
-            // Добавляем индикатор на заголовок
-            const header = table.querySelector(`th:nth-child(${columnIndex + 1})`);
-            header.setAttribute('data-sort-active', 'true');
-            header.setAttribute('data-sort-order', currentOrder);
-            const arrow = currentOrder === 'asc' ? ' ▲' : ' ▼';
-            header.innerHTML = header.textContent.trim() + arrow;
-        }
-
-        // Функция для обновления фильтра сотрудников (только для админа)
-        async function updateEmployeeFilter() {
-            if (getRoleFromToken() !== 'admin') {
-                return;
-            }
-            const select = document.getElementById('employee-filter');
-            if (!select) return;
-            select.innerHTML = '<option value="all">Все сотрудники</option>';
-            if (Object.keys(userNamesCache).length === 0) {
-                const usersSnapshot = await db.collection('users').get();
-                userNamesCache = {};
-                usersSnapshot.forEach(doc => {
-                    userNamesCache[doc.id] = doc.data().full_name || doc.data().email;
-                });
-            }
-            Object.keys(userNamesCache).forEach(userId => {
-                const option = document.createElement('option');
-                option.value = userId;
-                option.textContent = userNamesCache[userId];
-                select.appendChild(option);
-            });
-            if (settings.filters.employeeFilter && settings.filters.employeeFilter !== 'all') {
-                select.value = settings.filters.employeeFilter;
-            }
-        }
-
-        // НОВОЕ: Функция для обновления фильтра сотрудников в таблице "Таблица"
-        function updateSpreadsheetEmployeeFilter() {
-            const select = document.getElementById('spreadsheet-employee-filter');
-            if (!select) return;
-            select.innerHTML = '<option value="all">Все сотрудники</option>';
-            Object.keys(userNamesCache).forEach(userId => {
-                const option = document.createElement('option');
-                option.value = userId;
-                option.textContent = userNamesCache[userId];
-                select.appendChild(option);
-            });
-        }
-
-        // Функция для обновления фильтров в таблице "Все продажи"
-        function updateAllSalesFilters() {
-            // Обновление фильтра магазинов
-            const shopSelect = document.getElementById('all-sales-shop');
-            if (shopSelect) {
-                shopSelect.innerHTML = '<option value="all">Все магазины</option>';
-                shops.forEach(shop => {
-                    const option = document.createElement('option');
-                    option.value = shop;
-                    option.textContent = shop;
-                    shopSelect.appendChild(option);
-                });
-            }
-        }
-
-        // Функция для показа прелоадера
-        function showLoading(message = 'Пожалуйста, подождите...') {
-            const loadingOverlay = document.getElementById('loading-overlay');
-            const loadingText = document.querySelector('.loading-text');
-            loadingText.textContent = message;
-            loadingOverlay.style.display = 'flex';
-        }
-
-        // Функция для скрытия прелоадера
-        function hideLoading() {
-            document.getElementById('loading-overlay').style.display = 'none';
-        }
-
-        // Функция для показа модального окна подтверждения
-        function showModal(title, message, onConfirm, onCancel = null) {
-            const modal = document.getElementById('confirm-modal');
-            const titleEl = document.getElementById('confirm-modal-title');
-            const messageEl = document.getElementById('confirm-modal-message');
-            titleEl.textContent = title;
-            messageEl.textContent = message;
-            const confirmBtn = document.getElementById('confirm-modal-confirm');
-            const cancelBtn = document.getElementById('confirm-modal-cancel');
-            const closeBtn = document.getElementById('confirm-modal-close');
-            confirmBtn.onclick = function() {
-                modal.style.display = 'none';
-                if (onConfirm) onConfirm();
-            };
-            cancelBtn.onclick = function() {
-                modal.style.display = 'none';
-                if (onCancel) onCancel();
-            };
-            closeBtn.onclick = function() {
-                modal.style.display = 'none';
-                if (onCancel) onCancel();
-            };
-            modal.style.display = 'flex';
-        }
-
-        // Функция для обновления последних продаж
-        function updateRecentAddedSales() {
-            const tbody = document.querySelector('#recent-sales-table tbody');
-            tbody.innerHTML = '';
-            const recentSales = [...salesData]
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .slice(0, 10);
-            recentSales.forEach(sale => {
-                const userName = userNamesCache[sale.user_id] || 'Неизвестный';
-                const totalReturned = returnsData
-                    .filter(r => r.sale_id === sale.id)
-                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
-                const actualQuantity = Math.max(0, (parseInt(sale.quantity) || 0) - totalReturned);
-                const actualRevenue = (parseFloat(sale.selling_price) || 0) * actualQuantity;
-                const actualProfit = calculateProfit(sale, actualQuantity);
-                const actualMargin = calculateMargin(sale, actualQuantity);
-                const tr = document.createElement('tr');
-                if (sale.marketplace === 'Яндекс') {
-                    tr.className = 'marketplace-yandex';
-                } else if (sale.marketplace === 'Озон') {
-                    tr.className = 'marketplace-ozon';
-                }
-                if (actualQuantity === 0) {
-                    tr.classList.add('sale-with-return');
-                } else if (totalReturned > 0) {
-                    tr.classList.add('sale-partially-returned');
-                }
-                tr.innerHTML = `
-                    <td title="${sale.name}">${sale.name.length > 30 ? sale.name.substring(0, 30) + '...' : sale.name}</td>
-                    <td>${sale.marketplace}</td>
-                    <td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
-                    <td class="${actualProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        ${formatCurrency(actualProfit)}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Функция для обновления графика расходов с категориями
-        function updateExpensesStackedChart() {
-            if (expensesData.length === 0) {
-                const ctx = document.getElementById('expenses-stacked-chart').getContext('2d');
-                if (window.expensesStackedChart) window.expensesStackedChart.destroy();
-                window.expensesStackedChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: { labels: [], datasets: [] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-                return;
-            }
-            const allCategories = [...new Set(expensesData.map(e => e.category))];
-            const monthsSet = new Set(
-                expensesData.map(e =>
-                    new Date(e.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' })
-                )
-            );
-            const months = Array.from(monthsSet)
-                .map(m => {
-                    const [month, year] = m.split(' ');
-                    const date = new Date(`${year}-${getMonthNumber(month)}-01`);
-                    return { label: m, date: date };
-                })
-                .sort((a, b) => a.date - b.date)
-                .map(item => item.label);
-            const dataByMonth = {};
-            months.forEach(month => {
-                dataByMonth[month] = {};
-                allCategories.forEach(cat => {
-                    dataByMonth[month][cat] = 0;
-                });
-            });
-            expensesData.forEach(exp => {
-                const month = new Date(exp.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
-                if (dataByMonth[month]) {
-                    dataByMonth[month][exp.category] += (parseFloat(exp.amount) || 0);
-                }
-            });
-            const datasets = allCategories.map((category, index) => ({
-                label: category,
-                data: months.map(month => dataByMonth[month][category] || 0),
-                backgroundColor: [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                    '#FF9F40', '#8AC926', '#1982C4', '#6A4C93', '#F15BB5',
-                    '#00BBF9', '#00F5D4', '#FEE440', '#9B5DE5', '#00C1D4'
-                ][index % 15]
-            }));
-            const ctx = document.getElementById('expenses-stacked-chart').getContext('2d');
-            if (window.expensesStackedChart) {
-                window.expensesStackedChart.destroy();
-            }
-            window.expensesStackedChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: months,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                footer: (tooltipItems) => {
-                                    let total = 0;
-                                    tooltipItems.forEach(item => total += item.parsed.y);
-                                    return `Итого: ${formatCurrency(total)}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { stacked: true },
-                        y: { stacked: true, beginAtZero: true }
-                    }
-                }
-            });
-        }
-
-        // Функция для группировки продаж по товару
-        function groupSalesByProduct(sales) {
-            const grouped = {};
-            sales.forEach(sale => {
-                const key = sale.name || 'Без названия';
-                if (!grouped[key]) {
-                    grouped[key] = {
-                        name: key,
-                        totalRevenue: 0,
-                        totalProfit: 0,
-                        totalQuantity: 0
-                    };
-                }
-                const sellingPrice = parseFloat(sale.selling_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                const revenue = sellingPrice * quantity;
-                grouped[key].totalRevenue += revenue;
-                grouped[key].totalProfit += calculateProfit(sale);
-                grouped[key].totalQuantity += quantity;
-            });
-            return Object.values(grouped).map(item => {
-                const margin = item.totalRevenue > 0 
-                    ? Math.round((item.totalProfit / item.totalRevenue) * 100) 
-                    : 0;
-                return {
-                    ...item,
-                    margin
-                };
-            });
-        }
-
-        // Функция для калькулятора прибыли
-        function updateProfitCalculator() {
-            const sellingPrice = parseFloat(document.getElementById('selling-price').value) || 0;
-            const quantity = parseInt(document.getElementById('quantity').value) || 1;
-            const purchasePrice = parseFloat(document.getElementById('purchase-price').value) || 0;
-            const commission = parseFloat(document.getElementById('commission').value) || 0;
-            const logistics = parseFloat(document.getElementById('logistics').value) || 0;
-            const deliveryToMV = parseFloat(document.getElementById('delivery-mv').value) || 0;
-            const advertising = parseFloat(document.getElementById('advertising').value) || 0.98;
-            const taxRate = parseFloat(document.getElementById('tax-rate').value) || 0.99;
-            const revenue = sellingPrice * quantity;
-            const purchaseCost = purchasePrice * quantity;
-            const commissionCost = commission * quantity;
-            const logisticsCost = logistics * quantity;
-            const deliveryCost = deliveryToMV * quantity;
-            const revenueAfterAdvertising = revenue * advertising;
-            const taxCost = (1 - taxRate) * revenueAfterAdvertising;
-            const cost = purchaseCost + commissionCost + logisticsCost + deliveryCost + taxCost;
-            const profit = revenueAfterAdvertising - cost;
-            const margin = revenue === 0 ? 0 : Math.round((profit / revenue) * 100);
-            animateValue(document.getElementById('revenue-calc'), revenue);
-            animateValue(document.getElementById('cost-calc'), cost);
-            animateValue(document.getElementById('profit-calc'), profit);
-            animateValue(document.getElementById('margin-calc'), margin, true);
-        }
-
-        // Функция для анимации значений
-        function animateValue(element, newValue, isPercent = false) {
-            const currentValue = parseFloat(element.textContent.replace(/[^\d.-]/g, '')) || 0;
-            const duration = 500;
-            const startTime = performance.now();
-            function updateValue(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const currentValueAnimated = currentValue + (newValue - currentValue) * progress;
-                if (isPercent) {
-                    element.textContent = Math.round(currentValueAnimated) + '%';
-                } else {
-                    element.textContent = formatCurrency(currentValueAnimated);
-                }
-                if (progress < 1) {
-                    requestAnimationFrame(updateValue);
-                }
-            }
-            requestAnimationFrame(updateValue);
-        }
-
-        // Функция для загрузки пользователей (только для админа)
-        async function loadAllUsers() {
-            try {
-                const usersSnapshot = await db.collection('users').orderBy('createdAt', 'desc').get();
-                const userListContainer = document.getElementById('user-list');
-                userListContainer.innerHTML = '';
-                usersSnapshot.forEach(doc => {
-                    const user = doc.data();
-                    const div = document.createElement('div');
-                    div.className = 'user-list-item';
-                    div.innerHTML = `
-                        <strong>${user.full_name} (${user.email})</strong>
-                        <span>Роль: ${getRoleDisplayName(user.role)}</span>
-                    `;
-                    userListContainer.appendChild(div);
-                });
-            } catch (error) {
-                console.error('Ошибка загрузки пользователей:', error);
-                notyf.error('Ошибка загрузки списка пользователей');
-            }
-        }
-
-        // Функция для загрузки логов активности (только для админа)
-        async function loadActivityLogs() {
-            try {
-                const logsSnapshot = await db.collection('activity_logs')
-                    .orderBy('timestamp', 'desc')
-                    .limit(50)
-                    .get();
-                const logsContainer = document.getElementById('activity-logs');
-                logsContainer.innerHTML = '';
-                logsSnapshot.forEach(doc => {
-                    const log = doc.data();
-                    const div = document.createElement('div');
-                    div.className = 'activity-log-item';
-                    const userName = userNamesCache[log.user_id] || 'Неизвестный';
-                    const timestamp = new Date(log.timestamp.toDate()).toLocaleString('ru-RU');
-                    div.innerHTML = `
-                        <div><strong>${userName}</strong> ${log.action} <em>${log.target || ''}</em></div>
-                        <div class="timestamp">${timestamp}</div>
-                    `;
-                    logsContainer.appendChild(div);
-                });
-            } catch (error) {
-                console.error('Ошибка загрузки логов активности:', error);
-                notyf.error('Ошибка загрузки логов активности');
-            }
         }
     </script>
 </body>
