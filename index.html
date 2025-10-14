@@ -1974,27 +1974,29 @@
             const revenue = parseFloat(sale.selling_price) * (overrideQuantity !== null ? overrideQuantity : parseInt(sale.quantity) || 0);
             return revenue === 0 ? 0 : Math.round((profit / revenue) * 100);
         }
+        // === ИСПРАВЛЕННЫЕ ФУНКЦИИ ЗАГРУЗКИ ДАННЫХ ===
         async function loadSalesData() {
             try {
                 let salesQuery = db.collection('sales');
                 if (getRoleFromToken() !== 'admin') {
                     salesQuery = salesQuery.where('user_id', '==', currentUser.uid);
                 }
-                salesQuery = salesQuery.orderBy('createdAt', 'desc').limit(itemsPerPage);
-                if (currentPage > 1 && lastVisibleSaleDate) {
-                    salesQuery = salesQuery.startAfter(lastVisibleSaleDate);
-                }
+
+                // === ЗАГРУЖАЕМ ВСЕ ПРОДАЖИ ЗА ПОСЛЕДНИЙ ГОД ===
+                const oneYearAgo = new Date();
+                oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                const oneYearAgoStr = oneYearAgo.toISOString().split('T')[0];
+                salesQuery = salesQuery
+                    .where('date', '>=', oneYearAgoStr)
+                    .orderBy('date', 'desc');
+
                 const salesSnapshot = await salesQuery.get();
                 salesData = [];
                 salesSnapshot.forEach(doc => {
                     salesData.push({id: doc.id, ...doc.data()});
                 });
-                if (!salesSnapshot.empty) {
-                    const lastDoc = salesSnapshot.docs[salesSnapshot.docs.length - 1];
-                    lastVisibleSaleDate = lastDoc;
-                } else {
-                    lastVisibleSaleDate = null;
-                }
+                // Убираем пагинацию на стороне Firestore
+                lastVisibleSaleDate = null;
             } catch (error) {
                 console.error('Ошибка загрузки продаж:', error);
                 throw error;
@@ -2023,21 +2025,23 @@
                 if (getRoleFromToken() !== 'admin') {
                     expensesQuery = expensesQuery.where('user_id', '==', currentUser.uid);
                 }
-                if (expenseCurrentPage > 1 && lastVisibleExpense) {
-                    expensesQuery = expensesQuery.startAfter(lastVisibleExpense);
-                }
-                expensesQuery = expensesQuery.orderBy('date', 'desc').limit(itemsPerPage);
+
+                // === ЗАГРУЖАЕМ ВСЕ РАСХОДЫ ЗА ПОСЛЕДНИЙ ГОД ===
+                const oneYearAgo = new Date();
+                oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                const oneYearAgoStr = oneYearAgo.toISOString().split('T')[0];
+                expensesQuery = expensesQuery
+                    .where('date', '>=', oneYearAgoStr)
+                    .orderBy('date', 'desc');
+
                 const expensesSnapshot = await expensesQuery.get();
                 expensesData = [];
                 expensesSnapshot.forEach(doc => {
                     expensesData.push({id: doc.id, ...doc.data()});
                 });
                 expensesData.sort((a, b) => new Date(b.date) - new Date(a.date));
-                if (!expensesSnapshot.empty) {
-                    lastVisibleExpense = expensesSnapshot.docs[expensesSnapshot.docs.length - 1];
-                } else {
-                    lastVisibleExpense = null;
-                }
+                // Убираем пагинацию на стороне Firestore
+                lastVisibleExpense = null;
             } catch (error) {
                 console.error('Ошибка загрузки расходов:', error);
                 throw error;
@@ -2366,7 +2370,6 @@
                     totalReturns: 0
                 };
             }
-
             // === СЧИТАЕМ ФАКТИЧЕСКУЮ ВЫРУЧКУ С УЧЁТОМ ВОЗВРАТОВ ===
             let totalRevenue = 0;
             filteredData.forEach(sale => {
@@ -2378,12 +2381,10 @@
                 const actualQuantity = Math.max(0, quantity - totalReturned);
                 totalRevenue += sellingPrice * actualQuantity;
             });
-
             // === СЧИТАЕМ СУММУ ВОЗВРАТОВ ===
             const totalReturns = returnsData.reduce((sum, ret) => {
                 return sum + (parseFloat(ret.amount) || 0);
             }, 0);
-
             // === ПРЯМЫЕ РАСХОДЫ: только по фактически проданным товарам ===
             let totalDirectCosts = 0;
             filteredData.forEach(sale => {
@@ -2392,7 +2393,6 @@
                     .filter(r => r.sale_id === sale.id)
                     .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
                 const actualQuantity = Math.max(0, quantity - totalReturned);
-
                 const purchasePrice = parseFloat(sale.purchase_price) || 0;
                 const commission = parseFloat(sale.commission) || 0;
                 const logistics = parseFloat(sale.logistics) || 0;
@@ -2400,7 +2400,6 @@
                 const advertising = parseFloat(sale.advertising) || 0.98;
                 const taxRate = parseFloat(sale.tax_rate) || 0.99;
                 const sellingPrice = parseFloat(sale.selling_price) || 0;
-
                 const revenue = sellingPrice * actualQuantity;
                 const purchaseCost = purchasePrice * actualQuantity;
                 const commissionCost = commission * actualQuantity;
@@ -2408,18 +2407,14 @@
                 const deliveryCost = deliveryToMV * actualQuantity;
                 const revenueAfterAdvertising = revenue * advertising;
                 const taxCost = (1 - taxRate) * revenueAfterAdvertising;
-
                 totalDirectCosts += purchaseCost + commissionCost + logisticsCost + deliveryCost + taxCost;
             });
-
             const totalOperatingExpenses = expensesData.reduce((sum, expense) => {
                 return sum + (parseFloat(expense.amount) || 0);
             }, 0);
-
             const totalCost = totalDirectCosts + totalOperatingExpenses;
             const totalProfit = totalRevenue - totalCost;
             const averageMargin = totalRevenue === 0 ? 0 : Math.round((totalProfit / totalRevenue) * 100);
-
             return {
                 totalRevenue,
                 totalCost,
@@ -4138,7 +4133,6 @@
             document.getElementById('prev-page').addEventListener('click', async function() {
                 if (currentPage > 1) {
                     currentPage--;
-                    await loadSalesData();
                     await updateAllSalesTable();
                 }
             });
@@ -4147,14 +4141,12 @@
                 const totalPages = Math.ceil(totalItems / itemsPerPage);
                 if (currentPage < totalPages) {
                     currentPage++;
-                    await loadSalesData();
                     await updateAllSalesTable();
                 }
             });
             document.getElementById('prev-expense-page').addEventListener('click', async function() {
                 if (expenseCurrentPage > 1) {
                     expenseCurrentPage--;
-                    await loadExpensesData();
                     await updateExpenses();
                 }
             });
@@ -4163,7 +4155,6 @@
                 const totalPages = Math.ceil(totalItems / itemsPerPage);
                 if (expenseCurrentPage < totalPages) {
                     expenseCurrentPage++;
-                    await loadExpensesData();
                     await updateExpenses();
                 }
             });
