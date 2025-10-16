@@ -889,7 +889,7 @@
                             <select id="tax-rate">
                                 <option value="0.99">1% (УСН Доходы)</option>
                                 <option value="0.93">7% (УСН Доходы)</option>
-                                <option value="0.8515">15% (УСН Доходы-Расходы)</option>
+                                <!-- УДАЛЕНО: 15% -->
                             </select>
                         </div>
                         <div>
@@ -1378,14 +1378,19 @@
                                         <td id="report-commission-percent" class="right-align">0%</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding-left: 30px;">Налоги</td>
-                                        <td id="report-tax-cost" class="right-align">0</td>
-                                        <td id="report-tax-percent" class="right-align">0%</td>
+                                        <td style="padding-left: 30px;">Возвраты (убыток)</td>
+                                        <td id="report-returns-loss" class="right-align">0</td>
+                                        <td id="report-returns-loss-percent" class="right-align">0%</td>
                                     </tr>
                                     <tr style="background: #ffedd5;">
                                         <td><strong>Операционные расходы</strong></td>
                                         <td id="report-operating-expenses" class="right-align" style="font-weight: bold;">0</td>
                                         <td id="report-operating-expenses-percent" class="right-align">0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left: 30px;">Налоги</td>
+                                        <td id="report-tax-cost" class="right-align">0</td>
+                                        <td id="report-tax-percent" class="right-align">0%</td>
                                     </tr>
                                     <tr style="background: #dcfce7;">
                                         <td><strong>Чистая прибыль</strong></td>
@@ -1705,7 +1710,7 @@
                             <select id="edit-tax-rate">
                                 <option value="0.99">1% (УСН Доходы)</option>
                                 <option value="0.93">7% (УСН Доходы)</option>
-                                <option value="0.8515">15% (УСН Доходы-Расходы)</option>
+                                <!-- УДАЛЕНО: 15% -->
                             </select>
                         </div>
                         <div>
@@ -1981,7 +1986,6 @@
                 if (getRoleFromToken() !== 'admin') {
                     salesQuery = salesQuery.where('user_id', '==', currentUser.uid);
                 }
-
                 // === ЗАГРУЖАЕМ ВСЕ ПРОДАЖИ ЗА ПОСЛЕДНИЙ ГОД ===
                 const oneYearAgo = new Date();
                 oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -1989,7 +1993,6 @@
                 salesQuery = salesQuery
                     .where('date', '>=', oneYearAgoStr)
                     .orderBy('date', 'desc');
-
                 const salesSnapshot = await salesQuery.get();
                 salesData = [];
                 salesSnapshot.forEach(doc => {
@@ -2025,7 +2028,6 @@
                 if (getRoleFromToken() !== 'admin') {
                     expensesQuery = expensesQuery.where('user_id', '==', currentUser.uid);
                 }
-
                 // === ЗАГРУЖАЕМ ВСЕ РАСХОДЫ ЗА ПОСЛЕДНИЙ ГОД ===
                 const oneYearAgo = new Date();
                 oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -2033,7 +2035,6 @@
                 expensesQuery = expensesQuery
                     .where('date', '>=', oneYearAgoStr)
                     .orderBy('date', 'desc');
-
                 const expensesSnapshot = await expensesQuery.get();
                 expensesData = [];
                 expensesSnapshot.forEach(doc => {
@@ -3106,20 +3107,43 @@
                 const revenueAfterAdvertising = (sellingPrice * actualQuantity) * advertising;
                 totalTaxCost += (1 - taxRate) * revenueAfterAdvertising;
             });
-            const totalOperatingExpenses = filteredExpenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
-            const totalProfit = (adjustedRevenue - totalPurchaseCost - totalCommissionCost - totalTaxCost) - totalOperatingExpenses;
+            // === РАСЧЁТ УБЫТКА ПО ВОЗВРАТАМ ===
+            let totalReturnsLoss = 0;
+            filteredReturns.forEach(ret => {
+                const sale = salesData.find(s => s.id === ret.sale_id);
+                if (!sale) return;
+                const purchasePrice = parseFloat(sale.purchase_price) || 0;
+                totalReturnsLoss += purchasePrice * (ret.return_quantity || 0);
+            });
+            // Исключаем статьи возвратов из операционных расходов
+            const returnExpenseCategories = ["Возврат: логистика", "Возврат: Доставка до МВ"];
+            let totalOperatingExpenses = 0;
+            let totalReturnLogisticsCost = 0;
+            filteredExpenses.forEach(exp => {
+                const amount = parseFloat(exp.amount) || 0;
+                if (returnExpenseCategories.includes(exp.category)) {
+                    totalReturnLogisticsCost += amount;
+                } else {
+                    totalOperatingExpenses += amount;
+                }
+            });
+            totalReturnsLoss += totalReturnLogisticsCost;
+            const totalDirectCosts = totalPurchaseCost + totalCommissionCost + totalReturnsLoss;
+            const totalProfit = adjustedRevenue - totalDirectCosts - totalOperatingExpenses - totalTaxCost;
             document.getElementById('report-revenue').textContent = formatCurrency(adjustedRevenue);
-            document.getElementById('report-direct-costs').textContent = formatCurrency(totalPurchaseCost + totalCommissionCost + totalTaxCost);
+            document.getElementById('report-direct-costs').textContent = formatCurrency(totalDirectCosts);
             document.getElementById('report-purchase-cost').textContent = formatCurrency(totalPurchaseCost);
             document.getElementById('report-commission-cost').textContent = formatCurrency(totalCommissionCost);
-            document.getElementById('report-tax-cost').textContent = formatCurrency(totalTaxCost);
+            document.getElementById('report-returns-loss').textContent = formatCurrency(totalReturnsLoss);
             document.getElementById('report-operating-expenses').textContent = formatCurrency(totalOperatingExpenses);
+            document.getElementById('report-tax-cost').textContent = formatCurrency(totalTaxCost);
             document.getElementById('report-profit').textContent = formatCurrency(totalProfit);
-            document.getElementById('report-direct-costs-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round(((totalPurchaseCost + totalCommissionCost + totalTaxCost) / adjustedRevenue) * 100) + '%';
+            document.getElementById('report-direct-costs-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalDirectCosts / adjustedRevenue) * 100) + '%';
             document.getElementById('report-purchase-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalPurchaseCost / adjustedRevenue) * 100) + '%';
             document.getElementById('report-commission-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalCommissionCost / adjustedRevenue) * 100) + '%';
-            document.getElementById('report-tax-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalTaxCost / adjustedRevenue) * 100) + '%';
+            document.getElementById('report-returns-loss-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalReturnsLoss / adjustedRevenue) * 100) + '%';
             document.getElementById('report-operating-expenses-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalOperatingExpenses / adjustedRevenue) * 100) + '%';
+            document.getElementById('report-tax-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalTaxCost / adjustedRevenue) * 100) + '%';
             document.getElementById('report-profit-percent').textContent = adjustedRevenue === 0 ? '0%' : Math.round((totalProfit / adjustedRevenue) * 100) + '%';
         }
         // Функция для экспорта в CSV
@@ -4349,8 +4373,8 @@
                     expenseCategories = ['Аренда', 'Зарплата', 'Уборщица', 'Курьеры'];
                     taxSystems = [
                         {name: 'УСН Доходы (1%)', rate: 0.99},
-                        {name: 'УСН Доходы (7%)', rate: 0.93},
-                        {name: 'УСН Доходы-Расходы (15%)', rate: 0.8515}
+                        {name: 'УСН Доходы (7%)', rate: 0.93}
+                        // УДАЛЕНО: 15%
                     ];
                     saveData();
                 }
