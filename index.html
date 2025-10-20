@@ -1943,18 +1943,24 @@
             const months = { 'янв.': '01', 'февр.': '02', 'мар.': '03', 'апр.': '04', 'мая': '05', 'июня': '06', 'июля': '07', 'авг.': '08', 'сент.': '09', 'окт.': '10', 'нояб.': '11', 'дек.': '12' };
             return months[monthName] || '01';
         }
-        function validateRequired(value, fieldName = "Поле") {
-            if (!value || value.toString().trim() === "") {
-                throw new Error(`${fieldName} обязательно для заполнения`);
+            function validateRequired(value, fieldName = "Поле") {
+                if (!value || value.toString().trim() === "") {
+                    throw new Error(`${fieldName} обязательно для заполнения`);
+                }
             }
-        }
-        function validateNumber(value, fieldName = "Число", min = null, max = null) {
-            const num = parseFloat(value);
-            if (isNaN(num)) throw new Error(`${fieldName} должно быть числом`);
-            if (min !== null && num < min) throw new Error(`${fieldName} должно быть не меньше ${min}`);
-            if (max !== null && num > max) throw new Error(`${fieldName} должно быть не больше ${max}`);
-            return num;
-        }
+            function validateNumber(value, fieldName = "Число", min = null, max = null) {
+                const num = parseFloat(value);
+                if (isNaN(num)) throw new Error(`${fieldName} должно быть числом`);
+                if (min !== null && num < min) throw new Error(`${fieldName} должно быть не меньше ${min}`);
+                if (max !== null && num > max) throw new Error(`${fieldName} должно быть не больше ${max}`);
+                return num;
+            }
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!re.test(email)) {
+                    throw new Error("Некорректный email");
+                }
+            }
         // === ИСПРАВЛЕНА ФУНКЦИЯ РАСЧЕТА ПРИБЫЛИ ===
         function calculateProfit(sale, overrideQuantity = null) {
             const quantity = overrideQuantity !== null ? overrideQuantity : (parseInt(sale.quantity) || 0);
