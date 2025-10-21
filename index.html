@@ -652,6 +652,105 @@
         .analytics-section .card {
             margin-bottom: 0;
         }
+        /* === СТИЛИ ДЛЯ СТАТУСОВ === */
+        .status-ready {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+        .status-in-transit {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        .status-delivered {
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+        .status-returned {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        /* === НОВЫЕ СТИЛИ ДЛЯ МИНИМАЛИСТИЧНЫХ КАРТОЧЕК === */
+        .status-card {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .status-indicator {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .status-card.green .status-indicator {
+            background-color: #10b981;
+        }
+        .status-card.orange .status-indicator {
+            background-color: #f59e0b;
+        }
+        .status-card.blue .status-indicator {
+            background-color: #3b82f6;
+        }
+        .status-card.red .status-indicator {
+            background-color: #ef4444;
+        }
+        .status-card.green h3 {
+            color: #10b981;
+        }
+        .status-card.orange h3 {
+            color: #f59e0b;
+        }
+        .status-card.blue h3 {
+            color: #3b82f6;
+        }
+        .status-card.red h3 {
+            color: #ef4444;
+        }
+        .status-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .status-amount {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--gray);
+            margin-bottom: 4px;
+        }
+        .status-label {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+        /* === НОВЫЙ СТИЛЬ ДЛЯ ЭМОДЗИ-СТАТУСА === */
+        .status-emoji {
+            font-size: 1.5rem;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s;
+        }
+        .status-emoji:hover {
+            transform: scale(1.2);
+        }
     </style>
 </head>
 <body>
@@ -784,6 +883,47 @@
                         <div class="value" id="total-returns">0 ₽</div>
                         <div>за выбранный период</div>
                     </div>
+                    <!-- НОВЫЕ МИНИМАЛИСТИЧНЫЕ КАРТОЧКИ -->
+                    <div class="status-card green">
+                        <div class="status-indicator">✅</div>
+                        <div>
+                            <h3>Готово к отгрузке</h3>
+                            <div class="status-value" id="ready-to-ship-count">0 шт.</div>
+                            <div class="status-amount" id="ready-to-ship-shipments">0 отправлений</div>
+                            <div class="status-amount" id="ready-to-ship-amount">0 ₽</div>
+                            <span class="status-label">в статусе "Готов к отгрузке"</span>
+                        </div>
+                    </div>
+                    <div class="status-card orange">
+                        <div class="status-indicator">🚚</div>
+                        <div>
+                            <h3>Доставляется</h3>
+                            <div class="status-value" id="in-transit-count">0 шт.</div>
+                            <div class="status-amount" id="in-transit-shipments">0 отправлений</div>
+                            <div class="status-amount" id="in-transit-amount">0 ₽</div>
+                            <span class="status-label">в статусе "Доставляется"</span>
+                        </div>
+                    </div>
+                    <div class="status-card blue">
+                        <div class="status-indicator">📦</div>
+                        <div>
+                            <h3>Доставлено</h3>
+                            <div class="status-value" id="delivered-count">0 шт.</div>
+                            <div class="status-amount" id="delivered-shipments">0 отправлений</div>
+                            <div class="status-amount" id="delivered-amount">0 ₽</div>
+                            <span class="status-label">в статусе "Доставлен"</span>
+                        </div>
+                    </div>
+                    <div class="status-card red">
+                        <div class="status-indicator">❌</div>
+                        <div>
+                            <h3>Возвраты</h3>
+                            <div class="status-value" id="returned-count">0 шт.</div>
+                            <div class="status-amount" id="returned-shipments">0 отправлений</div>
+                            <div class="status-amount" id="returned-amount">0 ₽</div>
+                            <span class="status-label">в статусе "Возврат"</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="grid">
                     <div class="card">
@@ -831,6 +971,7 @@
                     </div>
                 </div>
             </div>
+            <!-- остальные вкладки без изменений -->
             <div id="sales" class="tab-content">
                 <div class="card">
                     <h2 class="card-title">Добавить новую продажу</h2>
@@ -889,7 +1030,6 @@
                             <select id="tax-rate">
                                 <option value="0.99">1% (УСН Доходы)</option>
                                 <option value="0.93">7% (УСН Доходы)</option>
-                                <!-- УДАЛЕНО: 15% -->
                             </select>
                         </div>
                         <div>
@@ -974,6 +1114,16 @@
                                 </select>
                             </div>
                             <div>
+                                <label for="sale-status-filter">Статус</label>
+                                <select id="sale-status-filter">
+                                    <option value="all">Все статусы</option>
+                                    <option value="Готов к отгрузке">Готов к отгрузке</option>
+                                    <option value="Доставляется">Доставляется</option>
+                                    <option value="Доставлен">Доставлен</option>
+                                    <option value="Возврат">Возврат</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label>&nbsp;</label>
                                 <button class="btn btn-primary" id="apply-sales-filters">Применить</button>
                             </div>
@@ -989,6 +1139,7 @@
                                     <th>Магазин</th>
                                     <th>Сотрудник</th>
                                     <th>Дата</th>
+                                    <th>Статус</th>
                                     <th>Выручка</th>
                                     <th>Прибыль</th>
                                     <th>Маржа</th>
@@ -1056,6 +1207,30 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h2 class="card-title">Учет возвратов</h2>
                         <button class="btn btn-warning" id="open-return-modal">Добавить возврат</button>
+                    </div>
+                    <div class="card">
+                        <h3>Подтвердить доставку</h3>
+                        <div class="filters">
+                            <div>
+                                <label for="confirm-period">Период</label>
+                                <select id="confirm-period">
+                                    <option value="last-week">Прошлая неделя</option>
+                                    <option value="custom">Указать даты</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="confirm-start-date">Дата от</label>
+                                <input type="date" id="confirm-start-date">
+                            </div>
+                            <div>
+                                <label for="confirm-end-date">Дата до</label>
+                                <input type="date" id="confirm-end-date">
+                            </div>
+                            <div>
+                                <label>&nbsp;</label>
+                                <button class="btn btn-success" id="confirm-delivery-all">Подтвердить доставку по всем</button>
+                            </div>
+                        </div>
                     </div>
                     <div style="max-height: 500px; overflow-y: auto;">
                         <table id="returns-table">
@@ -1142,6 +1317,7 @@
                                     <th>Маркетплейс</th>
                                     <th>Магазин</th>
                                     <th>Сотрудник</th>
+                                    <th>Статус</th>
                                     <th>Цена закупки</th>
                                     <th>Цена продажи</th>
                                     <th>Комиссия</th>
@@ -1710,7 +1886,6 @@
                             <select id="edit-tax-rate">
                                 <option value="0.99">1% (УСН Доходы)</option>
                                 <option value="0.93">7% (УСН Доходы)</option>
-                                <!-- УДАЛЕНО: 15% -->
                             </select>
                         </div>
                         <div>
@@ -1720,6 +1895,15 @@
                         <div>
                             <label for="edit-sale-date">Дата продажи</label>
                             <input type="date" id="edit-sale-date">
+                        </div>
+                        <div>
+                            <label for="edit-status">Статус</label>
+                            <select id="edit-status">
+                                <option value="Готов к отгрузке">Готов к отгрузке</option>
+                                <option value="Доставляется">Доставляется</option>
+                                <option value="Доставлен">Доставлен</option>
+                                <option value="Возврат">Возврат</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -1939,28 +2123,29 @@
         const deleteIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
         let marketplaceChart, salesChart, topProductsChart, revenueExpensesChart;
         let userNamesCache = {};
+        // === ДОБАВЛЕНА ФУНКЦИЯ ВАЛИДАЦИИ EMAIL ===
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!re.test(email)) {
+                throw new Error("Некорректный формат email");
+            }
+        }
         function getMonthNumber(monthName) {
             const months = { 'янв.': '01', 'февр.': '02', 'мар.': '03', 'апр.': '04', 'мая': '05', 'июня': '06', 'июля': '07', 'авг.': '08', 'сент.': '09', 'окт.': '10', 'нояб.': '11', 'дек.': '12' };
             return months[monthName] || '01';
         }
-            function validateRequired(value, fieldName = "Поле") {
-                if (!value || value.toString().trim() === "") {
-                    throw new Error(`${fieldName} обязательно для заполнения`);
-                }
+        function validateRequired(value, fieldName = "Поле") {
+            if (!value || value.toString().trim() === "") {
+                throw new Error(`${fieldName} обязательно для заполнения`);
             }
-            function validateNumber(value, fieldName = "Число", min = null, max = null) {
-                const num = parseFloat(value);
-                if (isNaN(num)) throw new Error(`${fieldName} должно быть числом`);
-                if (min !== null && num < min) throw new Error(`${fieldName} должно быть не меньше ${min}`);
-                if (max !== null && num > max) throw new Error(`${fieldName} должно быть не больше ${max}`);
-                return num;
-            }
-            function validateEmail(email) {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!re.test(email)) {
-                    throw new Error("Некорректный email");
-                }
-            }
+        }
+        function validateNumber(value, fieldName = "Число", min = null, max = null) {
+            const num = parseFloat(value);
+            if (isNaN(num)) throw new Error(`${fieldName} должно быть числом`);
+            if (min !== null && num < min) throw new Error(`${fieldName} должно быть не меньше ${min}`);
+            if (max !== null && num > max) throw new Error(`${fieldName} должно быть не больше ${max}`);
+            return num;
+        }
         // === ИСПРАВЛЕНА ФУНКЦИЯ РАСЧЕТА ПРИБЫЛИ ===
         function calculateProfit(sale, overrideQuantity = null) {
             const quantity = overrideQuantity !== null ? overrideQuantity : (parseInt(sale.quantity) || 0);
@@ -2080,6 +2265,7 @@
                     date: document.getElementById('sale-date').value,
                     marketplace: document.getElementById('marketplace-select').value,
                     shop: document.getElementById('shop-select').value,
+                    status: "Готов к отгрузке", // НОВОЕ ПОЛЕ
                     user_id: currentUser.uid,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
@@ -2150,15 +2336,7 @@
                 showLoading('Сохраняем возврат...');
                 const docRef = await db.collection('returns').add(returnItem);
                 returnsData.push({...returnItem, id: docRef.id});
-                // === АВТОМАТИЧЕСКИЕ РАСХОДЫ ===
-                const newExpenseCategories = [];
-                if (logisticsBack > 0) newExpenseCategories.push("Возврат: логистика");
-                if (deliveryMvBack > 0) newExpenseCategories.push("Возврат: Доставка до МВ");
-                newExpenseCategories.forEach(cat => {
-                    if (!expenseCategories.includes(cat)) {
-                        expenseCategories.push(cat);
-                    }
-                });
+                // === АВТОМАТИЧЕСКИЕ РАСХОДЫ СО ССЫЛКОЙ НА ВОЗВРАТ ===
                 const expensePromises = [];
                 if (logisticsBack > 0) {
                     expensePromises.push(
@@ -2168,6 +2346,7 @@
                             date: date,
                             description: `Обратная логистика по возврату товара "${sale.name}"`,
                             user_id: currentUser.uid,
+                            return_id: docRef.id, // ← КЛЮЧЕВОЕ ИЗМЕНЕНИЕ
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         })
                     );
@@ -2180,6 +2359,7 @@
                             date: date,
                             description: `Обратная доставка до МВ по возврату товара "${sale.name}"`,
                             user_id: currentUser.uid,
+                            return_id: docRef.id, // ← КЛЮЧЕВОЕ ИЗМЕНЕНИЕ
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         })
                     );
@@ -2258,7 +2438,7 @@
             const filterMarketplace = document.getElementById('all-sales-marketplace').value;
             const filterShop = document.getElementById('all-sales-shop').value;
             const filterEmployee = document.getElementById('employee-filter') ? document.getElementById('employee-filter').value : 'all';
-            const filterReturn = document.getElementById('return-filter') ? document.getElementById('return-filter').value : 'all';
+            const filterStatus = document.getElementById('sale-status-filter').value;
             let filteredSales = [...salesData];
             if (period !== 'all') {
                 let startDatePeriod;
@@ -2292,12 +2472,8 @@
             if (filterEmployee !== 'all') {
                 filteredSales = filteredSales.filter(sale => sale.user_id === filterEmployee);
             }
-            if (filterReturn !== 'all') {
-                if (filterReturn === 'with-return') {
-                    filteredSales = filteredSales.filter(sale => returnsData.some(ret => ret.sale_id === sale.id));
-                } else if (filterReturn === 'without-return') {
-                    filteredSales = filteredSales.filter(sale => !returnsData.some(ret => ret.sale_id === sale.id));
-                }
+            if (filterStatus !== 'all') {
+                filteredSales = filteredSales.filter(sale => sale.status === filterStatus);
             }
             // НОВОЕ: Сортируем по дате (новые сверху)
             filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -2320,6 +2496,8 @@
                     tr.classList.add('sale-partially-returned');
                 }
                 // === КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: отображаем actualQuantity и actualRevenue ===
+                // === НОВЫЙ СТОЛБЕЦ С ЭМОДЗИ-СТАТУСОМ ===
+                const statusEmoji = getStatusEmoji(sale.status);
                 tr.innerHTML = `
                     <td title="${sale.name}">${sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name}</td>
                     <td>${sale.article}</td>
@@ -2327,17 +2505,27 @@
                     <td>${sale.shop || '-'}</td>
                     <td>${userName}</td>
                     <td>${new Date(sale.date).toLocaleDateString('ru-RU')}</td>
+                    <td><span class="status-badge status-${sale.status.toLowerCase().replace(/\s+/g, '-') || 'default'}">${sale.status}</span></td>
                     <td>${isFullyReturned ? '0 ₽' : formatCurrency(actualRevenue)}</td>
                     <td class="${actualProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
                         ${isFullyReturned ? '0 ₽' : formatCurrency(actualProfit)}
                     </td>
                     <td>${isFullyReturned ? '0%' : actualMargin + '%'}</td>
                     <td class="actions-cell">
+                        <span class="status-emoji" data-sale-id="${sale.id}" title="Изменить статус">${statusEmoji}</span>
                         <button class="icon-btn" onclick="editSale('${sale.id}')" title="Редактировать">${editIcon}</button>
                         <button class="icon-btn" onclick="deleteSale('${sale.id}')" title="Удалить">${deleteIcon}</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
+            });
+            // === ДОБАВЛЯЕМ ОБРАБОТЧИКИ СОБЫТИЙ ДЛЯ ЭМОДЗИ ===
+            document.querySelectorAll('.status-emoji').forEach(emoji => {
+                emoji.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const saleId = this.getAttribute('data-sale-id');
+                    cycleSaleStatus(saleId);
+                });
             });
             updatePagination();
         }
@@ -2374,11 +2562,35 @@
                     totalCost: 0,
                     totalProfit: 0,
                     averageMargin: 0,
-                    totalReturns: 0
+                    totalReturns: 0,
+                    readyToShipCount: 0,
+                    readyToShipShipments: 0,
+                    readyToShipValue: 0,
+                    inTransitCount: 0,
+                    inTransitShipments: 0,
+                    inTransitValue: 0,
+                    deliveredCount: 0,
+                    deliveredShipments: 0,
+                    deliveredValue: 0,
+                    returnedCount: 0,
+                    returnedShipments: 0,
+                    returnedValue: 0
                 };
             }
-            // === СЧИТАЕМ ФАКТИЧЕСКУЮ ВЫРУЧКУ С УЧЁТОМ ВОЗВРАТОВ ===
+            // === СЧИТАЕМ ФАКТИЧЕСКУЮ ВЫРУЧКУ С УЧЁТОМ ВОЗВРАТОВ И СТАТУСА ===
             let totalRevenue = 0;
+            let readyToShipCount = 0;
+            let readyToShipValue = 0;
+            let readyToShipShipments = new Set();
+            let inTransitCount = 0;
+            let inTransitValue = 0;
+            let inTransitShipments = new Set();
+            let deliveredCount = 0;
+            let deliveredValue = 0;
+            let deliveredShipments = new Set();
+            let returnedCount = 0;
+            let returnedValue = 0;
+            let returnedShipments = new Set();
             filteredData.forEach(sale => {
                 const sellingPrice = parseFloat(sale.selling_price) || 0;
                 const quantity = parseInt(sale.quantity) || 0;
@@ -2386,7 +2598,39 @@
                     .filter(r => r.sale_id === sale.id)
                     .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
                 const actualQuantity = Math.max(0, quantity - totalReturned);
-                totalRevenue += sellingPrice * actualQuantity;
+                const actualRevenue = sellingPrice * actualQuantity;
+                // === СОБИРАЕМ УНИКАЛЬНЫЕ ОТПРАВЛЕНИЯ ===
+                if (sale.tracking_number) {
+                    if (sale.status === "Готов к отгрузке") {
+                        readyToShipShipments.add(sale.tracking_number);
+                    } else if (sale.status === "Доставляется") {
+                        inTransitShipments.add(sale.tracking_number);
+                    } else if (sale.status === "Доставлен") {
+                        deliveredShipments.add(sale.tracking_number);
+                    } else if (sale.status === "Возврат") {
+                        returnedShipments.add(sale.tracking_number);
+                    }
+                }
+                // === РАЗДЕЛЯЕМ ПО СТАТУСАМ ===
+                switch(sale.status) {
+                    case "Готов к отгрузке":
+                        readyToShipCount += actualQuantity;
+                        readyToShipValue += actualRevenue;
+                        break;
+                    case "Доставляется":
+                        inTransitCount += actualQuantity;
+                        inTransitValue += actualRevenue;
+                        break;
+                    case "Доставлен":
+                        totalRevenue += actualRevenue; // ТОЛЬКО ЭТОТ СТАТУС УЧИТЫВАЕТСЯ В ВЫРУЧКЕ
+                        deliveredCount += actualQuantity;
+                        deliveredValue += actualRevenue;
+                        break;
+                    case "Возврат":
+                        returnedCount += actualQuantity;
+                        returnedValue += actualRevenue;
+                        break;
+                }
             });
             // === СЧИТАЕМ СУММУ ВОЗВРАТОВ ===
             const totalReturns = returnsData.reduce((sum, ret) => {
@@ -2395,6 +2639,7 @@
             // === ПРЯМЫЕ РАСХОДЫ: только по фактически проданным товарам ===
             let totalDirectCosts = 0;
             filteredData.forEach(sale => {
+                if (sale.status !== "Доставлен") return; // УЧИТЫВАЕМ ТОЛЬКО ДОСТАВЛЕННЫЕ
                 const quantity = parseInt(sale.quantity) || 0;
                 const totalReturned = returnsData
                     .filter(r => r.sale_id === sale.id)
@@ -2427,7 +2672,19 @@
                 totalCost,
                 totalProfit,
                 averageMargin,
-                totalReturns
+                totalReturns,
+                readyToShipCount,
+                readyToShipShipments: readyToShipShipments.size,
+                readyToShipValue,
+                inTransitCount,
+                inTransitShipments: inTransitShipments.size,
+                inTransitValue,
+                deliveredCount,
+                deliveredShipments: deliveredShipments.size,
+                deliveredValue,
+                returnedCount,
+                returnedShipments: returnedShipments.size,
+                returnedValue
             };
         }
         // Функция для обновления дашборда
@@ -2439,6 +2696,19 @@
             document.getElementById('total-profit').textContent = formatCurrency(metrics.totalProfit);
             document.getElementById('average-margin').textContent = metrics.averageMargin + '%';
             document.getElementById('total-returns').textContent = formatCurrency(metrics.totalReturns);
+            // === НОВЫЕ МЕТРИКИ ===
+            document.getElementById('ready-to-ship-count').textContent = `${metrics.readyToShipCount} шт.`;
+            document.getElementById('ready-to-ship-shipments').textContent = `${metrics.readyToShipShipments} отправлений`;
+            document.getElementById('ready-to-ship-amount').textContent = formatCurrency(metrics.readyToShipValue);
+            document.getElementById('in-transit-count').textContent = `${metrics.inTransitCount} шт.`;
+            document.getElementById('in-transit-shipments').textContent = `${metrics.inTransitShipments} отправлений`;
+            document.getElementById('in-transit-amount').textContent = formatCurrency(metrics.inTransitValue);
+            document.getElementById('delivered-count').textContent = `${metrics.deliveredCount} шт.`;
+            document.getElementById('delivered-shipments').textContent = `${metrics.deliveredShipments} отправлений`;
+            document.getElementById('delivered-amount').textContent = formatCurrency(metrics.deliveredValue);
+            document.getElementById('returned-count').textContent = `${metrics.returnedCount} шт.`;
+            document.getElementById('returned-shipments').textContent = `${metrics.returnedShipments} отправлений`;
+            document.getElementById('returned-amount').textContent = formatCurrency(metrics.returnedValue);
             updateCharts(filteredData);
             updateRecentAddedSales();
         }
@@ -2484,6 +2754,7 @@
                 'Озон': { revenue: 0, profit: 0 }
             };
             filteredData.forEach(sale => {
+                if (sale.status !== "Доставлен") return; // УЧИТЫВАЕМ ТОЛЬКО ДОСТАВЛЕННЫЕ
                 const mp = sale.marketplace;
                 if (marketplaceData[mp]) {
                     const quantity = parseInt(sale.quantity) || 0;
@@ -2504,6 +2775,7 @@
             // Расчет данных для графика продаж по месяцам
             const salesByMonth = {};
             filteredData.forEach(sale => {
+                if (sale.status !== "Доставлен") return; // УЧИТЫВАЕМ ТОЛЬКО ДОСТАВЛЕННЫЕ
                 const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
                 if (!salesByMonth[month]) {
                     salesByMonth[month] = { revenue: 0, grossProfit: 0 };
@@ -2545,7 +2817,7 @@
             salesChart.data.datasets[1].data = netProfits;
             salesChart.update();
             // === НОВОЕ: ГРУППИРОВКА И ОБНОВЛЕНИЕ ТОП-5 ===
-            const groupedProducts = groupSalesByProduct(filteredData);
+            const groupedProducts = groupSalesByProduct(filteredData.filter(s => s.status === "Доставлен"));
             let topProducts = [];
             const sortByMargin = document.getElementById('top-products-sort-margin')?.classList.contains('active') || false;
             if (sortByMargin) {
@@ -2732,6 +3004,7 @@
             // НОВОЕ: Расчет и отображение среднего чека и конверсии возвратов
             let totalRevenue = 0;
             filteredData.forEach(sale => {
+                if (sale.status !== "Доставлен") return;
                 const sellingPrice = parseFloat(sale.selling_price) || 0;
                 const quantity = parseInt(sale.quantity) || 0;
                 const totalReturned = returnsData
@@ -2741,7 +3014,7 @@
                 totalRevenue += sellingPrice * actualQuantity;
             });
             const totalReturns = returnsData.reduce((sum, ret) => sum + (parseFloat(ret.amount) || 0), 0);
-            const totalSalesCount = filteredData.length;
+            const totalSalesCount = filteredData.filter(s => s.status === "Доставлен").length;
             const averageCheck = totalSalesCount > 0 ? totalRevenue / totalSalesCount : 0;
             const returnConversion = totalRevenue > 0 ? (totalReturns / totalRevenue) * 100 : 0;
             document.getElementById('average-check').textContent = formatCurrency(averageCheck);
@@ -2754,6 +3027,7 @@
                 'Озон': { revenue: 0, profit: 0, count: 0 }
             };
             filteredData.forEach(sale => {
+                if (sale.status !== "Доставлен") return;
                 const mp = sale.marketplace;
                 if (marketplaceData[mp]) {
                     const quantity = parseInt(sale.quantity) || 0;
@@ -2802,6 +3076,7 @@
             shopsAnalytics.innerHTML = '';
             const shopsData = {};
             filteredData.forEach(sale => {
+                if (sale.status !== "Доставлен") return;
                 const shop = sale.shop || 'Без магазина';
                 if (!shopsData[shop]) {
                     shopsData[shop] = { revenue: 0, profit: 0, count: 0 };
@@ -2847,7 +3122,7 @@
                 shopsAnalytics.appendChild(div);
             });
             // === ТОП-5 ПРИБЫЛЬНЫХ ТОВАРОВ ===
-            const groupedProducts = groupSalesByProduct(filteredData);
+            const groupedProducts = groupSalesByProduct(filteredData.filter(s => s.status === "Доставлен"));
             const analyticsSortByMargin = document.getElementById('analytics-top-products-sort-margin')?.classList.contains('active') || false;
             let topProductsList = [];
             if (analyticsSortByMargin) {
@@ -2874,6 +3149,7 @@
             analyticsTopProductsChart.update();
             // === ТОП-5 УБЫТОЧНЫХ ТОВАРОВ ===
             const bottomProducts = [...filteredData]
+                .filter(s => s.status === "Доставлен")
                 .map(sale => ({ ...sale, profit: calculateProfit(sale) }))
                 .sort((a, b) => a.profit - b.profit)
                 .slice(0, 5);
@@ -2914,6 +3190,7 @@
             monthlySalesTotal.innerHTML = '';
             const salesByMonth = {};
             filteredData.forEach(sale => {
+                if (sale.status !== "Доставлен") return;
                 const month = new Date(sale.date).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' });
                 if (!salesByMonth[month]) {
                     salesByMonth[month] = { revenue: 0, cost: 0, profit: 0, count: 0 };
@@ -2997,6 +3274,7 @@
             employeeSalesTable.innerHTML = '';
             const salesByEmployee = {};
             filteredData.forEach(sale => {
+                if (sale.status !== "Доставлен") return;
                 const employeeId = sale.user_id;
                 const employeeName = userNamesCache[employeeId] || 'Неизвестный';
                 if (!salesByEmployee[employeeId]) {
@@ -3071,6 +3349,8 @@
                     filteredData = filteredData.filter(sale => new Date(sale.date) >= startDatePeriod);
                 }
             }
+            // УЧИТЫВАЕМ ТОЛЬКО СТАТУС "ДОСТАВЛЕН"
+            filteredData = filteredData.filter(sale => sale.status === "Доставлен");
             // Фильтруем расходы и возвраты по датам (для согласованности)
             let filteredExpenses = [...expensesData];
             let filteredReturns = [...returnsData];
@@ -3113,12 +3393,12 @@
                 const revenueAfterAdvertising = (sellingPrice * actualQuantity) * advertising;
                 totalTaxCost += (1 - taxRate) * revenueAfterAdvertising;
             });
-            // === РАСЧЁТ УБЫТКА ПО ВОЗВРАТАМ ===
+            // === РАСЧЁТ УБЫТКА ПО ВОЗВРАТАМ С УЧЁТОМ ЦЕНЫ НА МОМЕНТ ПРОДАЖИ ===
             let totalReturnsLoss = 0;
             filteredReturns.forEach(ret => {
                 const sale = salesData.find(s => s.id === ret.sale_id);
                 if (!sale) return;
-                const purchasePrice = parseFloat(sale.purchase_price) || 0;
+                const purchasePrice = parseFloat(sale.purchase_price) || 0; // ← ИСПОЛЬЗУЕМ ЦЕНУ НА МОМЕНТ ПРОДАЖИ
                 totalReturnsLoss += purchasePrice * (ret.return_quantity || 0);
             });
             // Исключаем статьи возвратов из операционных расходов
@@ -3203,7 +3483,7 @@
             // Заголовки
             const headers = [
                 'Дата', 'Тип', 'Товар / Категория', 'Артикул', 'Маркетплейс', 'Магазин', 'Сотрудник',
-                'Цена закупки', 'Цена продажи', 'Комиссия', 'Логистика', 'Доставка до МВ', 'РК + Эквайринг (коэф.)',
+                'Статус', 'Цена закупки', 'Цена продажи', 'Комиссия', 'Логистика', 'Доставка до МВ', 'РК + Эквайринг (коэф.)',
                 'Налог (%)', 'Количество', 'Выручка', 'Прибыль', 'Маржа', 'Сумма (для расходов/возвратов)',
                 'Причина (для возвратов)', 'Описание (для расходов)'
             ];
@@ -3225,6 +3505,7 @@
                     sale.marketplace,
                     sale.shop || '',
                     userNamesCache[sale.user_id] || 'Неизвестный',
+                    sale.status || 'Доставлен', // по умолчанию
                     sale.purchase_price,
                     sale.selling_price,
                     sale.commission,
@@ -3251,6 +3532,7 @@
                     '', // Маркетплейс
                     '', // Магазин
                     userNamesCache[expense.user_id] || 'Неизвестный',
+                    '', // Статус
                     '', // Цена закупки
                     '', // Цена продажи
                     '', // Комиссия
@@ -3284,6 +3566,7 @@
                     sale ? sale.marketplace : '',
                     sale ? sale.shop : '',
                     userNamesCache[ret.user_id] || 'Неизвестный',
+                    sale ? sale.status || 'Доставлен' : '',
                     sale ? sale.purchase_price : '',
                     sale ? sale.selling_price : '',
                     sale ? sale.commission : '',
@@ -3398,6 +3681,7 @@
                     marketplace: sale.marketplace,
                     shop: sale.shop,
                     user_id: sale.user_id,
+                    status: sale.status || 'Доставлен', // по умолчанию
                     purchase_price: sale.purchase_price,
                     selling_price: sale.selling_price,
                     commission: sale.commission,
@@ -3427,6 +3711,7 @@
                     marketplace: '',
                     shop: '',
                     user_id: expense.user_id,
+                    status: '',
                     purchase_price: null,
                     selling_price: null,
                     commission: null,
@@ -3455,6 +3740,7 @@
                     marketplace: sale ? sale.marketplace : '',
                     shop: sale ? sale.shop : '',
                     user_id: ret.user_id,
+                    status: sale ? sale.status || 'Доставлен' : '',
                     purchase_price: sale ? sale.purchase_price : null,
                     selling_price: sale ? sale.selling_price : null,
                     commission: sale ? sale.commission : null,
@@ -3510,6 +3796,7 @@
                     <td>${item.marketplace || '-'}</td>
                     <td>${item.shop || '-'}</td>
                     <td>${userName}</td>
+                    <td><span class="status-badge status-${item.status.toLowerCase().replace(/\s+/g, '-') || 'default'}">${item.status || '-'}</span></td>
                     <td>${item.purchase_price ? formatCurrency(item.purchase_price) : '-'}</td>
                     <td>${item.selling_price ? formatCurrency(item.selling_price) : '-'}</td>
                     <td>${item.commission ? formatCurrency(item.commission) : '-'}</td>
@@ -3716,22 +4003,23 @@
             const select = document.getElementById('employee-filter');
             if (!select) return;
             select.innerHTML = '<option value="all">Все сотрудники</option>';
-            if (Object.keys(userNamesCache).length === 0) {
-                const usersSnapshot = await db.collection('users').get();
+            // === ИСПОЛЬЗУЕМ onSnapshot ДЛЯ РЕАКТИВНОГО ОБНОВЛЕНИЯ ===
+            db.collection('users').onSnapshot(snapshot => {
                 userNamesCache = {};
-                usersSnapshot.forEach(doc => {
+                snapshot.forEach(doc => {
                     userNamesCache[doc.id] = doc.data().full_name || doc.data().email;
                 });
-            }
-            Object.keys(userNamesCache).forEach(userId => {
-                const option = document.createElement('option');
-                option.value = userId;
-                option.textContent = userNamesCache[userId];
-                select.appendChild(option);
+                select.innerHTML = '<option value="all">Все сотрудники</option>';
+                Object.keys(userNamesCache).forEach(userId => {
+                    const option = document.createElement('option');
+                    option.value = userId;
+                    option.textContent = userNamesCache[userId];
+                    select.appendChild(option);
+                });
+                if (settings.filters.employeeFilter && settings.filters.employeeFilter !== 'all') {
+                    select.value = settings.filters.employeeFilter;
+                }
             });
-            if (settings.filters.employeeFilter && settings.filters.employeeFilter !== 'all') {
-                select.value = settings.filters.employeeFilter;
-            }
         }
         // НОВОЕ: Функция для обновления фильтра сотрудников в таблице "Таблица"
         function updateSpreadsheetEmployeeFilter() {
@@ -4053,7 +4341,7 @@
                 try {
                     validateRequired(email, "Email");
                     validateRequired(password, "Пароль");
-                    validateEmail(email);
+                    validateEmail(email); // ← ВАЛИДАЦИЯ EMAIL ДОБАВЛЕНА
                     showLoading('Выполняем вход...');
                     const userCredential = await auth.signInWithEmailAndPassword(email, password);
                     await handleSuccessfulLogin(userCredential.user);
@@ -4244,6 +4532,8 @@
             });
             // === ИНИЦИАЛИЗАЦИЯ ПОИСКА ПО ТРЕКУ ===
             initReturnSearch();
+            // === НОВЫЕ ОБРАБОТЧИКИ ДЛЯ КНОПОК ===
+            document.getElementById('confirm-delivery-all').addEventListener('click', confirmAllDeliveries);
         });
         // Функция для обработки успешного входа
         async function handleSuccessfulLogin(user) {
@@ -4337,9 +4627,15 @@
                 updateAllSelects();
                 // Обновляем фильтры сотрудников (только для админа)
                 if (getRoleFromToken() === 'admin') {
-                    updateEmployeeFilter();
+                    updateEmployeeFilter(); // ← ИСПОЛЬЗУЕТ onSnapshot
                     updateSpreadsheetEmployeeFilter(); // НОВОЕ: для таблицы "Таблица"
                 }
+                // === ПРИСВАИВАЕМ СТАТУС "ДОСТАВЛЕН" СУЩЕСТВУЮЩИМ ПРОДАЖАМ ===
+                salesData.forEach(sale => {
+                    if (!sale.status) {
+                        sale.status = "Доставлен";
+                    }
+                });
                 hideLoading();
             } catch (error) {
                 hideLoading();
@@ -4380,7 +4676,6 @@
                     taxSystems = [
                         {name: 'УСН Доходы (1%)', rate: 0.99},
                         {name: 'УСН Доходы (7%)', rate: 0.93}
-                        // УДАЛЕНО: 15%
                     ];
                     saveData();
                 }
@@ -4786,6 +5081,7 @@
             document.getElementById('edit-sale-date').value = sale.date;
             document.getElementById('edit-marketplace-select').value = sale.marketplace;
             document.getElementById('edit-shop-select').value = sale.shop || '';
+            document.getElementById('edit-status').value = sale.status || 'Доставлен';
             document.getElementById('edit-sale-modal').style.display = 'flex';
         }
         // Функция для сохранения изменений продажи
@@ -4811,6 +5107,7 @@
                     date: document.getElementById('edit-sale-date').value,
                     marketplace: document.getElementById('edit-marketplace-select').value,
                     shop: document.getElementById('edit-shop-select').value,
+                    status: document.getElementById('edit-status').value || 'Доставлен',
                     user_id: currentUser.uid,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     lastModifiedBy: currentUser.uid,
@@ -4859,7 +5156,7 @@
                 }
             );
         }
-        // Функция для редактирования возврата
+        // === ИСПРАВЛЕНАЯ ФУНКЦИЯ ДЛЯ РЕДАКТИРОВАНИЯ ВОЗВРАТА ===
         async function editReturn(returnId) {
             const ret = returnsData.find(r => r.id === returnId);
             if (!ret) return;
@@ -4870,8 +5167,8 @@
             document.getElementById('edit-return-reason').value = ret.reason;
             document.getElementById('edit-return-date').value = ret.date;
             // Заполняем селект продаж
-            const saleSelect = document.getElementById('edit-return-sale');
-            saleSelect.innerHTML = '<option value="">Выберите продажу</option>';
+            const editReturnSaleSelect = document.getElementById('edit-return-sale');
+            editReturnSaleSelect.innerHTML = '<option value="">Выберите продажу</option>';
             let filteredSales = salesData;
             if (getRoleFromToken() !== 'admin') {
                 filteredSales = salesData.filter(sale => sale.user_id === currentUser.uid);
@@ -4886,9 +5183,9 @@
                 const option = document.createElement('option');
                 option.value = sale.id;
                 option.textContent = displayText;
-                saleSelect.appendChild(option);
+                editReturnSaleSelect.appendChild(option);
             });
-            saleSelect.value = ret.sale_id;
+            editReturnSaleSelect.value = ret.sale_id;
             document.getElementById('edit-return-modal').style.display = 'flex';
         }
         // Функция для сохранения изменений возврата
@@ -4952,7 +5249,13 @@
                         }
                         showLoading('Удаляем возврат...');
                         await db.collection('returns').doc(returnId).delete();
+                        // === УДАЛЯЕМ СВЯЗАННЫЕ РАСХОДЫ ===
+                        const returnExpenses = expensesData.filter(e => e.return_id === returnId);
+                        for (const exp of returnExpenses) {
+                            await db.collection('expenses').doc(exp.id).delete();
+                        }
                         returnsData = returnsData.filter(r => r.id !== returnId);
+                        await loadExpensesData(); // Перезагружаем расходы
                         hideLoading();
                         updateReturns();
                         updateDashboard();
@@ -5076,6 +5379,151 @@
                     }
                 }
             );
+        }
+        // === НОВАЯ ФУНКЦИЯ ДЛЯ ПОДТВЕРЖДЕНИЯ ДОСТАВКИ ===
+        async function confirmAllDeliveries() {
+            try {
+                const period = document.getElementById('confirm-period').value;
+                let startDate = document.getElementById('confirm-start-date').value;
+                let endDate = document.getElementById('confirm-end-date').value;
+                if (period === 'last-week') {
+                    const now = new Date();
+                    const lastWeekStart = new Date(now);
+                    lastWeekStart.setDate(now.getDate() - now.getDay() - 6);
+                    lastWeekStart.setHours(0, 0, 0, 0);
+                    const lastWeekEnd = new Date(now);
+                    lastWeekEnd.setDate(now.getDate() - now.getDay());
+                    lastWeekEnd.setHours(23, 59, 59, 999);
+                    startDate = lastWeekStart.toISOString().split('T')[0];
+                    endDate = lastWeekEnd.toISOString().split('T')[0];
+                }
+                if (!startDate || !endDate) {
+                    notyf.error('Пожалуйста, укажите даты');
+                    return;
+                }
+                // === ДОБАВЛЕНА ЗАЩИТА ОТ ПОВТОРНОЙ ОБРАБОТКИ ===
+                const salesToConfirm = salesData.filter(sale => {
+                    return sale.date >= startDate && 
+                           sale.date <= endDate && 
+                           sale.status === "Доставляется" &&
+                           !sale.deliveryConfirmedAt; // ← НОВОЕ УСЛОВИЕ
+                });
+                if (salesToConfirm.length === 0) {
+                    notyf.info('Нет продаж для подтверждения');
+                    return;
+                }
+                const salesWithReturns = new Set();
+                returnsData.forEach(ret => {
+                    if (ret.date >= startDate && ret.date <= endDate) {
+                        salesWithReturns.add(ret.sale_id);
+                    }
+                });
+                showLoading('Обновляем статусы...');
+                const batch = db.batch();
+                salesToConfirm.forEach(sale => {
+                    const newStatus = salesWithReturns.has(sale.id) ? "Возврат" : "Доставлен";
+                    const docRef = db.collection('sales').doc(sale.id);
+                    batch.update(docRef, { 
+                        status: newStatus,
+                        deliveryConfirmedAt: firebase.firestore.FieldValue.serverTimestamp() // ← ФЛАГ ПОДТВЕРЖДЕНИЯ
+                    });
+                });
+                await batch.commit();
+                // Обновляем локальные данные
+                salesToConfirm.forEach(sale => {
+                    const index = salesData.findIndex(s => s.id === sale.id);
+                    if (index !== -1) {
+                        salesData[index].status = salesWithReturns.has(sale.id) ? "Возврат" : "Доставлен";
+                        salesData[index].deliveryConfirmedAt = new Date().toISOString(); // ← ЛОКАЛЬНЫЙ ФЛАГ
+                    }
+                });
+                hideLoading();
+                updateDashboard();
+                updateAllSalesTable();
+                updateReports();
+                notyf.success(`Статусы обновлены: ${salesToConfirm.length} продаж`);
+            } catch (error) {
+                hideLoading();
+                notyf.error('Ошибка обновления статусов: ' + error.message);
+            }
+        }
+        // === НОВЫЕ ФУНКЦИИ ДЛЯ ЭМОДЗИ И СТАТУСОВ ===
+        // Функция для получения эмодзи по статусу
+        function getStatusEmoji(status) {
+            switch(status) {
+                case "Готов к отгрузке":
+                    return "📦";
+                case "Доставляется":
+                    return "🚚";
+                case "Доставлен":
+                    return "✅";
+                case "Возврат":
+                    return "❌";
+                default:
+                    return "❓";
+            }
+        }
+        // === СТРОГАЯ МАШИНА СОСТОЯНИЙ ===
+        const STATUS_TRANSITIONS = {
+            "Готов к отгрузке": ["Доставляется"],
+            "Доставляется": ["Доставлен", "Возврат"],
+            "Доставлен": ["Возврат"],
+            "Возврат": [] // Только админ может сбросить
+        };
+        function canTransition(from, to) {
+            return STATUS_TRANSITIONS[from]?.includes(to) || false;
+        }
+        // Функция для циклического переключения статуса
+        async function cycleSaleStatus(saleId) {
+            const sale = salesData.find(s => s.id === saleId);
+            if (!sale) return;
+            const statusOrder = ["Готов к отгрузке", "Доставляется", "Доставлен", "Возврат"];
+            const currentIndex = statusOrder.indexOf(sale.status);
+            let nextIndex = (currentIndex + 1) % statusOrder.length;
+            let newStatus = statusOrder[nextIndex];
+            // === ПРОВЕРКА ВОЗМОЖНОСТИ ПЕРЕХОДА ===
+            if (!canTransition(sale.status, newStatus)) {
+                notyf.error(`Невозможно перевести "${sale.status}" в "${newStatus}"`);
+                return;
+            }
+            // Если переход на "Возврат", показываем подтверждение
+            if (newStatus === "Возврат") {
+                showModal(
+                    'Подтверждение возврата',
+                    `Вы уверены, что хотите перевести продажу "${sale.name}" в статус "Возврат"?`,
+                    async function() {
+                        await updateSaleStatus(saleId, newStatus);
+                    }
+                );
+                return;
+            }
+            await updateSaleStatus(saleId, newStatus);
+        }
+        // Функция для обновления статуса продажи
+        async function updateSaleStatus(saleId, newStatus) {
+            try {
+                showLoading('Обновляем статус...');
+                await db.collection('sales').doc(saleId).update({ 
+                    status: newStatus,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastModifiedBy: currentUser.uid,
+                    lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                // Обновляем локальные данные
+                const saleIndex = salesData.findIndex(s => s.id === saleId);
+                if (saleIndex !== -1) {
+                    salesData[saleIndex].status = newStatus;
+                }
+                // Логируем изменение
+                await logActivity('изменил статус продажи', `Товар: ${salesData[saleIndex]?.name || 'неизвестный'}, Новый статус: ${newStatus}`);
+                hideLoading();
+                updateDashboard();
+                updateAllSalesTable();
+                notyf.success('Статус успешно обновлен!');
+            } catch (error) {
+                hideLoading();
+                notyf.error('Ошибка обновления статуса: ' + error.message);
+            }
         }
     </script>
 </body>
