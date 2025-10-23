@@ -1189,7 +1189,6 @@
     </div>
     <!-- === КОНЕЦ НОВОГО БЛОКА ФИЛЬТРОВ === -->
 
-    <div style="max-height: 500px; overflow-y: auto;">
         <table id="all-sales-table">
             <thead>
                 <tr>
@@ -2624,7 +2623,15 @@ function formatDateToLocalYYYYMMDD(date) {
                 filteredSales = filteredSales.filter(sale => sale.status === filterStatus);
             }
             // НОВОЕ: Сортируем по дате (новые сверху)
-            filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date));
+            // === ИСПРАВЛЕНО: СОРТИРУЕМ ПО ДАТЕ И ВРЕМЕНИ СОЗДАНИЯ ===
+filteredSales.sort((a, b) => {
+    // Если есть createdAt — используем его
+    if (a.createdAt && b.createdAt) {
+        return b.createdAt.toDate() - a.createdAt.toDate();
+    }
+    // Иначе — по date (как раньше)
+    return new Date(b.date) - new Date(a.date);
+});
             const paginatedSales = paginateArray(filteredSales, currentPage, itemsPerPage);
             paginatedSales.forEach(sale => {
                 const userName = userNamesCache[sale.user_id] || 'Неизвестный';
