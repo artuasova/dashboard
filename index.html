@@ -9,8 +9,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <!-- Подключение date-fns -->
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/umd/index.min.js"></script>
     <!-- Подключение notyf -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
@@ -741,16 +739,57 @@
             font-size: 0.8rem;
             color: var(--gray);
         }
-        /* === НОВЫЙ СТИЛЬ ДЛЯ ЭМОДЗИ-СТАТУСА === */
-        .status-emoji {
-            font-size: 1.5rem;
-            cursor: pointer;
-            user-select: none;
-            transition: transform 0.2s;
-        }
-        .status-emoji:hover {
-            transform: scale(1.2);
-        }
+/* === ИСПРАВЛЕНИЕ РАЗДЕЛИТЕЛЬНЫХ ЛИНИЙ МЕЖДУ СТРОКАМИ === */
+#all-sales-table tbody tr {
+    border-bottom: 1px solid var(--border);
+}
+#all-sales-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* === УМЕНЬШАЕМ ЭМОДЗИ В КОЛОНКЕ "ДЕЙСТВИЯ" === */
+.actions-cell .status-emoji {
+    font-size: 16px !important;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s;
+}
+.actions-cell .status-emoji:hover {
+    transform: scale(1.2);
+}
+/* Стили для пагинации */
+.pagination .btn-sm:hover:not(:disabled) {
+    background: #3b82f6 !important;
+    color: white !important;
+    border-color: #3b82f6 !important;
+}
+
+.pagination .btn-sm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination select:hover {
+    border-color: #3b82f6;
+}
+/* === ФИКС: ограничиваем ширину карточек во всех вкладках === */
+#expenses .card,
+#returns .card,
+#spreadsheet .card,
+#analytics .card,
+#reports .card {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+#admin-panel .card {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+}
     </style>
 </head>
 <body>
@@ -821,42 +860,48 @@
         </nav>
         <main>
             <div id="dashboard" class="tab-content active">
-                <div class="card">
-                    <h2 class="card-title">Фильтры</h2>
-                    <div class="filters">
-                        <div>
-                            <label for="period">Период</label>
-                            <select id="period">
-                                <option value="all">Все время</option>
-                                <option value="day">Текущий день</option>
-                                <option value="week">Текущая неделя</option>
-                                <option value="month">Текущий месяц</option>
-                                <option value="quarter">Текущий квартал</option>
-                                <option value="year">Текущий год</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="marketplace">Маркетплейс</label>
-                            <select id="marketplace">
-                                <option value="all">Все маркетплейсы</option>
-                                <option value="Яндекс">Яндекс Маркет</option>
-                                <option value="Озон">Озон</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="start-date">Дата от</label>
-                            <input type="date" id="start-date">
-                        </div>
-                        <div>
-                            <label for="end-date">Дата до</label>
-                            <input type="date" id="end-date">
-                        </div>
-                        <div>
-                            <label>&nbsp;</label>
-                            <button class="btn btn-primary" id="apply-filters">Применить</button>
-                        </div>
-                    </div>
-                </div>
+                <div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; padding: 16px; background: var(--light); border-radius: 8px; margin-bottom: 20px;">
+    <!-- Период -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Период</label>
+        <select id="period" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+            <option value="all">Все время</option>
+            <option value="day">Сегодня</option>
+            <option value="week">Неделя</option>
+            <option value="month">Месяц</option>
+            <option value="quarter">Квартал</option>
+            <option value="year">Год</option>
+        </select>
+    </div>
+
+    <!-- Маркетплейс -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Маркетплейс</label>
+        <select id="marketplace" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+            <option value="all">Все маркетплейсы</option>
+            <option value="Яндекс">Яндекс Маркет</option>
+            <option value="Озон">Озон</option>
+        </select>
+    </div>
+
+    <!-- Дата от -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата от</label>
+        <input type="date" id="start-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+    </div>
+
+    <!-- Дата до -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата до</label>
+        <input type="date" id="end-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+    </div>
+
+<!-- Кнопки "Применить" и "Сбросить" -->
+<div style="margin-top: 24px;">
+    <button class="btn btn-primary" id="apply-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px;">Применить</button>
+    <button class="btn btn-secondary" id="reset-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px; display: none; margin-left: 8px;">Сбросить</button>
+</div>
+</div>
                 <div class="metrics-grid" id="metrics-container">
                     <div class="metric-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);" data-metric="revenue">
                         <h3>Общая выручка <span class="tooltip">?<span class="tooltip-text">Общая сумма всех продаж за выбранный период, за вычетом возвратов</span></span></h3>
@@ -1070,91 +1115,117 @@
             </div>
             <div id="all-sales" class="tab-content">
                 <div class="card">
-                    <h2 class="card-title">Все продажи</h2>
-                    <div class="card">
-                        <h3>Фильтры</h3>
-                        <div class="filters">
-                            <div>
-                                <label for="all-sales-period">Период</label>
-                                <select id="all-sales-period">
-                                    <option value="all">Все время</option>
-                                    <option value="day">Сегодня</option>
-                                    <option value="week">Неделя</option>
-                                    <option value="month">Месяц</option>
-                                    <option value="quarter">Квартал</option>
-                                    <option value="year">Год</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="all-sales-start-date">Дата от</label>
-                                <input type="date" id="all-sales-start-date">
-                            </div>
-                            <div>
-                                <label for="all-sales-end-date">Дата до</label>
-                                <input type="date" id="all-sales-end-date">
-                            </div>
-                            <div>
-                                <label for="all-sales-marketplace">Маркетплейс</label>
-                                <select id="all-sales-marketplace">
-                                    <option value="all">Все маркетплейсы</option>
-                                    <option value="Яндекс">Яндекс Маркет</option>
-                                    <option value="Озон">Озон</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="all-sales-shop">Магазин</label>
-                                <select id="all-sales-shop">
-                                    <option value="all">Все магазины</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="employee-filter">Сотрудник</label>
-                                <select id="employee-filter">
-                                    <option value="all">Все сотрудники</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="sale-status-filter">Статус</label>
-                                <select id="sale-status-filter">
-                                    <option value="all">Все статусы</option>
-                                    <option value="Готов к отгрузке">Готов к отгрузке</option>
-                                    <option value="Доставляется">Доставляется</option>
-                                    <option value="Доставлен">Доставлен</option>
-                                    <option value="Возврат">Возврат</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label>&nbsp;</label>
-                                <button class="btn btn-primary" id="apply-sales-filters">Применить</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="max-height: 500px; overflow-y: auto;">
-                        <table id="all-sales-table">
-                            <thead>
-                                <tr>
-                                    <th>Товар</th>
-                                    <th>Артикул</th>
-                                    <th>Маркетплейс</th>
-                                    <th>Магазин</th>
-                                    <th>Сотрудник</th>
-                                    <th>Дата</th>
-                                    <th>Статус</th>
-                                    <th>Выручка</th>
-                                    <th>Прибыль</th>
-                                    <th>Маржа</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="pagination" id="all-sales-pagination">
-                        <button id="prev-page">Предыдущая</button>
-                        <span id="page-info">Страница 1 из 1</span>
-                        <button id="next-page">Следующая</button>
-                    </div>
+    <h2 class="card-title">Все продажи</h2>
+    <!-- === НОВЫЙ БЛОК ФИЛЬТРОВ В ОДНУ СТРОКУ === -->
+    <div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; padding: 16px; background: var(--light); border-radius: 8px; margin-bottom: 20px;">
+        <!-- Период -->
+        <div style="min-width: 150px;">
+            <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Период</label>
+            <select id="all-sales-period" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                <option value="all">Все время</option>
+                <option value="day">Сегодня</option>
+                <option value="week">Неделя</option>
+                <option value="month">Месяц</option>
+                <option value="quarter">Квартал</option>
+                <option value="year">Год</option>
+            </select>
+        </div>
+
+        <!-- Дата от -->
+        <div style="min-width: 150px;">
+            <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата от</label>
+            <input type="date" id="all-sales-start-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+        </div>
+
+        <!-- Дата до -->
+        <div style="min-width: 150px;">
+            <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата до</label>
+            <input type="date" id="all-sales-end-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+        </div>
+
+        <!-- Маркетплейс -->
+        <div style="min-width: 150px;">
+            <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Маркетплейс</label>
+            <select id="all-sales-marketplace" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                <option value="all">Все маркетплейсы</option>
+                <option value="Яндекс">Яндекс Маркет</option>
+                <option value="Озон">Озон</option>
+            </select>
+        </div>
+
+        <!-- Магазин -->
+        <div style="min-width: 150px;">
+            <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Магазин</label>
+            <select id="all-sales-shop" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                <option value="all">Все магазины</option>
+            </select>
+        </div>
+
+        <!-- Сотрудник -->
+        <div style="min-width: 150px;">
+            <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Сотрудник</label>
+            <select id="employee-filter" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                <option value="all">Все сотрудники</option>
+            </select>
+        </div>
+
+        <!-- Статус -->
+        <div style="min-width: 150px;">
+            <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Статус</label>
+            <select id="sale-status-filter" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                <option value="all">Все статусы</option>
+                <option value="Готов к отгрузке">Готов к отгрузке</option>
+                <option value="Доставляется">Доставляется</option>
+                <option value="Доставлен">Доставлен</option>
+                <option value="Возврат">Возврат</option>
+            </select>
+        </div>
+
+<!-- Кнопки "Применить" и "Сбросить" -->
+<div style="margin-top: 24px;">
+    <button class="btn btn-primary" id="apply-sales-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px;">Применить</button>
+    <button class="btn btn-secondary" id="reset-sales-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px; display: none; margin-left: 8px;">Сбросить</button>
+</div>
+    </div>
+    <!-- === КОНЕЦ НОВОГО БЛОКА ФИЛЬТРОВ === -->
+
+    <div style="max-height: 500px; overflow-y: auto;">
+        <table id="all-sales-table">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Артикул</th>
+                    <th>Маркетплейс</th>
+                    <th>Магазин</th>
+                    <th>Сотрудник</th>
+                    <th>Дата</th>
+                    <th>Статус</th>
+                    <th>Выручка</th>
+                    <th>Прибыль</th>
+                    <th>Маржа</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination" id="all-sales-pagination" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px; background: #f8fafc; border-radius: 8px; margin-top: 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button id="prev-page" class="btn btn-sm" style="background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 6px; cursor: pointer;">← Назад</button>
+            <span id="page-info" style="padding: 6px 12px; background: white; border-radius: 6px; border: 1px solid #d1d5db; font-size: 0.875rem; color: #374151;">Страница 1 из 1</span>
+            <button id="next-page" class="btn btn-sm" style="background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Вперед →</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.875rem; color: #6b7280;">Показывать:</span>
+            <select id="page-size-select" style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; background: white; font-size: 0.875rem; color: #374151; cursor: pointer;">
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+    </div>
+</div>
                 </div>
             </div>
             <div id="expenses" class="tab-content">
@@ -1194,11 +1265,21 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="pagination" id="expenses-pagination">
-                            <button id="prev-expense-page">Предыдущая</button>
-                            <span id="expense-page-info">Страница 1 из 1</span>
-                            <button id="next-expense-page">Следующая</button>
-                        </div>
+<div class="pagination" id="expenses-pagination" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px; background: #f8fafc; border-radius: 8px; margin-top: 20px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <button id="prev-expense-page" class="btn btn-sm" style="background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 6px; cursor: pointer;">← Назад</button>
+        <span id="expense-page-info" style="padding: 6px 12px; background: white; border-radius: 6px; border: 1px solid #d1d5db; font-size: 0.875rem; color: #374151;">Страница 1 из 1</span>
+        <button id="next-expense-page" class="btn btn-sm" style="background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Вперед →</button>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 0.875rem; color: #6b7280;">Показывать:</span>
+        <select id="expense-page-size-select" style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; background: white; font-size: 0.875rem; color: #374151; cursor: pointer;">
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+    </div>
+</div>
                     </div>
                 </div>
             </div>
@@ -1248,64 +1329,81 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="pagination" id="returns-pagination">
-                        <button id="prev-return-page">Предыдущая</button>
-                        <span id="return-page-info">Страница 1 из 1</span>
-                        <button id="next-return-page">Следующая</button>
-                    </div>
+<div class="pagination" id="returns-pagination" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px; background: #f8fafc; border-radius: 8px; margin-top: 20px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <button id="prev-return-page" class="btn btn-sm" style="background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 6px; cursor: pointer;">← Назад</button>
+        <span id="return-page-info" style="padding: 6px 12px; background: white; border-radius: 6px; border: 1px solid #d1d5db; font-size: 0.875rem; color: #374151;">Страница 1 из 1</span>
+        <button id="next-return-page" class="btn btn-sm" style="background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Вперед →</button>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 0.875rem; color: #6b7280;">Показывать:</span>
+        <select id="return-page-size-select" style="padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; background: white; font-size: 0.875rem; color: #374151; cursor: pointer;">
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+    </div>
+</div>
                 </div>
             </div>
             <div id="spreadsheet" class="tab-content">
                 <div class="card">
                     <h2 class="card-title">Таблица продаж, расходов и возвратов</h2>
-                    <div class="filters">
-                        <div>
-                            <label for="spreadsheet-period">Период</label>
-                            <select id="spreadsheet-period">
-                                <option value="all">Все время</option>
-                                <option value="day">Текущий день</option>
-                                <option value="week">Текущая неделя</option>
-                                <option value="month">Текущий месяц</option>
-                                <option value="quarter">Текущий квартал</option>
-                                <option value="year">Текущий год</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="spreadsheet-start-date">Дата от</label>
-                            <input type="date" id="spreadsheet-start-date">
-                        </div>
-                        <div>
-                            <label for="spreadsheet-end-date">Дата до</label>
-                            <input type="date" id="spreadsheet-end-date">
-                        </div>
-                        <div>
-                            <label for="spreadsheet-type-filter">Тип</label>
-                            <select id="spreadsheet-type-filter">
-                                <option value="all">Все</option>
-                                <option value="Продажа">Продажа</option>
-                                <option value="Расход">Расход</option>
-                                <option value="Возврат">Возврат</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="spreadsheet-marketplace-filter">Маркетплейс</label>
-                            <select id="spreadsheet-marketplace-filter">
-                                <option value="all">Все маркетплейсы</option>
-                                <option value="Яндекс">Яндекс Маркет</option>
-                                <option value="Озон">Озон</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="spreadsheet-employee-filter">Сотрудник</label>
-                            <select id="spreadsheet-employee-filter">
-                                <option value="all">Все сотрудники</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>&nbsp;</label>
-                            <button class="btn btn-primary" id="apply-spreadsheet-filters">Применить</button>
-                        </div>
-                    </div>
+                    <div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; padding: 16px; background: var(--light); border-radius: 8px; margin-bottom: 20px;">
+    <!-- Период -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Период</label>
+        <select id="spreadsheet-period" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+            <option value="all">Все время</option>
+            <option value="day">Сегодня</option>
+            <option value="week">Неделя</option>
+            <option value="month">Месяц</option>
+            <option value="quarter">Квартал</option>
+            <option value="year">Год</option>
+        </select>
+    </div>
+    <!-- Дата от -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата от</label>
+        <input type="date" id="spreadsheet-start-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+    </div>
+    <!-- Дата до -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата до</label>
+        <input type="date" id="spreadsheet-end-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+    </div>
+    <!-- Тип -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Тип</label>
+        <select id="spreadsheet-type-filter" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+            <option value="all">Все</option>
+            <option value="Продажа">Продажа</option>
+            <option value="Расход">Расход</option>
+            <option value="Возврат">Возврат</option>
+        </select>
+    </div>
+    <!-- Маркетплейс -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Маркетплейс</label>
+        <select id="spreadsheet-marketplace-filter" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+            <option value="all">Все маркетплейсы</option>
+            <option value="Яндекс">Яндекс Маркет</option>
+            <option value="Озон">Озон</option>
+        </select>
+    </div>
+    <!-- Сотрудник -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Сотрудник</label>
+        <select id="spreadsheet-employee-filter" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+            <option value="all">Все сотрудники</option>
+        </select>
+    </div>
+<!-- Кнопки "Применить" и "Сбросить" -->
+<div style="margin-top: 24px;">
+    <button class="btn btn-primary" id="apply-spreadsheet-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px;">Применить</button>
+    <button class="btn btn-secondary" id="reset-spreadsheet-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px; display: none; margin-left: 8px;">Сбросить</button>
+</div>
+</div>
                     <div style="overflow-x: auto;" id="spreadsheet-view">
                         <table id="spreadsheet-table">
                             <thead class="spreadsheet-header">
@@ -1346,34 +1444,35 @@
                 <div class="card">
                     <h2 class="card-title">Аналитика продаж</h2>
                     <!-- === ФИЛЬТРЫ === -->
-                    <div class="card">
-                        <h3>Фильтры</h3>
-                        <div class="filters">
-                            <div>
-                                <label for="analytics-period">Период</label>
-                                <select id="analytics-period">
-                                    <option value="all">Все время</option>
-                                    <option value="day">Текущий день</option>
-                                    <option value="week">Текущая неделя</option>
-                                    <option value="month">Текущий месяц</option>
-                                    <option value="quarter">Текущий квартал</option>
-                                    <option value="year">Текущий год</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="analytics-start-date">Дата от</label>
-                                <input type="date" id="analytics-start-date">
-                            </div>
-                            <div>
-                                <label for="analytics-end-date">Дата до</label>
-                                <input type="date" id="analytics-end-date">
-                            </div>
-                            <div>
-                                <label>&nbsp;</label>
-                                <button class="btn btn-primary" id="apply-analytics-filters">Применить</button>
-                            </div>
-                        </div>
-                    </div>
+                    <div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; padding: 16px; background: var(--light); border-radius: 8px; margin-bottom: 20px;">
+    <!-- Период -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Период</label>
+        <select id="analytics-period" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+            <option value="all">Все время</option>
+            <option value="day">Сегодня</option>
+            <option value="week">Неделя</option>
+            <option value="month">Месяц</option>
+            <option value="quarter">Квартал</option>
+            <option value="year">Год</option>
+        </select>
+    </div>
+    <!-- Дата от -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата от</label>
+        <input type="date" id="analytics-start-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+    </div>
+    <!-- Дата до -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата до</label>
+        <input type="date" id="analytics-end-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+    </div>
+<!-- Кнопки "Применить" и "Сбросить" -->
+<div style="margin-top: 24px;">
+    <button class="btn btn-primary" id="apply-analytics-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px;">Применить</button>
+    <button class="btn btn-secondary" id="reset-analytics-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px; display: none; margin-left: 8px;">Сбросить</button>
+</div>
+</div>
                     <!-- === ОБЩИЕ МЕТРИКИ === -->
                     <div class="analytics-section">
                         <h3>📊 Общие показатели</h3>
@@ -1485,42 +1584,44 @@
             <div id="reports" class="tab-content">
                 <div class="card">
                     <h2 class="card-title">Финансовые отчеты</h2>
-                    <div class="card">
-                        <h3>Фильтры</h3>
-                        <div class="filters">
-                            <div>
-                                <label for="report-period">Период</label>
-                                <select id="report-period">
-                                    <option value="all">Все время</option>
-                                    <option value="day">Текущий день</option>
-                                    <option value="week">Текущая неделя</option>
-                                    <option value="month">Текущий месяц</option>
-                                    <option value="quarter">Текущий квартал</option>
-                                    <option value="year">Текущий год</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="report-marketplace">Маркетплейс</label>
-                                <select id="report-marketplace">
-                                    <option value="all">Все маркетплейсы</option>
-                                    <option value="Яндекс">Яндекс Маркет</option>
-                                    <option value="Озон">Озон</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="report-start-date">Дата от</label>
-                                <input type="date" id="report-start-date">
-                            </div>
-                            <div>
-                                <label for="report-end-date">Дата до</label>
-                                <input type="date" id="report-end-date">
-                            </div>
-                            <div>
-                                <label>&nbsp;</label>
-                                <button class="btn btn-primary" id="generate-report">Сгенерировать отчет</button>
-                            </div>
-                        </div>
-                    </div>
+                                        <div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; padding: 16px; background: var(--light); border-radius: 8px; margin-bottom: 20px;">
+    <!-- Период -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Период</label>
+        <select id="report-period" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+            <option value="all">Все время</option>
+            <option value="day">Сегодня</option>
+            <option value="week">Неделя</option>
+            <option value="month">Месяц</option>
+            <option value="quarter">Квартал</option>
+            <option value="year">Год</option>
+        </select>
+    </div>
+    <!-- Маркетплейс -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Маркетплейс</label>
+        <select id="report-marketplace" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+            <option value="all">Все маркетплейсы</option>
+            <option value="Яндекс">Яндекс Маркет</option>
+            <option value="Озон">Озон</option>
+        </select>
+    </div>
+    <!-- Дата от -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата от</label>
+        <input type="date" id="report-start-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+    </div>
+    <!-- Дата до -->
+    <div style="min-width: 150px;">
+        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата до</label>
+        <input type="date" id="report-end-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+    </div>
+<!-- Кнопки "Сгенерировать отчет" и "Сбросить" -->
+<div style="margin-top: 24px;">
+    <button class="btn btn-primary" id="generate-report" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px;">Сгенерировать отчет</button>
+    <button class="btn btn-secondary" id="reset-report-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px; display: none; margin-left: 8px;">Сбросить</button>
+</div>
+</div>
                     <div class="card" style="background: #f1f5f9;">
                         <h3>Отчет о прибылях и убытках</h3>
                         <div style="overflow-x: auto;">
@@ -2080,6 +2181,7 @@
         </div>
     </div>
     <script>
+        
         // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCou0cmN5gZzcHO4ZmFSRTYRrbEK0PC_1Q",
@@ -2093,9 +2195,50 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         const notyf = new Notyf({ duration: 3000, position: { x: 'right', y: 'top' } });
+        // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ РАБОТЫ С ДАТАМИ (БЕЗ date-fns) ===
+function startOfDay(date) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+function startOfWeek(date, options = { weekStartsOn: 1 }) {
+    const d = startOfDay(date);
+    const day = d.getDay();
+    const weekStartsOn = options.weekStartsOn;
+    let diff = day - weekStartsOn;
+    if (diff < 0) diff += 7;
+    d.setDate(d.getDate() - diff);
+    return d;
+}
+
+function startOfMonth(date) {
+    const d = startOfDay(date);
+    d.setDate(1);
+    return d;
+}
+
+function startOfQuarter(date) {
+    const d = startOfDay(date);
+    const quarter = Math.floor(d.getMonth() / 3);
+    d.setMonth(quarter * 3, 1);
+    return d;
+}
+
+function startOfYear(date) {
+    const d = startOfDay(date);
+    d.setMonth(0, 1);
+    return d;
+}
         function formatCurrency(value) {
-            return Math.round(value).toLocaleString('ru-RU') + ' ₽';
-        }
+    return Math.round(value).toLocaleString('ru-RU') + ' ₽';
+}
+function formatDateToLocalYYYYMMDD(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
         let currentUser = null;
         let salesData = [];
         let returnsData = [];
@@ -2113,7 +2256,7 @@
         };
         let lastValues = { marketplace: 'Яндекс', shop: '', advertising: 0.98, taxRate: 0.99 };
         let currentPage = 1;
-        let itemsPerPage = 10;
+        let itemsPerPage = 20;
         let expenseCurrentPage = 1;
         let returnCurrentPage = 1;
         let lastVisibleSaleDate = null;
@@ -2389,7 +2532,7 @@
             }
         }
         // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАПОЛНЕНИЯ СПИСКА ПРОДАЖ ===
-        function populateReturnSales() {
+        function populateReturnSales(saleIdToSelect = null) {
             const select = document.getElementById('return-sale');
             select.innerHTML = '<option value="">Выберите продажу</option>';
             let filteredSales = salesData;
@@ -2408,6 +2551,9 @@
                 option.textContent = displayText;
                 select.appendChild(option);
             });
+            if (saleIdToSelect) {
+                select.value = saleIdToSelect;
+            }
         }
         // === НОВЫЙ ОБРАБОТЧИК ПОИСКА ПО ТРЕКУ ===
         function initReturnSearch() {
@@ -2443,18 +2589,20 @@
             if (period !== 'all') {
                 let startDatePeriod;
                 if (period === 'day') {
-                    startDatePeriod = dateFns.startOfDay(new Date());
+                    startDatePeriod = startOfDay(new Date());
                 } else if (period === 'week') {
-                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
+                    startDatePeriod = startOfWeek(new Date(), { weekStartsOn: 1 });
                 } else if (period === 'month') {
-                    startDatePeriod = dateFns.startOfMonth(new Date());
+                    startDatePeriod = startOfMonth(new Date());
                 } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.startOfQuarter(new Date());
+                    startDatePeriod = startOfQuarter(new Date());
                 } else if (period === 'year') {
-                    startDatePeriod = dateFns.startOfYear(new Date());
+                    startDatePeriod = startOfYear(new Date());
                 }
                 if (startDatePeriod) {
-                    filteredSales = filteredSales.filter(sale => new Date(sale.date) >= startDatePeriod);
+                    // Важно: конвертируем объект Date в строку YYYY-MM-DD
+                    const startDateStr = formatDateToLocalYYYYMMDD(startDatePeriod);
+                    filteredSales = filteredSales.filter(sale => sale.date >= startDateStr);
                 }
             }
             if (startDate) {
@@ -2731,18 +2879,20 @@
             if (period !== 'all') {
                 let startDatePeriod;
                 if (period === 'day') {
-                    startDatePeriod = dateFns.startOfDay(new Date());
+                    startDatePeriod = startOfDay(new Date());
                 } else if (period === 'week') {
-                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
+                    startDatePeriod = startOfWeek(new Date(), { weekStartsOn: 1 });
                 } else if (period === 'month') {
-                    startDatePeriod = dateFns.startOfMonth(new Date());
+                    startDatePeriod = startOfMonth(new Date());
                 } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.startOfQuarter(new Date());
+                    startDatePeriod = startOfQuarter(new Date());
                 } else if (period === 'year') {
-                    startDatePeriod = dateFns.startOfYear(new Date());
+                    startDatePeriod = startOfYear(new Date());
                 }
                 if (startDatePeriod) {
-                    filtered = filtered.filter(sale => new Date(sale.date) >= startDatePeriod);
+                    // Важно: конвертируем объект Date в строку YYYY-MM-DD
+                    const startDateStr = formatDateToLocalYYYYMMDD(startDatePeriod);
+                    filtered = filtered.filter(sale => sale.date >= startDateStr);
                 }
             }
             return filtered;
@@ -2845,6 +2995,141 @@
             );
             topProductsChart.update();
         }
+        // === ХРАНЕНИЕ ИСХОДНЫХ ЗНАЧЕНИЙ ФИЛЬТРОВ ===
+const defaultFilters = {
+    dashboard: { period: 'all', marketplace: 'all', startDate: '', endDate: '' },
+    allSales: { period: 'all', startDate: '', endDate: '', marketplace: 'all', shop: 'all', employee: 'all', status: 'all' },
+    spreadsheet: { period: 'all', startDate: '', endDate: '', type: 'all', marketplace: 'all', employee: 'all' },
+    analytics: { period: 'all', startDate: '', endDate: '' },
+    reports: { period: 'all', marketplace: 'all', startDate: '', endDate: '' }
+};
+
+// === ФУНКЦИЯ СРАВНЕНИЯ ОБЪЕКТОВ ===
+function filtersEqual(current, defaults) {
+    return Object.keys(defaults).every(key => current[key] === defaults[key]);
+}
+
+// === ФУНКЦИЯ ПОЛУЧЕНИЯ ТЕКУЩИХ ЗНАЧЕНИЙ ===
+function getCurrentFilters(section) {
+    switch(section) {
+        case 'dashboard':
+            return {
+                period: document.getElementById('period').value,
+                marketplace: document.getElementById('marketplace').value,
+                startDate: document.getElementById('start-date').value,
+                endDate: document.getElementById('end-date').value
+            };
+        case 'allSales':
+            return {
+                period: document.getElementById('all-sales-period').value,
+                startDate: document.getElementById('all-sales-start-date').value,
+                endDate: document.getElementById('all-sales-end-date').value,
+                marketplace: document.getElementById('all-sales-marketplace').value,
+                shop: document.getElementById('all-sales-shop').value,
+                employee: document.getElementById('employee-filter')?.value || 'all',
+                status: document.getElementById('sale-status-filter').value
+            };
+        case 'spreadsheet':
+            return {
+                period: document.getElementById('spreadsheet-period').value,
+                startDate: document.getElementById('spreadsheet-start-date').value,
+                endDate: document.getElementById('spreadsheet-end-date').value,
+                type: document.getElementById('spreadsheet-type-filter').value,
+                marketplace: document.getElementById('spreadsheet-marketplace-filter').value,
+                employee: document.getElementById('spreadsheet-employee-filter')?.value || 'all'
+            };
+        case 'analytics':
+            return {
+                period: document.getElementById('analytics-period').value,
+                startDate: document.getElementById('analytics-start-date').value,
+                endDate: document.getElementById('analytics-end-date').value
+            };
+        case 'reports':
+            return {
+                period: document.getElementById('report-period').value,
+                marketplace: document.getElementById('report-marketplace').value,
+                startDate: document.getElementById('report-start-date').value,
+                endDate: document.getElementById('report-end-date').value
+            };
+        default:
+            return {};
+    }
+}
+
+// === ФУНКЦИЯ СБРОСА ФИЛЬТРОВ ===
+function resetFilters(section) {
+    const defaults = defaultFilters[section];
+    switch(section) {
+        case 'dashboard':
+            document.getElementById('period').value = defaults.period;
+            document.getElementById('marketplace').value = defaults.marketplace;
+            document.getElementById('start-date').value = defaults.startDate;
+            document.getElementById('end-date').value = defaults.endDate;
+            break;
+        case 'allSales':
+            document.getElementById('all-sales-period').value = defaults.period;
+            document.getElementById('all-sales-start-date').value = defaults.startDate;
+            document.getElementById('all-sales-end-date').value = defaults.endDate;
+            document.getElementById('all-sales-marketplace').value = defaults.marketplace;
+            document.getElementById('all-sales-shop').value = defaults.shop;
+            document.getElementById('employee-filter').value = defaults.employee;
+            document.getElementById('sale-status-filter').value = defaults.status;
+            break;
+        case 'spreadsheet':
+            document.getElementById('spreadsheet-period').value = defaults.period;
+            document.getElementById('spreadsheet-start-date').value = defaults.startDate;
+            document.getElementById('spreadsheet-end-date').value = defaults.endDate;
+            document.getElementById('spreadsheet-type-filter').value = defaults.type;
+            document.getElementById('spreadsheet-marketplace-filter').value = defaults.marketplace;
+            document.getElementById('spreadsheet-employee-filter').value = defaults.employee;
+            break;
+        case 'analytics':
+            document.getElementById('analytics-period').value = defaults.period;
+            document.getElementById('analytics-start-date').value = defaults.startDate;
+            document.getElementById('analytics-end-date').value = defaults.endDate;
+            break;
+        case 'reports':
+            document.getElementById('report-period').value = defaults.period;
+            document.getElementById('report-marketplace').value = defaults.marketplace;
+            document.getElementById('report-start-date').value = defaults.startDate;
+            document.getElementById('report-end-date').value = defaults.endDate;
+            break;
+    }
+    // Скрываем кнопку
+    const resetBtnId = {
+        dashboard: 'reset-filters',
+        allSales: 'reset-sales-filters',
+        spreadsheet: 'reset-spreadsheet-filters',
+        analytics: 'reset-analytics-filters',
+        reports: 'reset-report-filters'
+    }[section];
+    document.getElementById(resetBtnId).style.display = 'none';
+    // Обновляем данные
+    if (section === 'dashboard') updateDashboard();
+    else if (section === 'allSales') updateAllSalesTable();
+    else if (section === 'spreadsheet') updateSpreadsheetView();
+    else if (section === 'analytics') updateAnalytics();
+    else if (section === 'reports') updateReports();
+}
+
+// === ФУНКЦИЯ ПРОВЕРКИ ИЗМЕНЕНИЙ ===
+function checkFilterChanges(section) {
+    const current = getCurrentFilters(section);
+    const defaults = defaultFilters[section];
+    const resetBtnId = {
+        dashboard: 'reset-filters',
+        allSales: 'reset-sales-filters',
+        spreadsheet: 'reset-spreadsheet-filters',
+        analytics: 'reset-analytics-filters',
+        reports: 'reset-report-filters'
+    }[section];
+    const resetBtn = document.getElementById(resetBtnId);
+    if (filtersEqual(current, defaults)) {
+        resetBtn.style.display = 'none';
+    } else {
+        resetBtn.style.display = 'inline-block';
+    }
+}
         // === НОВАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ ГРАФИКОВ ===
         function initCharts() {
             const marketplaceCtx = document.getElementById('marketplace-chart').getContext('2d');
@@ -2987,18 +3272,20 @@
             if (period !== 'all') {
                 let startDatePeriod;
                 if (period === 'day') {
-                    startDatePeriod = dateFns.startOfDay(new Date());
+                    startDatePeriod = startOfDay(new Date());
                 } else if (period === 'week') {
-                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
+                    startDatePeriod = startOfWeek(new Date(), { weekStartsOn: 1 });
                 } else if (period === 'month') {
-                    startDatePeriod = dateFns.startOfMonth(new Date());
+                    startDatePeriod = startOfMonth(new Date());
                 } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.startOfQuarter(new Date());
+                    startDatePeriod = startOfQuarter(new Date());
                 } else if (period === 'year') {
-                    startDatePeriod = dateFns.startOfYear(new Date());
+                    startDatePeriod = startOfYear(new Date());
                 }
                 if (startDatePeriod) {
-                    filteredData = filteredData.filter(sale => new Date(sale.date) >= startDatePeriod);
+                    // Важно: конвертируем объект Date в строку YYYY-MM-DD
+                    const startDateStr = formatDateToLocalYYYYMMDD(startDatePeriod);
+                    filteredData = filteredData.filter(sale => sale.date >= startDateStr);
                 }
             }
             // НОВОЕ: Расчет и отображение среднего чека и конверсии возвратов
@@ -3335,18 +3622,20 @@
             if (period !== 'all') {
                 let startDatePeriod;
                 if (period === 'day') {
-                    startDatePeriod = dateFns.startOfDay(new Date());
+                    startDatePeriod = startOfDay(new Date());
                 } else if (period === 'week') {
-                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
+                    startDatePeriod = startOfWeek(new Date(), { weekStartsOn: 1 });
                 } else if (period === 'month') {
-                    startDatePeriod = dateFns.startOfMonth(new Date());
+                    startDatePeriod = startOfMonth(new Date());
                 } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.startOfQuarter(new Date());
+                    startDatePeriod = startOfQuarter(new Date());
                 } else if (period === 'year') {
-                    startDatePeriod = dateFns.startOfYear(new Date());
+                    startDatePeriod = startOfYear(new Date());
                 }
                 if (startDatePeriod) {
-                    filteredData = filteredData.filter(sale => new Date(sale.date) >= startDatePeriod);
+                    // Важно: конвертируем объект Date в строку YYYY-MM-DD
+                    const startDateStr = formatDateToLocalYYYYMMDD(startDatePeriod);
+                    filteredData = filteredData.filter(sale => sale.date >= startDateStr);
                 }
             }
             // УЧИТЫВАЕМ ТОЛЬКО СТАТУС "ДОСТАВЛЕН"
@@ -3453,18 +3742,20 @@
             if (period !== 'all') {
                 let startDatePeriod;
                 if (period === 'day') {
-                    startDatePeriod = dateFns.startOfDay(new Date());
+                    startDatePeriod = startOfDay(new Date());
                 } else if (period === 'week') {
-                    startDatePeriod = dateFns.startOfWeek(new Date(), { weekStartsOn: 1 });
+                    startDatePeriod = startOfWeek(new Date(), { weekStartsOn: 1 });
                 } else if (period === 'month') {
-                    startDatePeriod = dateFns.startOfMonth(new Date());
+                    startDatePeriod = startOfMonth(new Date());
                 } else if (period === 'quarter') {
-                    startDatePeriod = dateFns.startOfQuarter(new Date());
+                    startDatePeriod = startOfQuarter(new Date());
                 } else if (period === 'year') {
-                    startDatePeriod = dateFns.startOfYear(new Date());
+                    startDatePeriod = startOfYear(new Date());
                 }
                 if (startDatePeriod) {
-                    filteredSales = filteredSales.filter(sale => new Date(sale.date) >= startDatePeriod);
+                    // Важно: конвертируем объект Date в строку YYYY-MM-DD
+                    const startDateStr = formatDateToLocalYYYYMMDD(startDatePeriod);
+                    filteredSales = filteredSales.filter(sale => sale.date >= startDateStr);
                 }
             }
             // Фильтруем расходы и возвраты по датам (для согласованности)
@@ -4325,6 +4616,41 @@
         document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('confirm-modal-close').addEventListener('click', function() {
                 document.getElementById('confirm-modal').style.display = 'none';
+                        // Устанавливаем значения по умолчанию для селектов размера страницы
+            document.getElementById('page-size-select').value = '20';
+            document.getElementById('expense-page-size-select').value = '20';
+            document.getElementById('return-page-size-select').value = '20';
+
+            // Обработчики для выбора количества элементов на странице
+            document.getElementById('page-size-select').addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value);
+                currentPage = 1;
+                updateAllSalesTable();
+            });
+
+            document.getElementById('expense-page-size-select').addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value);
+                expenseCurrentPage = 1;
+                updateExpenses();
+            });
+
+            document.getElementById('return-page-size-select').addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value);
+                returnCurrentPage = 1;
+                updateReturns();
+            });
+
+            document.getElementById('expense-page-size-select').addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value);
+                expenseCurrentPage = 1;
+                updateExpenses();
+            });
+
+            document.getElementById('return-page-size-select').addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value);
+                returnCurrentPage = 1;
+                updateReturns();
+            });
             });
             auth.onAuthStateChanged(async function(user) {
                 if (user) {
@@ -4434,6 +4760,38 @@
             document.getElementById('export-csv').addEventListener('click', exportToCSV);
             document.getElementById('apply-spreadsheet-filters').addEventListener('click', updateSpreadsheetView);
             document.getElementById('apply-analytics-filters').addEventListener('click', updateAnalytics);
+            // === ОБРАБОТЧИКИ ДЛЯ СБРОСА И ПРОВЕРКИ ИЗМЕНЕНИЙ ===
+// Дашборд
+['period', 'marketplace', 'start-date', 'end-date'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => checkFilterChanges('dashboard'));
+});
+document.getElementById('reset-filters').addEventListener('click', () => resetFilters('dashboard'));
+
+// Все продажи
+['all-sales-period', 'all-sales-start-date', 'all-sales-end-date', 'all-sales-marketplace', 'all-sales-shop', 'employee-filter', 'sale-status-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => checkFilterChanges('allSales'));
+});
+document.getElementById('reset-sales-filters').addEventListener('click', () => resetFilters('allSales'));
+
+// Таблица
+['spreadsheet-period', 'spreadsheet-start-date', 'spreadsheet-end-date', 'spreadsheet-type-filter', 'spreadsheet-marketplace-filter', 'spreadsheet-employee-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => checkFilterChanges('spreadsheet'));
+});
+document.getElementById('reset-spreadsheet-filters').addEventListener('click', () => resetFilters('spreadsheet'));
+
+// Аналитика
+['analytics-period', 'analytics-start-date', 'analytics-end-date'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => checkFilterChanges('analytics'));
+});
+document.getElementById('reset-analytics-filters').addEventListener('click', () => resetFilters('analytics'));
+
+// Отчёты
+['report-period', 'report-marketplace', 'report-start-date', 'report-end-date'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => checkFilterChanges('reports'));
+});
+document.getElementById('reset-report-filters').addEventListener('click', () => resetFilters('reports'));
             document.querySelectorAll('.spoiler-header').forEach(header => {
                 header.addEventListener('click', function() {
                     const target = this.getAttribute('data-target');
@@ -5449,20 +5807,29 @@
         }
         // === НОВЫЕ ФУНКЦИИ ДЛЯ ЭМОДЗИ И СТАТУСОВ ===
         // Функция для получения эмодзи по статусу
-        function getStatusEmoji(status) {
-            switch(status) {
-                case "Готов к отгрузке":
-                    return "📦";
-                case "Доставляется":
-                    return "🚚";
-                case "Доставлен":
-                    return "✅";
-                case "Возврат":
-                    return "❌";
-                default:
-                    return "❓";
-            }
-        }
+function getStatusEmoji(status) {
+    const size = '16'; // ← Размер точно такой же, как у editIcon и deleteIcon
+    let emoji = '';
+
+    switch(status) {
+        case "Готов к отгрузке":
+            emoji = "📦";
+            break;
+        case "Доставляется":
+            emoji = "🚚";
+            break;
+        case "Доставлен":
+            emoji = "✅";
+            break;
+        case "Возврат":
+            emoji = "❌";
+            break;
+        default:
+            emoji = "❓";
+    }
+
+    return `<span style="font-size: ${size}px; line-height: 1; display: inline-block; vertical-align: middle;">${emoji}</span>`;
+}
         // === СТРОГАЯ МАШИНА СОСТОЯНИЙ ===
         const STATUS_TRANSITIONS = {
             "Готов к отгрузке": ["Доставляется"],
@@ -5486,15 +5853,11 @@
                 notyf.error(`Невозможно перевести "${sale.status}" в "${newStatus}"`);
                 return;
             }
-            // Если переход на "Возврат", показываем подтверждение
+            // Если переход на "Возврат", открываем модальное окно возврата
             if (newStatus === "Возврат") {
-                showModal(
-                    'Подтверждение возврата',
-                    `Вы уверены, что хотите перевести продажу "${sale.name}" в статус "Возврат"?`,
-                    async function() {
-                        await updateSaleStatus(saleId, newStatus);
-                    }
-                );
+                // Открываем модальное окно возврата и предзаполняем продажу
+                populateReturnSales(saleId);
+                document.getElementById('return-modal').style.display = 'flex';
                 return;
             }
             await updateSaleStatus(saleId, newStatus);
@@ -5528,3 +5891,4 @@
     </script>
 </body>
 </html>
+
