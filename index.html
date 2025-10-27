@@ -851,6 +851,7 @@
                 <li class="nav-item" data-tab="all-sales">Все продажи</li>
                 <li class="nav-item" data-tab="expenses">Расходы</li>
                 <li class="nav-item" data-tab="returns">Возвраты</li>
+                <li class="nav-item" data-tab="returns-warehouse">Склад возвратов</li>
                 <li class="nav-item" data-tab="spreadsheet">Таблица</li>
                 <li class="nav-item" data-tab="analytics">Аналитика</li>
                 <li class="nav-item" data-tab="reports">Отчеты</li>
@@ -1250,19 +1251,19 @@
                         <h3>Все операционные расходы</h3>
                         <div style="max-height: 400px; overflow-y: auto;">
                             <table id="expenses-table">
-                                <thead>
-                                    <tr>
-                                        <th>Категория</th>
-                                        <th>Сумма</th>
-                                        <th>Дата</th>
-                                        <th>Описание</th>
-                                        <th>Сотрудник</th>
-                                        <th>Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
+    <thead>
+        <tr>
+            <th style="min-width: 150px;">Категория</th>
+            <th style="min-width: 100px; text-align: right;">Сумма</th>
+            <th style="min-width: 120px;">Дата</th>
+            <th style="min-width: 200px;">Описание</th>
+            <th style="min-width: 120px;">Сотрудник</th>
+            <th style="min-width: 80px;">Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
                         </div>
 <div class="pagination" id="expenses-pagination" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px; background: #f8fafc; border-radius: 8px; margin-top: 20px;">
     <div style="display: flex; align-items: center; gap: 10px;">
@@ -1290,25 +1291,24 @@
                     </div>
                     <div class="card">
                         <h3>Подтвердить доставку</h3>
-                        <div class="filters">
-                            <div>
-                                <label for="confirm-period">Период</label>
-                                <select id="confirm-period">
+                        <div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; padding: 16px; background: var(--light); border-radius: 8px; margin-bottom: 20px;">
+                            <div style="min-width: 150px;">
+                                <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Период</label>
+                                <select id="confirm-period" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
                                     <option value="last-week">Прошлая неделя</option>
                                     <option value="custom">Указать даты</option>
                                 </select>
                             </div>
-                            <div>
-                                <label for="confirm-start-date">Дата от</label>
-                                <input type="date" id="confirm-start-date">
+                            <div style="min-width: 150px;">
+                                <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата от</label>
+                                <input type="date" id="confirm-start-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
                             </div>
-                            <div>
-                                <label for="confirm-end-date">Дата до</label>
-                                <input type="date" id="confirm-end-date">
+                            <div style="min-width: 150px;">
+                                <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата до</label>
+                                <input type="date" id="confirm-end-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
                             </div>
-                            <div>
-                                <label>&nbsp;</label>
-                                <button class="btn btn-success" id="confirm-delivery-all">Подтвердить доставку по всем</button>
+                            <div style="margin-top: 24px;">
+                                <button class="btn btn-success" id="confirm-delivery-all" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px;">Подтвердить доставку по всем</button>
                             </div>
                         </div>
                     </div>
@@ -1320,6 +1320,7 @@
                                     <th>Причина</th>
                                     <th>Сумма</th>
                                     <th>Дата</th>
+                                    <th>Статус</th>
                                     <th>Сотрудник</th>
                                     <th>Действия</th>
                                 </tr>
@@ -1328,6 +1329,7 @@
                             </tbody>
                         </table>
                     </div>
+                    
 <div class="pagination" id="returns-pagination" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px; background: #f8fafc; border-radius: 8px; margin-top: 20px;">
     <div style="display: flex; align-items: center; gap: 10px;">
         <button id="prev-return-page" class="btn btn-sm" style="background: white; border: 1px solid #d1d5db; color: #374151; padding: 6px 12px; border-radius: 6px; cursor: pointer;">← Назад</button>
@@ -1343,6 +1345,27 @@
         </select>
     </div>
 </div>
+                </div>
+            </div>
+                        <div id="returns-warehouse" class="tab-content">
+                <div class="card">
+                    <h2 class="card-title">Склад возвратов</h2>
+                    <div style="overflow-x: auto;">
+                        <table id="returns-warehouse-table">
+                            <thead>
+                                <tr>
+                                    <th>Артикул</th>
+                                    <th>Товар</th>
+                                    <th>Исходная продажа</th>
+                                    <th>Статус</th>
+                                    <th>Дата возврата</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div id="spreadsheet" class="tab-content">
@@ -1444,34 +1467,30 @@
                     <h2 class="card-title">Аналитика продаж</h2>
                     <!-- === ФИЛЬТРЫ === -->
                     <div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; padding: 16px; background: var(--light); border-radius: 8px; margin-bottom: 20px;">
-    <!-- Период -->
-    <div style="min-width: 150px;">
-        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Период</label>
-        <select id="analytics-period" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
-            <option value="all">Все время</option>
-            <option value="day">Сегодня</option>
-            <option value="week">Неделя</option>
-            <option value="month">Месяц</option>
-            <option value="quarter">Квартал</option>
-            <option value="year">Год</option>
-        </select>
-    </div>
-    <!-- Дата от -->
-    <div style="min-width: 150px;">
-        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата от</label>
-        <input type="date" id="analytics-start-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
-    </div>
-    <!-- Дата до -->
-    <div style="min-width: 150px;">
-        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата до</label>
-        <input type="date" id="analytics-end-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
-    </div>
-<!-- Кнопки "Применить" и "Сбросить" -->
-<div style="margin-top: 24px;">
-    <button class="btn btn-primary" id="apply-analytics-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px;">Применить</button>
-    <button class="btn btn-secondary" id="reset-analytics-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px; display: none; margin-left: 8px;">Сбросить</button>
-</div>
-</div>
+                        <div style="min-width: 150px;">
+                            <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Период</label>
+                            <select id="analytics-period" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                                <option value="all">Все время</option>
+                                <option value="day">Сегодня</option>
+                                <option value="week">Неделя</option>
+                                <option value="month">Месяц</option>
+                                <option value="quarter">Квартал</option>
+                                <option value="year">Год</option>
+                            </select>
+                        </div>
+                        <div style="min-width: 150px;">
+                            <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата от</label>
+                            <input type="date" id="analytics-start-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                        </div>
+                        <div style="min-width: 150px;">
+                            <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата до</label>
+                            <input type="date" id="analytics-end-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                        </div>
+                        <div style="margin-top: 24px;">
+                            <button class="btn btn-primary" id="apply-analytics-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px;">Применить</button>
+                            <button class="btn btn-secondary" id="reset-analytics-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px; display: none; margin-left: 8px;">Сбросить</button>
+                        </div>
+                    </div>
                     <!-- === ОБЩИЕ МЕТРИКИ === -->
                     <div class="analytics-section">
                         <h3>📊 Общие показатели</h3>
@@ -1522,6 +1541,15 @@
                             </div>
                         </div>
                     </div>
+                    <!-- === АНАЛИТИКА ВОЗВРАТОВ === -->
+                    <div class="analytics-section">
+                        <div class="card" style="background: #f8fafc;">
+                            <h3>📊 Аналитика возвратов</h3>
+                            <div id="returns-analytics">
+                                <!-- Данные будут загружаться здесь -->
+                            </div>
+                        </div>
+                    </div>
                     <!-- === РАСХОДЫ ПО КАТЕГОРИЯМ === -->
                     <div class="analytics-section">
                         <div class="card" style="background: #f8fafc;">
@@ -1537,20 +1565,22 @@
                                 <canvas id="revenue-expenses-chart"></canvas>
                             </div>
                             <div style="overflow-x: auto; margin-top: 20px;">
-                                <table id="monthly-sales-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Месяц</th>
-                                            <th>Выручка</th>
-                                            <th>Расходы</th>
-                                            <th>Прибыль</th>
-                                            <th>Рентабельность</th>
-                                            <th>Количество продаж</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                    <tfoot id="monthly-sales-total">
+<table id="monthly-sales-table">
+    <thead>
+        <tr>
+            <th style="min-width: 120px;">Месяц</th>
+            <th style="min-width: 120px; text-align: right;">Выручка</th>
+            <th style="min-width: 120px; text-align: right;">Расходы</th>
+            <th style="min-width: 120px; text-align: right;">Прибыль</th>
+            <th style="min-width: 120px; text-align: right;">Рентабельность</th>
+            <th style="min-width: 150px; text-align: right;">Количество продаж</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+    <tfoot id="monthly-sales-total">
+    </tfoot>
+</table>
                                         <!-- Итоговая строка будет добавлена динамически -->
                                     </tfoot>
                                 </table>
@@ -1562,18 +1592,18 @@
                         <div class="card" style="background: #f8fafc;">
                             <h3>👥 Продажи по сотрудникам</h3>
                             <div style="overflow-x: auto;">
-                                <table id="employee-sales-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Сотрудник</th>
-                                            <th>Выручка</th>
-                                            <th>Прибыль</th>
-                                            <th>Количество продаж</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
+<table id="employee-sales-table">
+    <thead>
+        <tr>
+            <th style="min-width: 200px;">Сотрудник</th>
+            <th style="min-width: 120px; text-align: right;">Выручка</th>
+            <th style="min-width: 120px; text-align: right;">Прибыль</th>
+            <th style="min-width: 150px; text-align: right;">Количество продаж</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
                             </div>
                         </div>
                     </div>
@@ -1584,43 +1614,38 @@
                 <div class="card">
                     <h2 class="card-title">Финансовые отчеты</h2>
                                         <div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; padding: 16px; background: var(--light); border-radius: 8px; margin-bottom: 20px;">
-    <!-- Период -->
-    <div style="min-width: 150px;">
-        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Период</label>
-        <select id="report-period" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
-            <option value="all">Все время</option>
-            <option value="day">Сегодня</option>
-            <option value="week">Неделя</option>
-            <option value="month">Месяц</option>
-            <option value="quarter">Квартал</option>
-            <option value="year">Год</option>
-        </select>
-    </div>
-    <!-- Маркетплейс -->
-    <div style="min-width: 150px;">
-        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Маркетплейс</label>
-        <select id="report-marketplace" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
-            <option value="all">Все маркетплейсы</option>
-            <option value="Яндекс">Яндекс Маркет</option>
-            <option value="Озон">Озон</option>
-        </select>
-    </div>
-    <!-- Дата от -->
-    <div style="min-width: 150px;">
-        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата от</label>
-        <input type="date" id="report-start-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
-    </div>
-    <!-- Дата до -->
-    <div style="min-width: 150px;">
-        <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата до</label>
-        <input type="date" id="report-end-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
-    </div>
-<!-- Кнопки "Сгенерировать отчет" и "Сбросить" -->
-<div style="margin-top: 24px;">
-    <button class="btn btn-primary" id="generate-report" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px;">Сгенерировать отчет</button>
-    <button class="btn btn-secondary" id="reset-report-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px; display: none; margin-left: 8px;">Сбросить</button>
-</div>
-</div>
+                                            <div style="min-width: 150px;">
+                                                <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Период</label>
+                                                <select id="report-period" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                                                    <option value="all">Все время</option>
+                                                    <option value="day">Сегодня</option>
+                                                    <option value="week">Неделя</option>
+                                                    <option value="month">Месяц</option>
+                                                    <option value="quarter">Квартал</option>
+                                                    <option value="year">Год</option>
+                                                </select>
+                                            </div>
+                                            <div style="min-width: 150px;">
+                                                <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Маркетплейс</label>
+                                                <select id="report-marketplace" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                                                    <option value="all">Все маркетплейсы</option>
+                                                    <option value="Яндекс">Яндекс Маркет</option>
+                                                    <option value="Озон">Озон</option>
+                                                </select>
+                                            </div>
+                                            <div style="min-width: 150px;">
+                                                <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата от</label>
+                                                <input type="date" id="report-start-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                                            </div>
+                                            <div style="min-width: 150px;">
+                                                <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Дата до</label>
+                                                <input type="date" id="report-end-date" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+                                            </div>
+                                            <div style="margin-top: 24px;">
+                                                <button class="btn btn-primary" id="generate-report" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px;">Сгенерировать отчет</button>
+                                                <button class="btn btn-secondary" id="reset-report-filters" style="padding: 8px 16px; font-size: 0.875rem; border-radius: 6px; display: none; margin-left: 8px;">Сбросить</button>
+                                            </div>
+                                        </div>
                     <div class="card" style="background: #f1f5f9;">
                         <h3>Отчет о прибылях и убытках</h3>
                         <div style="overflow-x: auto;">
@@ -1653,10 +1678,25 @@
                                         <td id="report-commission-cost" class="right-align">0</td>
                                         <td id="report-commission-percent" class="right-align">0%</td>
                                     </tr>
+                                    <tr style="background: #fef3c7;">
+                                        <td><strong>Потери от возвратов</strong></td>
+                                        <td id="report-returns-total-loss" class="right-align" style="font-weight: bold;">0</td>
+                                        <td id="report-returns-total-loss-percent" class="right-align" style="font-weight: bold;">0%</td>
+                                    </tr>
                                     <tr>
-                                        <td style="padding-left: 30px;">Возвраты (убыток)</td>
-                                        <td id="report-returns-loss" class="right-align">0</td>
-                                        <td id="report-returns-loss-percent" class="right-align">0%</td>
+                                        <td style="padding-left: 30px;">Сумма возвратов покупателям</td>
+                                        <td id="report-returns-amount" class="right-align">0</td>
+                                        <td id="report-returns-amount-percent" class="right-align">0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left: 30px;">Обратная логистика</td>
+                                        <td id="report-returns-logistics" class="right-align">0</td>
+                                        <td id="report-returns-logistics-percent" class="right-align">0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left: 30px;">Возвраты поставщикам (экономия)</td>
+                                        <td id="report-returns-supplier" class="right-align" style="color: var(--secondary);">0</td>
+                                        <td id="report-returns-supplier-percent" class="right-align" style="color: var(--secondary);">0%</td>
                                     </tr>
                                     <tr style="background: #ffedd5;">
                                         <td><strong>Операционные расходы</strong></td>
@@ -2058,6 +2098,16 @@
                         <label for="return-date">Дата возврата</label>
                         <input type="date" id="return-date">
                     </div>
+                                        <div class="form-group">
+                        <label for="return-status">Статус возврата</label>
+                        <select id="return-status">
+                            <option value="Возврат в пути">Возврат в пути</option>
+                            <option value="Возврат проверен">Возврат проверен</option>
+                            <option value="✅ Возврат готов к перепродаже">✅ Возврат готов к перепродаже</option>
+                            <option value="📦 Возврат поставщику">📦 Возврат поставщику</option>
+                            <option value="🗑️ Брак (списание)">🗑️ Брак (списание)</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" id="cancel-return">Отмена</button>
@@ -2105,6 +2155,16 @@
                     <div class="form-group">
                         <label for="edit-return-date">Дата возврата</label>
                         <input type="date" id="edit-return-date">
+                    </div>
+                                        <div class="form-group">
+                        <label for="edit-return-status">Статус возврата</label>
+                        <select id="edit-return-status">
+                            <option value="Возврат в пути">Возврат в пути</option>
+                            <option value="Возврат проверен">Возврат проверен</option>
+                            <option value="✅ Возврат готов к перепродаже">✅ Возврат готов к перепродаже</option>
+                            <option value="📦 Возврат поставщику">📦 Возврат поставщику</option>
+                            <option value="🗑️ Брак (списание)">🗑️ Брак (списание)</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -2177,6 +2237,80 @@
                     <button class="btn btn-warning" id="save-edit-expense">Сохранить</button>
                 </div>
             </div>
+                    <!-- Модальное окно для перепродажи -->
+        <div id="resell-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Перепродажа возвращенного товара</h3>
+                    <span class="close" id="close-resell-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="resell-return-id">
+                    <div class="grid">
+                        <div>
+                            <label for="resell-product-name">Название товара</label>
+                            <input type="text" id="resell-product-name" readonly>
+                        </div>
+                        <div>
+                            <label for="resell-article">Артикул</label>
+                            <input type="text" id="resell-article" readonly>
+                        </div>
+                        <div>
+                            <label for="resell-tracking-number">Новый номер отправления (трек)</label>
+                            <input type="text" id="resell-tracking-number" placeholder="Введите новый трек номер">
+                        </div>
+                        <div>
+                            <label for="resell-marketplace">Маркетплейс</label>
+                            <select id="resell-marketplace">
+                                <option value="Яндекс">Яндекс Маркет</option>
+                                <option value="Озон">Озон</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="resell-shop">Магазин</label>
+                            <select id="resell-shop">
+                                <option value="">Выберите магазин</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="resell-purchase-price">Цена закупки (₽)</label>
+                            <input type="number" id="resell-purchase-price" value="0" readonly>
+                        </div>
+                        <div>
+                            <label for="resell-selling-price">Цена продажи (₽)</label>
+                            <input type="number" id="resell-selling-price" placeholder="0">
+                        </div>
+                        <div>
+                            <label for="resell-commission">Комиссия маркетплейса (₽)</label>
+                            <input type="number" id="resell-commission" placeholder="0">
+                        </div>
+                        <div>
+                            <label for="resell-logistics">Логистика (₽)</label>
+                            <input type="number" id="resell-logistics" placeholder="0">
+                        </div>
+                        <div>
+                            <label for="resell-delivery-mv">Доставка до МВ (₽)</label>
+                            <input type="number" id="resell-delivery-mv" placeholder="0">
+                        </div>
+                        <div>
+                            <label for="resell-quantity">Количество для перепродажи</label>
+                            <input type="number" id="resell-quantity" min="1" value="1">
+                        </div>
+                        <div>
+                            <label for="resell-date">Дата продажи</label>
+                            <input type="date" id="resell-date">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" id="cancel-resell">Отмена</button>
+                    <button class="btn btn-primary" id="confirm-resell">Создать продажу</button>
+                </div>
+     
+            </div>
+        </div>
+            </div>
+        </div>
         </div>
     </div>
     <script>
@@ -2290,23 +2424,37 @@ function formatDateToLocalYYYYMMDD(date) {
         }
         // === ИСПРАВЛЕНА ФУНКЦИЯ РАСЧЕТА ПРИБЫЛИ ===
         function calculateProfit(sale, overrideQuantity = null) {
-            const quantity = overrideQuantity !== null ? overrideQuantity : (parseInt(sale.quantity) || 0);
-            const sellingPrice = parseFloat(sale.selling_price) || 0;
-            const purchasePrice = parseFloat(sale.purchase_price) || 0;
-            const commission = parseFloat(sale.commission) || 0;
-            const logistics = parseFloat(sale.logistics) || 0;
-            const deliveryToMV = parseFloat(sale.delivery_to_mv) || 0;
-            const advertising = parseFloat(sale.advertising) || 0.98;
-            const taxRate = parseFloat(sale.tax_rate) || 0.99;
-            const revenue = sellingPrice * quantity;
-            const purchaseCost = purchasePrice * quantity;
-            const commissionCost = commission * quantity;
-            const logisticsCost = logistics * quantity;
-            const deliveryCost = deliveryToMV * quantity;
-            const revenueAfterAdvertising = revenue * advertising;
-            const taxCost = (1 - taxRate) * revenueAfterAdvertising;
-            return revenueAfterAdvertising - purchaseCost - commissionCost - logisticsCost - deliveryCost - taxCost;
-        }
+    const quantity = overrideQuantity !== null ? overrideQuantity : (parseInt(sale.quantity) || 0);
+    const sellingPrice = parseFloat(sale.selling_price) || 0;
+    const purchasePrice = parseFloat(sale.purchase_price) || 0;
+    const commission = parseFloat(sale.commission) || 0;
+    const logistics = parseFloat(sale.logistics) || 0;
+    const deliveryToMV = parseFloat(sale.delivery_to_mv) || 0;
+    const advertising = parseFloat(sale.advertising) || 0.98;
+    const taxRate = parseFloat(sale.tax_rate) || 0.99;
+    
+    // Выручка с учетом возвратов
+    const revenue = sellingPrice * quantity;
+    
+    // Учитываем сумму возвратов для этой продажи
+    const returnsForThisSale = returnsData
+        .filter(r => r.sale_id === sale.id)
+        .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+    
+    // Чистая выручка (за вычетом возвратов)
+    const netRevenue = revenue - returnsForThisSale;
+    
+    // Расходы
+    const purchaseCost = purchasePrice * quantity;
+    const commissionCost = commission * quantity;
+    const logisticsCost = logistics * quantity;
+    const deliveryCost = deliveryToMV * quantity;
+    const revenueAfterAdvertising = netRevenue * advertising; // Используем чистую выручку
+    const taxCost = (1 - taxRate) * revenueAfterAdvertising;
+    
+    // Прибыль = (Чистая выручка) - Все расходы
+    return revenueAfterAdvertising - purchaseCost - commissionCost - logisticsCost - deliveryCost - taxCost;
+}
         function calculateMargin(sale, overrideQuantity = null) {
             const profit = calculateProfit(sale, overrideQuantity);
             const revenue = parseFloat(sale.selling_price) * (overrideQuantity !== null ? overrideQuantity : parseInt(sale.quantity) || 0);
@@ -2472,40 +2620,91 @@ function formatDateToLocalYYYYMMDD(date) {
                     delivery_to_mv_back: deliveryMvBack,
                     reason: reason,
                     date: date,
+                    status: document.getElementById('return-status').value,
                     user_id: currentUser.uid,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 showLoading('Сохраняем возврат...');
                 const docRef = await db.collection('returns').add(returnItem);
                 returnsData.push({...returnItem, id: docRef.id});
-                // === АВТОМАТИЧЕСКИЕ РАСХОДЫ СО ССЫЛКОЙ НА ВОЗВРАТ ===
+                // АВТОМАТИЧЕСКОЕ ОБНОВЛЕНИЕ СТАТУСА ПРОДАЖИ ПРИ ВОЗВРАТЕ
+    const totalReturnedAfterThis = alreadyReturned + parseInt(returnQuantity);
+    
+    if (totalReturnedAfterThis >= maxReturnable) {
+        // Полный возврат - меняем статус продажи на "Возврат"
+        await db.collection('sales').doc(saleId).update({ 
+            status: "Возврат",
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Обновляем локальную копию
+        const saleIndex = salesData.findIndex(s => s.id === saleId);
+        if (saleIndex !== -1) {
+            salesData[saleIndex].status = "Возврат";
+        }
+    } else if (totalReturnedAfterThis > 0) {
+        // Частичный возврат - меняем статус на "Частичный возврат"
+        await db.collection('sales').doc(saleId).update({ 
+            status: "Частичный возврат",
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Обновляем локальную копию
+        const saleIndex = salesData.findIndex(s => s.id === saleId);
+        if (saleIndex !== -1) {
+            salesData[saleIndex].status = "Частичный возврат";
+        }
+    }
+                // === АВТОМАТИЧЕСКИЕ РАСХОДЫ ПРИ ВОЗВРАТЕ ===
                 const expensePromises = [];
+
+                // 1. Расход на обратную логистику
                 if (logisticsBack > 0) {
                     expensePromises.push(
                         db.collection('expenses').add({
-                            category: "Возврат: логистика",
+                            category: "Обратная логистика возврата",
                             amount: logisticsBack,
                             date: date,
-                            description: `Обратная логистика по возврату товара "${sale.name}"`,
+                            description: `Обратная логистика по возврату ${sale.article}`,
                             user_id: currentUser.uid,
-                            return_id: docRef.id, // ← КЛЮЧЕВОЕ ИЗМЕНЕНИЕ
+                            return_id: docRef.id,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         })
                     );
                 }
+
+                // 2. Расход на обратную доставку до МВ
                 if (deliveryMvBack > 0) {
                     expensePromises.push(
                         db.collection('expenses').add({
-                            category: "Возврат: Доставка до МВ",
+                            category: "Обратная доставка до МВ",
                             amount: deliveryMvBack,
                             date: date,
-                            description: `Обратная доставка до МВ по возврату товара "${sale.name}"`,
+                            description: `Обратная доставка до МВ по возврату ${sale.article}`,
                             user_id: currentUser.uid,
-                            return_id: docRef.id, // ← КЛЮЧЕВОЕ ИЗМЕНЕНИЕ
+                            return_id: docRef.id,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         })
                     );
                 }
+
+                // 3. Если возврат поставщику, создаем отрицательный расход (возврат денег)
+                if (returnItem.status === "📦 Возврат поставщику") {
+                    const purchaseCost = sale.purchase_price * returnItem.return_quantity;
+                    expensePromises.push(
+                        db.collection('expenses').add({
+                            category: "Закупка товаров",
+                            amount: -purchaseCost, // отрицательная сумма
+                            date: date,
+                            description: `Возврат поставщику ${sale.article}`,
+                            user_id: currentUser.uid,
+                            return_id: docRef.id,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        })
+                    );
+                }
+
+                // Ждем создания всех расходов
                 if (expensePromises.length > 0) {
                     await Promise.all(expensePromises);
                     await loadExpensesData();
@@ -2524,36 +2723,52 @@ function formatDateToLocalYYYYMMDD(date) {
                 updateDashboard();
                 updateReturns();
                 updateAllSalesTable();
-                notyf.success('Возврат успешно добавлен!');
+                if (parseInt(returnQuantity) < (parseInt(sale.quantity) || 0)) {
+                    notyf.success(`Частичный возврат добавлен! Возвращено ${returnQuantity} из ${sale.quantity}`);
+                } else {
+                    notyf.success('Полный возврат оформлен!');
+                }
             } catch (error) {
                 hideLoading();
                 notyf.error(error.message);
             }
         }
         // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАПОЛНЕНИЯ СПИСКА ПРОДАЖ ===
-        function populateReturnSales(saleIdToSelect = null) {
-            const select = document.getElementById('return-sale');
-            select.innerHTML = '<option value="">Выберите продажу</option>';
-            let filteredSales = salesData;
-            if (getRoleFromToken() !== 'admin') {
-                filteredSales = salesData.filter(sale => sale.user_id === currentUser.uid);
+function populateReturnSales(saleIdToSelect = null) {
+    const select = document.getElementById('return-sale');
+    select.innerHTML = '<option value="">Выберите продажу</option>';
+    let filteredSales = salesData;
+    if (getRoleFromToken() !== 'admin') {
+        filteredSales = salesData.filter(sale => sale.user_id === currentUser.uid);
+    }
+    
+    filteredSales.forEach(sale => {
+        // Проверяем, можно ли еще возвращать этот товар
+        const totalReturned = returnsData
+            .filter(r => r.sale_id === sale.id)
+            .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+        const availableToReturn = (parseInt(sale.quantity) || 0) - totalReturned;
+        
+        // Показываем только те продажи, которые еще не полностью возвращены
+        if (availableToReturn > 0) {
+            const sellingPrice = parseFloat(sale.selling_price) || 0;
+            const quantity = parseInt(sale.quantity) || 0;
+            // ИСПРАВЛЕНИЕ: меняем const на let чтобы можно было изменять переменную
+            let displayText = `${sale.name} — ${formatCurrency(sellingPrice * quantity)} (доступно для возврата: ${availableToReturn} шт.)`;
+            if (sale.tracking_number) {
+                displayText += ` (трек: ${sale.tracking_number})`;
             }
-            filteredSales.forEach(sale => {
-                const sellingPrice = parseFloat(sale.selling_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                let displayText = `${sale.name} — ${formatCurrency(sellingPrice * quantity)}`;
-                if (sale.tracking_number) {
-                    displayText += ` (трек: ${sale.tracking_number})`;
-                }
-                const option = document.createElement('option');
-                option.value = sale.id;
-                option.textContent = displayText;
-                select.appendChild(option);
-            });
-            if (saleIdToSelect) {
-                select.value = saleIdToSelect;
-            }
+            const option = document.createElement('option');
+            option.value = sale.id;
+            option.textContent = displayText;
+            select.appendChild(option);
         }
+    });
+    
+    if (saleIdToSelect) {
+        select.value = saleIdToSelect;
+    }
+}
         // === НОВЫЙ ОБРАБОТЧИК ПОИСКА ПО ТРЕКУ ===
         function initReturnSearch() {
             document.getElementById('return-tracking-search').addEventListener('input', function() {
@@ -2644,17 +2859,27 @@ filteredSales.sort((a, b) => {
                 const actualMargin = calculateMargin(sale, actualQuantity);
                 const isFullyReturned = actualQuantity === 0;
                 const isPartiallyReturned = totalReturned > 0 && !isFullyReturned;
+                // Отображаем информацию о частичных возвратах
+                const returnInfo = totalReturned > 0 ? ` (Возвращено: ${totalReturned}/${parseInt(sale.quantity) || 0})` : '';
                 const tr = document.createElement('tr');
-                if (isFullyReturned) {
+                
+                // Обработка перепроданных товаров и возвратов
+                if (sale.is_resell) {
+                    // Это перепроданный товар - отмечаем специальным стилем
+                    tr.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                    tr.style.borderLeft = '4px solid #10b981';
+                } else if (isFullyReturned) {
+                    // Полностью возвращенный товар
                     tr.classList.add('sale-with-return');
                 } else if (isPartiallyReturned) {
+                    // Частично возвращенный товар
                     tr.classList.add('sale-partially-returned');
                 }
                 // === КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: отображаем actualQuantity и actualRevenue ===
                 // === НОВЫЙ СТОЛБЕЦ С ЭМОДЗИ-СТАТУСОМ ===
                 const statusEmoji = getStatusEmoji(sale.status);
                 tr.innerHTML = `
-                    <td title="${sale.name}">${sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name}</td>
+                    <td title="${sale.name}${returnInfo}">${sale.name.length > 20 ? sale.name.substring(0, 20) + '...' : sale.name}${returnInfo}</td>
                     <td>${sale.article}</td>
                     <td>${sale.marketplace}</td>
                     <td>${sale.shop || '-'}</td>
@@ -2698,6 +2923,7 @@ filteredSales.sort((a, b) => {
                     <td>${ret.reason}</td>
                     <td>${formatCurrency(parseFloat(ret.amount) || 0)}</td>
                     <td>${new Date(ret.date).toLocaleDateString('ru-RU')}</td>
+                    <td><span class="status-badge">${ret.status || 'Возврат в пути'}</span></td>
                     <td>${userName}</td>
                     <td class="actions-cell">
                         <button class="icon-btn" onclick="editReturn('${ret.id}')" title="Редактировать">${editIcon}</button>
@@ -2766,35 +2992,81 @@ filteredSales.sort((a, b) => {
                         returnedShipments.add(sale.tracking_number);
                     }
                 }
-                // === РАЗДЕЛЯЕМ ПО СТАТУСАМ ===
-                switch(sale.status) {
-                    case "Готов к отгрузке":
-                        readyToShipCount += actualQuantity;
-                        readyToShipValue += actualRevenue;
-                        break;
-                    case "Доставляется":
-                        inTransitCount += actualQuantity;
-                        inTransitValue += actualRevenue;
-                        break;
-                    case "Доставлен":
-                        totalRevenue += actualRevenue; // ТОЛЬКО ЭТОТ СТАТУС УЧИТЫВАЕТСЯ В ВЫРУЧКЕ
-                        deliveredCount += actualQuantity;
-                        deliveredValue += actualRevenue;
-                        break;
-                    case "Возврат":
-                        returnedCount += actualQuantity;
-                        returnedValue += actualRevenue;
-                        break;
-                }
+                        // === РАЗДЕЛЯЕМ ПО СТАТУСАМ ===
+        switch(sale.status) {
+            case "Готов к отгрузке":
+                readyToShipCount += actualQuantity;
+                readyToShipValue += actualRevenue;
+                break;
+            case "Доставляется":
+                inTransitCount += actualQuantity;
+                inTransitValue += actualRevenue;
+                break;
+            case "Доставлен":
+                totalRevenue += actualRevenue; // ТОЛЬКО ЭТОТ СТАТУС УЧИТЫВАЕТСЯ В ВЫРУЧКЕ
+                deliveredCount += actualQuantity;
+                deliveredValue += actualRevenue;
+                break;
+            case "Возврат":
+                returnedCount += actualQuantity;
+                returnedValue += actualRevenue;
+                break;
+        }
+        
+        // === УЧИТЫВАЕМ ПЕРЕПРОДАННЫЕ ТОВАРЫ В МЕТРИКАХ ===
+        if (sale.is_resell) {
+            // Для перепроданных товаров учитываем в соответствующих статусах
+            const resellRevenue = sellingPrice * quantity;
+            
+            switch(sale.status) {
+                case "Готов к отгрузке":
+                    readyToShipCount += quantity;
+                    readyToShipValue += resellRevenue;
+                    break;
+                case "Доставляется":
+                    inTransitCount += quantity;
+                    inTransitValue += resellRevenue;
+                    break;
+                case "Доставлен":
+                    totalRevenue += resellRevenue;
+                    deliveredCount += quantity;
+                    deliveredValue += resellRevenue;
+                    break;
+            }
+        }
+
+        // === УЧИТЫВАЕМ ПЕРЕПРОДАННЫЕ ТОВАРЫ В МЕТРИКАХ ===
+        if (sale.is_resell) {
+            // Для перепроданных товаров учитываем в соответствующих статусах
+            const resellRevenue = sellingPrice * quantity;
+            
+            switch(sale.status) {
+                case "Готов к отгрузке":
+                    readyToShipCount += quantity;
+                    readyToShipValue += resellRevenue;
+                    break;
+                case "Доставляется":
+                    inTransitCount += quantity;
+                    inTransitValue += resellRevenue;
+                    break;
+                case "Доставлен":
+                    totalRevenue += resellRevenue;
+                    deliveredCount += quantity;
+                    deliveredValue += resellRevenue;
+                    break;
+            }
+        }
             });
             // === СЧИТАЕМ СУММУ ВОЗВРАТОВ ===
             const totalReturns = returnsData.reduce((sum, ret) => {
                 return sum + (parseFloat(ret.amount) || 0);
             }, 0);
-            // === ПРЯМЫЕ РАСХОДЫ: только по фактически проданным товарам ===
-            let totalDirectCosts = 0;
-            filteredData.forEach(sale => {
-                if (sale.status !== "Доставлен") return; // УЧИТЫВАЕМ ТОЛЬКО ДОСТАВЛЕННЫЕ
+                        const returnRate = totalRevenue === 0 ? 0 : Math.round((totalReturns / totalRevenue) * 100);        
+    // === ПРЯМЫЕ РАСХОДЫ: только по фактически проданным товарам ===
+    let totalDirectCosts = 0;
+    filteredData.forEach(sale => {
+        // УЧИТЫВАЕМ ДОСТАВЛЕННЫЕ И ПЕРЕПРОДАННЫЕ ТОВАРЫ
+        if (sale.status !== "Доставлен" && !sale.is_resell) return;
                 const quantity = parseInt(sale.quantity) || 0;
                 const totalReturned = returnsData
                     .filter(r => r.sale_id === sale.id)
@@ -2814,7 +3086,13 @@ filteredSales.sort((a, b) => {
                 const deliveryCost = deliveryToMV * actualQuantity;
                 const revenueAfterAdvertising = revenue * advertising;
                 const taxCost = (1 - taxRate) * revenueAfterAdvertising;
-                totalDirectCosts += purchaseCost + commissionCost + logisticsCost + deliveryCost + taxCost;
+                // РАСЧЕТ СТОИМОСТИ С УЧЕТОМ ПЕРЕПРОДАННЫХ ТОВАРОВ
+        if (sale.is_resell) {
+            // Для перепроданных товаров закупка не учитывается
+            totalDirectCosts += commissionCost + logisticsCost + deliveryCost + taxCost;
+        } else {
+            totalDirectCosts += purchaseCost + commissionCost + logisticsCost + deliveryCost + taxCost;
+        }
             });
             const totalOperatingExpenses = expensesData.reduce((sum, expense) => {
                 return sum + (parseFloat(expense.amount) || 0);
@@ -2911,7 +3189,8 @@ filteredSales.sort((a, b) => {
                 'Озон': { revenue: 0, profit: 0 }
             };
             filteredData.forEach(sale => {
-                if (sale.status !== "Доставлен") return; // УЧИТЫВАЕМ ТОЛЬКО ДОСТАВЛЕННЫЕ
+                // УЧИТЫВАЕМ ДОСТАВЛЕННЫЕ И ПЕРЕПРОДАННЫЕ ТОВАРЫ
+        if (sale.status !== "Доставлен" && !sale.is_resell) return;
                 const mp = sale.marketplace;
                 if (marketplaceData[mp]) {
                     const quantity = parseInt(sale.quantity) || 0;
@@ -2920,7 +3199,11 @@ filteredSales.sort((a, b) => {
                         .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
                     const actualQuantity = Math.max(0, quantity - totalReturned);
                     const sellingPrice = parseFloat(sale.selling_price) || 0;
-                    marketplaceData[mp].revenue += sellingPrice * actualQuantity;
+                    const returnsForThisSale = returnsData
+                        .filter(r => r.sale_id === sale.id)
+                        .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+
+                    marketplaceData[mp].revenue += (sellingPrice * actualQuantity) - returnsForThisSale;
                     marketplaceData[mp].profit += calculateProfit(sale, actualQuantity); // Гарантированно число
                 }
             });
@@ -3305,7 +3588,13 @@ function checkFilterChanges(section) {
                     .filter(r => r.sale_id === sale.id)
                     .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
                 const actualQuantity = Math.max(0, quantity - totalReturned);
-                totalRevenue += sellingPrice * actualQuantity;
+                
+                // Вычитаем сумму возвратов из выручки
+                const returnsForThisSale = returnsData
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+                
+                totalRevenue += (sellingPrice * actualQuantity) - returnsForThisSale;
             });
             const totalReturns = returnsData.reduce((sum, ret) => sum + (parseFloat(ret.amount) || 0), 0);
             const totalSalesCount = filteredData.filter(s => s.status === "Доставлен").length;
@@ -3452,6 +3741,78 @@ function checkFilterChanges(section) {
             );
             analyticsBottomProductsChart.data.datasets[0].data = bottomProducts.map(s => s.profit);
             analyticsBottomProductsChart.update();
+                        // === АНАЛИТИКА ВОЗВРАТОВ ===
+            const returnsAnalytics = document.getElementById('returns-analytics');
+            returnsAnalytics.innerHTML = '';
+
+            // 1. Общая статистика по возвратам
+            const totalReturnsAmount = returnsData.reduce((sum, ret) => sum + (parseFloat(ret.amount) || 0), 0);
+            const totalReturnsCount = returnsData.length;
+            const avgReturnAmount = totalReturnsCount > 0 ? totalReturnsAmount / totalReturnsCount : 0;
+
+            // 2. Возвраты по причинам
+            const returnsByReason = {};
+            returnsData.forEach(ret => {
+                if (!returnsByReason[ret.reason]) {
+                    returnsByReason[ret.reason] = { count: 0, amount: 0 };
+                }
+                returnsByReason[ret.reason].count += 1;
+                returnsByReason[ret.reason].amount += (parseFloat(ret.amount) || 0);
+            });
+
+            // 3. Возвраты по статусам
+            const returnsByStatus = {};
+            returnsData.forEach(ret => {
+                const status = ret.status || 'Возврат в пути';
+                if (!returnsByStatus[status]) {
+                    returnsByStatus[status] = { count: 0, amount: 0 };
+                }
+                returnsByStatus[status].count += 1;
+                returnsByStatus[status].amount += (parseFloat(ret.amount) || 0);
+            });
+
+            // Создаем HTML для аналитики
+            let analyticsHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: var(--danger);">${formatCurrency(totalReturnsAmount)}</div>
+                        <div style="color: var(--gray); font-size: 0.9rem;">Общая сумма возвратов</div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: var(--warning);">${totalReturnsCount}</div>
+                        <div style="color: var(--gray); font-size: 0.9rem;">Количество возвратов</div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: var(--info);">${formatCurrency(avgReturnAmount)}</div>
+                        <div style="color: var(--gray); font-size: 0.9rem;">Средний возврат</div>
+                    </div>
+                </div>
+            `;
+
+            // Добавляем возвраты по причинам
+            analyticsHTML += `<h4 style="margin: 20px 0 10px 0;">По причинам:</h4>`;
+            Object.entries(returnsByReason).forEach(([reason, data]) => {
+                analyticsHTML += `
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: white; margin-bottom: 5px; border-radius: 4px;">
+                        <span><strong>${reason || 'Не указана'}</strong></span>
+                        <span>${data.count} шт. / ${formatCurrency(data.amount)}</span>
+                    </div>
+                `;
+            });
+
+            // Добавляем возвраты по статусам
+            analyticsHTML += `<h4 style="margin: 20px 0 10px 0;">По статусам:</h4>`;
+            Object.entries(returnsByStatus).forEach(([status, data]) => {
+                analyticsHTML += `
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: white; margin-bottom: 5px; border-radius: 4px;">
+                        <span><strong>${status}</strong></span>
+                        <span>${data.count} шт. / ${formatCurrency(data.amount)}</span>
+                    </div>
+                `;
+            });
+
+            returnsAnalytics.innerHTML = analyticsHTML;
+            
             // === РАСХОДЫ ПО КАТЕГОРИЯМ ===
             const expensesByCategoryAnalytics = document.getElementById('expenses-by-category-analytics');
             expensesByCategoryAnalytics.innerHTML = '';
@@ -3495,7 +3856,11 @@ function checkFilterChanges(section) {
                     .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
                 const actualQuantity = Math.max(0, quantity - totalReturned);
                 const sellingPrice = parseFloat(sale.selling_price) || 0;
-                salesByMonth[month].revenue += sellingPrice * actualQuantity;
+                const returnsForThisSale = returnsData
+                    .filter(r => r.sale_id === sale.id)
+                    .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+
+                salesByMonth[month].revenue += (sellingPrice * actualQuantity) - returnsForThisSale;
                 salesByMonth[month].profit += calculateProfit(sale, actualQuantity);
                 salesByMonth[month].count += actualQuantity > 0 ? 1 : 0;
             });
@@ -3669,6 +4034,16 @@ function checkFilterChanges(section) {
                 totalRevenue += sellingPrice * actualQuantity;
             });
             const totalReturnsAmount = filteredReturns.reduce((sum, ret) => sum + (parseFloat(ret.amount) || 0), 0);
+                        // Новые метрики для возвратов
+            const returnLogisticsCost = filteredExpenses
+                .filter(exp => exp.category === "Обратная логистика возврата" || exp.category === "Обратная доставка до МВ")
+                .reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+
+            const returnSupplierRefunds = Math.abs(filteredExpenses
+                .filter(exp => exp.category === "Закупка товаров" && parseFloat(exp.amount) < 0)
+                .reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0));
+
+            const returnsTotalLoss = totalReturnsAmount + returnLogisticsCost - returnSupplierRefunds;
             const adjustedRevenue = totalRevenue; // уже с учётом возвратов
             let totalPurchaseCost = 0;
             let totalCommissionCost = 0;
@@ -4212,8 +4587,8 @@ if (period !== 'all') {
             } else if (tabId === 'returns') {
                 updateReturns();
                 populateReturnSales();
-            } else if (tabId === 'sales') {
-                updateRecentAddedSales();
+            } else if (tabId === 'returns-warehouse') {
+                updateReturnsWarehouse();
             } else if (tabId === 'spreadsheet') {
                 updateSpreadsheetView();
             } else if (tabId === 'admin-panel') {
@@ -4791,6 +5166,28 @@ if (period !== 'all') {
             document.getElementById('admin-add-tax-system').addEventListener('click', addAdminTaxSystem);
             document.getElementById('admin-add-shop').addEventListener('click', addAdminShop);
             document.getElementById('admin-add-expense-category').addEventListener('click', addAdminExpenseCategory);
+                        // Обработчики для модального окна перепродажи
+            document.getElementById('close-resell-modal').addEventListener('click', function() {
+                document.getElementById('resell-modal').style.display = 'none';
+            });
+            document.getElementById('cancel-resell').addEventListener('click', function() {
+                document.getElementById('resell-modal').style.display = 'none';
+            });
+            document.getElementById('confirm-resell').addEventListener('click', confirmResell);
+                        // Делегирование событий для кнопок в таблице склада возвратов
+            // Делегирование событий для кнопок в таблице склада возвратов
+            document.addEventListener('click', function(e) {
+                // Обработка кнопки "Перепродать"
+                if (e.target.classList.contains('resell-btn')) {
+                    const returnId = e.target.getAttribute('data-return-id');
+                    resellReturnedItem(returnId);
+                }
+                // Обработка кнопки "Изменить статус" 
+                else if (e.target.classList.contains('edit-return-btn')) {
+                    const returnId = e.target.getAttribute('data-return-id');
+                    editReturn(returnId);
+                }
+            });
             document.getElementById('apply-filters').addEventListener('click', updateDashboard);
             document.getElementById('apply-sales-filters').addEventListener('click', updateAllSalesTable);
             document.getElementById('generate-report').addEventListener('click', updateReports);
@@ -4927,6 +5324,14 @@ document.getElementById('reset-report-filters').addEventListener('click', () => 
             });
             // === ИНИЦИАЛИЗАЦИЯ ПОИСКА ПО ТРЕКУ ===
             initReturnSearch();
+
+// === ДОБАВЛЕНО: ДЕЛЕГИРОВАНИЕ СОБЫТИЙ ДЛЯ КНОПКИ ПЕРЕПРОДАЖИ ===
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('resell-btn')) {
+        const returnId = e.target.getAttribute('data-return-id');
+        resellReturnedItem(returnId);
+    }
+});
             // === НОВЫЕ ОБРАБОТЧИКИ ДЛЯ КНОПОК ===
             document.getElementById('confirm-delivery-all').addEventListener('click', confirmAllDeliveries);
         });
@@ -5552,37 +5957,43 @@ document.getElementById('reset-report-filters').addEventListener('click', () => 
             );
         }
         // === ИСПРАВЛЕНАЯ ФУНКЦИЯ ДЛЯ РЕДАКТИРОВАНИЯ ВОЗВРАТА ===
-        async function editReturn(returnId) {
-            const ret = returnsData.find(r => r.id === returnId);
-            if (!ret) return;
-            document.getElementById('edit-return-id').value = ret.id;
-            document.getElementById('edit-return-quantity').value = ret.return_quantity;
-            document.getElementById('edit-return-logistics-back').value = ret.logistics_back || 0;
-            document.getElementById('edit-return-delivery-mv-back').value = ret.delivery_to_mv_back || 0;
-            document.getElementById('edit-return-reason').value = ret.reason;
-            document.getElementById('edit-return-date').value = ret.date;
-            // Заполняем селект продаж
-            const editReturnSaleSelect = document.getElementById('edit-return-sale');
-            editReturnSaleSelect.innerHTML = '<option value="">Выберите продажу</option>';
-            let filteredSales = salesData;
-            if (getRoleFromToken() !== 'admin') {
-                filteredSales = salesData.filter(sale => sale.user_id === currentUser.uid);
-            }
-            filteredSales.forEach(sale => {
-                const sellingPrice = parseFloat(sale.selling_price) || 0;
-                const quantity = parseInt(sale.quantity) || 0;
-                const displayText = `${sale.name} — ${formatCurrency(sellingPrice * quantity)}`;
-                if (sale.tracking_number) {
-                    displayText += ` (трек: ${sale.tracking_number})`;
-                }
-                const option = document.createElement('option');
-                option.value = sale.id;
-                option.textContent = displayText;
-                editReturnSaleSelect.appendChild(option);
-            });
-            editReturnSaleSelect.value = ret.sale_id;
-            document.getElementById('edit-return-modal').style.display = 'flex';
+async function editReturn(returnId) {
+    const ret = returnsData.find(r => r.id === returnId);
+    if (!ret) return;
+
+    document.getElementById('edit-return-id').value = ret.id;
+    document.getElementById('edit-return-quantity').value = ret.return_quantity;
+    document.getElementById('edit-return-logistics-back').value = ret.logistics_back || 0;
+    document.getElementById('edit-return-delivery-mv-back').value = ret.delivery_to_mv_back || 0;
+    document.getElementById('edit-return-reason').value = ret.reason;
+    document.getElementById('edit-return-date').value = ret.date;
+    document.getElementById('edit-return-status').value = ret.status || 'Возврат в пути';
+
+    // Заполняем селект продаж
+    const editReturnSaleSelect = document.getElementById('edit-return-sale');
+    editReturnSaleSelect.innerHTML = '<option value="">Выберите продажу</option>';
+    let filteredSales = salesData;
+    if (getRoleFromToken() !== 'admin') {
+        filteredSales = salesData.filter(sale => sale.user_id === currentUser.uid);
+    }
+
+    filteredSales.forEach(sale => {
+        const sellingPrice = parseFloat(sale.selling_price) || 0;
+        const quantity = parseInt(sale.quantity) || 0;
+        // ИСПРАВЛЕНИЕ: меняем const на let чтобы можно было изменять переменную
+        let displayText = `${sale.name} — ${formatCurrency(sellingPrice * quantity)}`;
+        if (sale.tracking_number) {
+            displayText += ` (трек: ${sale.tracking_number})`;
         }
+        const option = document.createElement('option');
+        option.value = sale.id;
+        option.textContent = displayText;
+        editReturnSaleSelect.appendChild(option);
+    });
+
+    editReturnSaleSelect.value = ret.sale_id;
+    document.getElementById('edit-return-modal').style.display = 'flex';
+}
         // Функция для сохранения изменений возврата
         async function saveEditedReturn() {
             try {
@@ -5598,6 +6009,7 @@ document.getElementById('reset-report-filters').addEventListener('click', () => 
                     delivery_to_mv_back: parseFloat(document.getElementById('edit-return-delivery-mv-back').value) || 0,
                     reason: document.getElementById('edit-return-reason').value,
                     date: document.getElementById('edit-return-date').value,
+                    status: document.getElementById('edit-return-status').value,
                     user_id: currentUser.uid,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     lastModifiedBy: currentUser.uid,
@@ -5609,16 +6021,98 @@ document.getElementById('reset-report-filters').addEventListener('click', () => 
                 const alreadyReturned = returnsData
                     .filter(r => r.sale_id === updatedReturn.sale_id && r.id !== returnId)
                     .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
-                const availableToReturn = maxReturnable - alreadyReturned;
-                if (updatedReturn.return_quantity > availableToReturn) {
-                    throw new Error(`Можно вернуть не более ${availableToReturn} шт.`);
-                }
+        const availableToReturn = maxReturnable - alreadyReturned;
+
+        // ЖЕСТКАЯ ВАЛИДАЦИЯ - нельзя возвращать больше чем доступно
+        if (availableToReturn <= 0) {
+            throw new Error(`Этот товар уже полностью возвращен. Нельзя добавить возврат.`);
+        }
+
+        if (parseInt(returnQuantity) > availableToReturn) {
+            throw new Error(`Можно вернуть не более ${availableToReturn} шт. (уже возвращено: ${alreadyReturned})`);
+        }
+
+        // Дополнительная проверка - нельзя возвращать товар в статусе "Возврат"
+        if (sale.status === "Возврат") {
+            throw new Error("Этот товар уже отмечен как полный возврат. Сначала измените статус продажи.");
+        }
                 const sellingPrice = parseFloat(sale.selling_price) || 0;
                 updatedReturn.amount = sellingPrice * updatedReturn.return_quantity;
                 showLoading('Сохраняем изменения...');
                 await db.collection('returns').doc(returnId).update(updatedReturn);
                 await logActivity('отредактировал возврат', `Товар: ${sale ? sale.name : 'неизвестный'}, Причина: ${updatedReturn.reason}`);
                 returnsData[returnIndex] = {...updatedReturn, id: returnId};
+                                // === ОБНОВЛЕНИЕ РАСХОДОВ ПРИ РЕДАКТИРОВАНИИ ВОЗВРАТА ===
+                
+        // === ОБНОВЛЕНИЕ РАСХОДОВ ПРИ РЕДАКТИРОВАНИИ ВОЗВРАТА ===
+        
+        // Удаляем старые расходы, связанные с этим возвратом
+        const oldExpenses = expensesData.filter(exp => exp.return_id === returnId);
+        const deletePromises = oldExpenses.map(exp => 
+            db.collection('expenses').doc(exp.id).delete()
+        );
+        
+        if (deletePromises.length > 0) {
+            await Promise.all(deletePromises);
+            // Обновляем локальные данные после удаления
+            expensesData = expensesData.filter(exp => exp.return_id !== returnId);
+        }
+        
+        // Создаем новые расходы только если есть изменения
+        const expensePromises = [];
+
+        // 1. Расход на обратную логистику
+        if (updatedReturn.logistics_back > 0) {
+            expensePromises.push(
+                db.collection('expenses').add({
+                    category: "Обратная логистика возврата",
+                    amount: updatedReturn.logistics_back,
+                    date: updatedReturn.date,
+                    description: `Обратная логистика по возврату ${sale.article} - ${sale.name}`,
+                    user_id: currentUser.uid,
+                    return_id: returnId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                })
+            );
+        }
+
+        // 2. Расход на обратную доставку до МВ
+        if (updatedReturn.delivery_to_mv_back > 0) {
+            expensePromises.push(
+                db.collection('expenses').add({
+                    category: "Обратная доставка до МВ",
+                    amount: updatedReturn.delivery_to_mv_back,
+                    date: updatedReturn.date,
+                    description: `Обратная доставка до МВ по возврату ${sale.article} - ${sale.name}`,
+                    user_id: currentUser.uid,
+                    return_id: returnId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                })
+            );
+        }
+
+        // 3. Если возврат поставщику, создаем отрицательный расход
+        if (updatedReturn.status === "📦 Возврат поставщику") {
+            const purchaseCost = sale.purchase_price * updatedReturn.return_quantity;
+            expensePromises.push(
+                db.collection('expenses').add({
+                    category: "Закупка товаров",
+                    amount: -purchaseCost,
+                    date: updatedReturn.date,
+                    description: `Возврат поставщику ${sale.article} - ${sale.name}`,
+                    user_id: currentUser.uid,
+                    return_id: returnId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                })
+            );
+        }
+
+        // Ждем создания всех расходов
+        if (expensePromises.length > 0) {
+            await Promise.all(expensePromises);
+            // Загружаем обновленные расходы
+            await loadExpensesData();
+        }
                 document.getElementById('edit-return-modal').style.display = 'none';
                 hideLoading();
                 updateReturns();
@@ -5644,6 +6138,11 @@ document.getElementById('reset-report-filters').addEventListener('click', () => 
                         }
                         showLoading('Удаляем возврат...');
                         await db.collection('returns').doc(returnId).delete();
+                                        // Удаляем связанные расходы
+                const expensesToDelete = expensesData.filter(e => e.return_id === returnId);
+                for (const exp of expensesToDelete) {
+                    await db.collection('expenses').doc(exp.id).delete();
+                }
                         // === УДАЛЯЕМ СВЯЗАННЫЕ РАСХОДЫ ===
                         const returnExpenses = expensesData.filter(e => e.return_id === returnId);
                         for (const exp of returnExpenses) {
@@ -5923,6 +6422,269 @@ function getStatusEmoji(status) {
             } catch (error) {
                 hideLoading();
                 notyf.error('Ошибка обновления статуса: ' + error.message);
+            }
+        }
+                // Функция для обновления таблицы склада возвратов
+function updateReturnsWarehouse() {
+    const tbody = document.querySelector('#returns-warehouse-table tbody');
+    tbody.innerHTML = '';
+
+    const warehouseReturns = returnsData.filter(ret => {
+        const status = ret.status || 'Возврат в пути';
+        return status !== "📦 Возврат поставщику" && 
+               status !== "🗑️ Брак (списание)" && 
+               status !== "✅ Перепродан";
+    });
+
+    warehouseReturns.forEach(ret => {
+        const sale = salesData.find(s => s.id === ret.sale_id);
+        if (!sale) return;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${sale.article}</td>
+            <td>${sale.name}</td>
+            <td>${sale.name} (${new Date(sale.date).toLocaleDateString('ru-RU')})</td>
+            <td><span class="status-badge">${ret.status || 'Возврат в пути'}</span></td>
+            <td>${new Date(ret.date).toLocaleDateString('ru-RU')}</td>
+            <td class="actions-cell">
+                <button class="btn btn-sm btn-primary resell-btn" data-return-id="${ret.id}">Перепродать</button>
+                <button class="btn btn-sm btn-warning edit-return-btn" data-return-id="${ret.id}">Изменить статус</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Удаляем старые обработчики и добавляем новые
+    document.querySelectorAll('.resell-btn').forEach(btn => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        newBtn.addEventListener('click', function() {
+            const returnId = this.getAttribute('data-return-id');
+            resellReturnedItem(returnId);
+        });
+    });
+
+    document.querySelectorAll('.edit-return-btn').forEach(btn => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        newBtn.addEventListener('click', function() {
+            const returnId = this.getAttribute('data-return-id');
+            editReturn(returnId);
+        });
+    });
+}
+
+        // Функция для перепродажи возвращенного товара
+        // Функция для перепродажи возвращенного товара
+async function resellReturnedItem(returnId) {
+    const ret = returnsData.find(r => r.id === returnId);
+    if (!ret) {
+        notyf.error("Возврат не найден");
+        return;
+    }
+
+    const sale = salesData.find(s => s.id === ret.sale_id);
+    if (!sale) {
+        notyf.error("Исходная продажа не найдена");
+        return;
+    }
+
+    // Заполняем форму перепродажи
+    document.getElementById('resell-return-id').value = returnId;
+    document.getElementById('resell-quantity').max = ret.return_quantity;
+    document.getElementById('resell-quantity').value = ret.return_quantity;
+
+    // Открываем модальное окно
+    openModal('resell-modal');
+}
+        
+async function resellReturnedItem(returnId) {
+    const ret = returnsData.find(r => r.id === returnId);
+    if (!ret) return;
+
+    const sale = salesData.find(s => s.id === ret.sale_id);
+    if (!sale) return;
+
+    document.getElementById('resell-return-id').value = returnId;
+    document.getElementById('resell-product-name').value = sale.name;
+    document.getElementById('resell-article').value = sale.article;
+    document.getElementById('resell-tracking-number').value = '';
+    document.getElementById('resell-marketplace').value = sale.marketplace;
+    document.getElementById('resell-shop').value = sale.shop || '';
+    document.getElementById('resell-purchase-price').value = 0;
+    document.getElementById('resell-selling-price').value = sale.selling_price;
+    document.getElementById('resell-commission').value = sale.commission;
+    document.getElementById('resell-logistics').value = sale.logistics || 0;
+    document.getElementById('resell-delivery-mv').value = sale.delivery_to_mv || 0;
+    document.getElementById('resell-quantity').value = ret.return_quantity;
+    document.getElementById('resell-quantity').max = ret.return_quantity;
+    document.getElementById('resell-date').value = new Date().toISOString().split('T')[0];
+
+    document.getElementById('resell-modal').style.display = 'flex';
+}
+        
+        // Функция подтверждения перепродажи
+        async function confirmResell() {
+            try {
+                const returnId = document.getElementById('resell-return-id').value;
+                const returnItem = returnsData.find(r => r.id === returnId);
+                if (!returnItem) throw new Error("Возврат не найден");
+
+                const originalSale = salesData.find(s => s.id === returnItem.sale_id);
+                if (!originalSale) throw new Error("Исходная продажа не найдена");
+
+                const quantity = parseInt(document.getElementById('resell-quantity').value) || 0;
+                const maxQuantity = returnItem.return_quantity;
+
+                if (quantity <= 0 || quantity > maxQuantity) {
+                    throw new Error(`Количество должно быть от 1 до ${maxQuantity}`);
+                }
+
+                const newSale = {
+                    name: originalSale.name,
+                    article: originalSale.article,
+                    tracking_number: document.getElementById('resell-tracking-number').value.trim() || null,
+                    purchase_price: 0, // Бесплатно, так как уже оплачен
+                    selling_price: parseFloat(document.getElementById('resell-selling-price').value) || 0,
+                    commission: parseFloat(document.getElementById('resell-commission').value) || 0,
+                    logistics: parseFloat(document.getElementById('resell-logistics').value) || 0,
+                    delivery_to_mv: parseFloat(document.getElementById('resell-delivery-mv').value) || 0,
+                    advertising: originalSale.advertising || 0.98,
+                    tax_rate: originalSale.tax_rate || 0.99,
+                    quantity: quantity,
+                    date: document.getElementById('resell-date').value,
+                    marketplace: document.getElementById('resell-marketplace').value,
+                    shop: document.getElementById('resell-shop').value,
+                    status: "Готов к отгрузке",
+                    is_resell: true,
+                    original_return_id: returnId,
+                    original_sale_id: originalSale.id,
+                    user_id: currentUser.uid,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // Расчет прибыли для новой продажи
+                newSale.profit = calculateProfit(newSale);
+                newSale.margin = calculateMargin(newSale);
+
+                showLoading('Создаем новую продажу...');
+                const docRef = await db.collection('sales').add(newSale);
+
+                // Обновляем статус возврата
+                await db.collection('returns').doc(returnId).update({
+                    status: "✅ Перепродан",
+                    resold_sale_id: docRef.id,
+                    resold_quantity: quantity,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Обновляем локальные данные
+                const returnIndex = returnsData.findIndex(r => r.id === returnId);
+                if (returnIndex !== -1) {
+                    returnsData[returnIndex].status = "✅ Перепродан";
+                    returnsData[returnIndex].resold_sale_id = docRef.id;
+                    returnsData[returnIndex].resold_quantity = quantity;
+                }
+
+                salesData.push({...newSale, id: docRef.id});
+
+                // Закрываем модальное окно
+                document.getElementById('resell-modal').style.display = 'none';
+                hideLoading();
+
+                // Обновляем интерфейс
+                updateReturnsWarehouse();
+                updateAllSalesTable();
+                updateDashboard();
+                
+                notyf.success(`Товар перепродан! Создана новая продажа на ${quantity} шт.`);
+                
+            } catch (error) {
+                hideLoading();
+                notyf.error('Ошибка при перепродаже: ' + error.message);
+            }
+        }
+        
+        // Функция подтверждения перепродажи
+        async function confirmResell() {
+            try {
+                const returnId = document.getElementById('resell-return-id').value;
+                const returnItem = returnsData.find(r => r.id === returnId);
+                if (!returnItem) throw new Error("Возврат не найден");
+
+                const originalSale = salesData.find(s => s.id === returnItem.sale_id);
+                if (!originalSale) throw new Error("Исходная продажа не найдена");
+
+                const quantity = parseInt(document.getElementById('resell-quantity').value) || 0;
+                const maxQuantity = returnItem.return_quantity;
+
+                if (quantity <= 0 || quantity > maxQuantity) {
+                    throw new Error(`Количество должно быть от 1 до ${maxQuantity}`);
+                }
+
+                const newSale = {
+                    name: originalSale.name,
+                    article: originalSale.article,
+                    tracking_number: document.getElementById('resell-tracking-number').value.trim() || null,
+                    purchase_price: 0, // Бесплатно, так как уже оплачен
+                    selling_price: parseFloat(document.getElementById('resell-selling-price').value) || 0,
+                    commission: parseFloat(document.getElementById('resell-commission').value) || 0,
+                    logistics: parseFloat(document.getElementById('resell-logistics').value) || 0,
+                    delivery_to_mv: parseFloat(document.getElementById('resell-delivery-mv').value) || 0,
+                    advertising: originalSale.advertising || 0.98,
+                    tax_rate: originalSale.tax_rate || 0.99,
+                    quantity: quantity,
+                    date: document.getElementById('resell-date').value,
+                    marketplace: document.getElementById('resell-marketplace').value,
+                    shop: document.getElementById('resell-shop').value,
+                    status: "Готов к отгрузке",
+                    is_resell: true,
+                    original_return_id: returnId,
+                    original_sale_id: originalSale.id,
+                    user_id: currentUser.uid,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // Расчет прибыли для новой продажи
+                newSale.profit = calculateProfit(newSale);
+                newSale.margin = calculateMargin(newSale);
+
+                showLoading('Создаем новую продажу...');
+                const docRef = await db.collection('sales').add(newSale);
+
+                // Обновляем статус возврата
+                await db.collection('returns').doc(returnId).update({
+                    status: "✅ Перепродан",
+                    resold_sale_id: docRef.id,
+                    resold_quantity: quantity,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Обновляем локальные данные
+                const returnIndex = returnsData.findIndex(r => r.id === returnId);
+                if (returnIndex !== -1) {
+                    returnsData[returnIndex].status = "✅ Перепродан";
+                    returnsData[returnIndex].resold_sale_id = docRef.id;
+                    returnsData[returnIndex].resold_quantity = quantity;
+                }
+
+                salesData.push({...newSale, id: docRef.id});
+
+                // Закрываем модальное окно
+                document.getElementById('resell-modal').style.display = 'none';
+                hideLoading();
+
+                // Обновляем интерфейс
+                updateReturnsWarehouse();
+                updateAllSalesTable();
+                updateDashboard();
+                
+                notyf.success(`Товар перепродан! Создана новая продажа на ${quantity} шт.`);
+                
+            } catch (error) {
+                hideLoading();
+                notyf.error('Ошибка при перепродаже: ' + error.message);
             }
         }
     </script>
