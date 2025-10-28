@@ -2071,10 +2071,23 @@
                             <option value="">Выберите продажу</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="return-quantity">Количество возвращено</label>
-                        <input type="number" id="return-quantity" min="1" placeholder="0">
-                    </div>
+<div class="form-group">
+    <label>Тип возврата</label>
+    <div style="display: flex; gap: 10px; margin-top: 6px;">
+        <label style="display: flex; align-items: center; gap: 4px;">
+            <input type="radio" name="return-type" value="full" checked> Полный
+        </label>
+        <label style="display: flex; align-items: center; gap: 4px;">
+            <input type="radio" name="return-type" value="partial"> Частичный
+        </label>
+    </div>
+</div>
+<div class="form-group">
+    <label for="return-quantity">Количество возвращено 
+        <span id="return-quantity-hint" style="font-size: 0.85rem; color: var(--gray);"></span>
+    </label>
+    <input type="number" id="return-quantity" min="1" placeholder="0">
+</div>
                     <div class="form-group">
                         <label for="return-logistics-back">Обратная логистика (₽)</label>
                         <input type="number" id="return-logistics-back" value="0">
@@ -2236,7 +2249,8 @@
                     <button class="btn btn-secondary" id="cancel-edit-expense">Отмена</button>
                     <button class="btn btn-warning" id="save-edit-expense">Сохранить</button>
                 </div>
-            </div>
+                </div>
+                </div>
                     <!-- Модальное окно для перепродажи -->
         <div id="resell-modal" class="modal">
             <div class="modal-content">
@@ -2306,13 +2320,8 @@
                     <button class="btn btn-secondary" id="cancel-resell">Отмена</button>
                     <button class="btn btn-primary" id="confirm-resell">Создать продажу</button>
                 </div>
-     
             </div>
         </div>
-            </div>
-        </div>
-        </div>
-    </div>
     <script>
         
         // Firebase Configuration
@@ -2582,6 +2591,7 @@ function formatDateToLocalYYYYMMDD(date) {
                 hideLoading();
                 updateDashboard();
                 updateRecentAddedSales();
+                updateAllSalesTable(); // ← ДОБАВЛЕНО
                 notyf.success('Продажа успешно добавлена!');
             } catch (error) {
                 hideLoading();
@@ -2592,7 +2602,7 @@ function formatDateToLocalYYYYMMDD(date) {
         async function addReturn() {
             try {
                 const saleId = document.getElementById('return-sale').value;
-                const returnQuantity = document.getElementById('return-quantity').value;
+                const returnQuantity = parseInt(document.getElementById('return-quantity').value) || 0;
                 const logisticsBack = parseFloat(document.getElementById('return-logistics-back').value) || 0;
                 const deliveryMvBack = parseFloat(document.getElementById('return-delivery-mv-back').value) || 0;
                 const reason = document.getElementById('return-reason').value;
@@ -2741,32 +2751,51 @@ function populateReturnSales(saleIdToSelect = null) {
     if (getRoleFromToken() !== 'admin') {
         filteredSales = salesData.filter(sale => sale.user_id === currentUser.uid);
     }
-    
     filteredSales.forEach(sale => {
-        // Проверяем, можно ли еще возвращать этот товар
         const totalReturned = returnsData
             .filter(r => r.sale_id === sale.id)
             .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
         const availableToReturn = (parseInt(sale.quantity) || 0) - totalReturned;
-        
-        // Показываем только те продажи, которые еще не полностью возвращены
         if (availableToReturn > 0) {
             const sellingPrice = parseFloat(sale.selling_price) || 0;
             const quantity = parseInt(sale.quantity) || 0;
-            // ИСПРАВЛЕНИЕ: меняем const на let чтобы можно было изменять переменную
-            let displayText = `${sale.name} — ${formatCurrency(sellingPrice * quantity)} (доступно для возврата: ${availableToReturn} шт.)`;
+            let displayText = `${sale.name} — ${formatCurrency(sellingPrice * quantity)} (доступно: ${availableToReturn} шт.)`;
             if (sale.tracking_number) {
                 displayText += ` (трек: ${sale.tracking_number})`;
             }
             const option = document.createElement('option');
             option.value = sale.id;
             option.textContent = displayText;
+            // Сохраняем данные в атрибутах для быстрого доступа
+            option.setAttribute('data-quantity', sale.quantity);
+            option.setAttribute('data-returned', totalReturned);
             select.appendChild(option);
         }
     });
-    
     if (saleIdToSelect) {
         select.value = saleIdToSelect;
+    }
+}
+// === НОВАЯ ФУНКЦИЯ: обновление подсказки количества возврата ===
+function updateReturnQuantityHint() {
+    const saleSelect = document.getElementById('return-sale');
+    const quantityInput = document.getElementById('return-quantity');
+    const hint = document.getElementById('return-quantity-hint');
+    const returnType = document.querySelector('input[name="return-type"]:checked').value;
+    const selectedOption = saleSelect.options[saleSelect.selectedIndex];
+    const totalQty = parseInt(selectedOption.getAttribute('data-quantity')) || 0;
+    const alreadyReturned = parseInt(selectedOption.getAttribute('data-returned')) || 0;
+    const available = totalQty - alreadyReturned;
+    if (returnType === 'full') {
+        quantityInput.value = available;
+        quantityInput.disabled = true;
+        hint.textContent = `(всего: ${totalQty}, уже возвращено: ${alreadyReturned}, будет возвращено: ${available})`;
+    } else {
+        quantityInput.disabled = false;
+        quantityInput.value = available;
+        quantityInput.max = available;
+        quantityInput.min = 1;
+        hint.textContent = `(всего: ${totalQty}, уже возвращено: ${alreadyReturned}, доступно для возврата: ${available})`;
     }
 }
         // === НОВЫЙ ОБРАБОТЧИК ПОИСКА ПО ТРЕКУ ===
@@ -2840,12 +2869,20 @@ function populateReturnSales(saleIdToSelect = null) {
             // НОВОЕ: Сортируем по дате (новые сверху)
             // === ИСПРАВЛЕНО: СОРТИРУЕМ ПО ДАТЕ И ВРЕМЕНИ СОЗДАНИЯ ===
 filteredSales.sort((a, b) => {
-    // Если есть createdAt — используем его
-    if (a.createdAt && b.createdAt) {
-        return b.createdAt.toDate() - a.createdAt.toDate();
-    }
-    // Иначе — по date (как раньше)
-    return new Date(b.date) - new Date(a.date);
+    // Безопасная обработка createdAt (Firestore Timestamp или строка)
+    const getDate = (item) => {
+        if (item.createdAt?.toDate) {
+            // Это Firestore Timestamp
+            return item.createdAt.toDate();
+        } else if (item.createdAt) {
+            // Это уже строка или число — конвертируем в Date
+            return new Date(item.createdAt);
+        } else {
+            // Нет createdAt — используем поле date
+            return new Date(item.date);
+        }
+    };
+    return getDate(b) - getDate(a);
 });
             const paginatedSales = paginateArray(filteredSales, currentPage, itemsPerPage);
             paginatedSales.forEach(sale => {
@@ -5026,6 +5063,13 @@ if (period !== 'all') {
         }
         // ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ
         document.addEventListener('DOMContentLoaded', async function() {
+        // Обновление подсказки при выборе продажи
+document.getElementById('return-sale').addEventListener('change', updateReturnQuantityHint);
+
+// Переключение между полным и частичным возвратом
+document.querySelectorAll('input[name="return-type"]').forEach(radio => {
+    radio.addEventListener('change', updateReturnQuantityHint);
+});
             document.getElementById('confirm-modal-close').addEventListener('click', function() {
                 document.getElementById('confirm-modal').style.display = 'none';
                         // Устанавливаем значения по умолчанию для селектов размера страницы
@@ -5174,7 +5218,7 @@ if (period !== 'all') {
                 document.getElementById('resell-modal').style.display = 'none';
             });
             document.getElementById('confirm-resell').addEventListener('click', confirmResell);
-                        // Делегирование событий для кнопок в таблице склада возвратов
+            // Делегирование событий для кнопок в таблице склада возвратов
             // Делегирование событий для кнопок в таблице склада возвратов
             document.addEventListener('click', function(e) {
                 // Обработка кнопки "Перепродать"
@@ -5324,14 +5368,6 @@ document.getElementById('reset-report-filters').addEventListener('click', () => 
             });
             // === ИНИЦИАЛИЗАЦИЯ ПОИСКА ПО ТРЕКУ ===
             initReturnSearch();
-
-// === ДОБАВЛЕНО: ДЕЛЕГИРОВАНИЕ СОБЫТИЙ ДЛЯ КНОПКИ ПЕРЕПРОДАЖИ ===
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('resell-btn')) {
-        const returnId = e.target.getAttribute('data-return-id');
-        resellReturnedItem(returnId);
-    }
-});
             // === НОВЫЕ ОБРАБОТЧИКИ ДЛЯ КНОПОК ===
             document.getElementById('confirm-delivery-all').addEventListener('click', confirmAllDeliveries);
         });
@@ -6015,6 +6051,9 @@ async function editReturn(returnId) {
                     lastModifiedBy: currentUser.uid,
                     lastModifiedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
+
+                // ✅ ДОБАВЛЕНА ЭТА СТРОКА — ТЕПЕРЬ ВСЁ РАБОТАЕТ!
+                const returnQuantity = updatedReturn.return_quantity;
                 const sale = salesData.find(s => s.id === updatedReturn.sale_id);
                 if (!sale) throw new Error("Продажа не найдена");
                 const maxReturnable = parseInt(sale.quantity) || 0;
@@ -6448,63 +6487,32 @@ function updateReturnsWarehouse() {
             <td><span class="status-badge">${ret.status || 'Возврат в пути'}</span></td>
             <td>${new Date(ret.date).toLocaleDateString('ru-RU')}</td>
             <td class="actions-cell">
-                <button class="btn btn-sm btn-primary resell-btn" data-return-id="${ret.id}">Перепродать</button>
+                <button class="btn btn-sm btn-primary" onclick="resellReturnedItem('${ret.id}')">Перепродать</button>
                 <button class="btn btn-sm btn-warning edit-return-btn" data-return-id="${ret.id}">Изменить статус</button>
             </td>
         `;
         tbody.appendChild(tr);
     });
 
-    // Удаляем старые обработчики и добавляем новые
-    document.querySelectorAll('.resell-btn').forEach(btn => {
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        newBtn.addEventListener('click', function() {
-            const returnId = this.getAttribute('data-return-id');
-            resellReturnedItem(returnId);
-        });
-    });
-
-    document.querySelectorAll('.edit-return-btn').forEach(btn => {
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        newBtn.addEventListener('click', function() {
-            const returnId = this.getAttribute('data-return-id');
-            editReturn(returnId);
-        });
-    });
+    // Никаких обработчиков внутри updateReturnsWarehouse — делегирование глобальное
 }
 
         // Функция для перепродажи возвращенного товара
-        // Функция для перепродажи возвращенного товара
-async function resellReturnedItem(returnId) {
-    const ret = returnsData.find(r => r.id === returnId);
-    if (!ret) {
-        notyf.error("Возврат не найден");
-        return;
-    }
-
-    const sale = salesData.find(s => s.id === ret.sale_id);
-    if (!sale) {
-        notyf.error("Исходная продажа не найдена");
-        return;
-    }
-
-    // Заполняем форму перепродажи
-    document.getElementById('resell-return-id').value = returnId;
-    document.getElementById('resell-quantity').max = ret.return_quantity;
-    document.getElementById('resell-quantity').value = ret.return_quantity;
-
-    // Открываем модальное окно
-    openModal('resell-modal');
-}
-        
 async function resellReturnedItem(returnId) {
     const ret = returnsData.find(r => r.id === returnId);
     if (!ret) return;
-
     const sale = salesData.find(s => s.id === ret.sale_id);
     if (!sale) return;
+
+    // === ЗАПОЛНЯЕМ СПИСОК МАГАЗИНОВ ===
+    const shopSelect = document.getElementById('resell-shop');
+    shopSelect.innerHTML = '<option value="">Выберите магазин</option>';
+    shops.forEach(shop => {
+        const option = document.createElement('option');
+        option.value = shop;
+        option.textContent = shop;
+        shopSelect.appendChild(option);
+    });
 
     document.getElementById('resell-return-id').value = returnId;
     document.getElementById('resell-product-name').value = sale.name;
@@ -6520,91 +6528,10 @@ async function resellReturnedItem(returnId) {
     document.getElementById('resell-quantity').value = ret.return_quantity;
     document.getElementById('resell-quantity').max = ret.return_quantity;
     document.getElementById('resell-date').value = new Date().toISOString().split('T')[0];
-
     document.getElementById('resell-modal').style.display = 'flex';
 }
         
-        // Функция подтверждения перепродажи
-        async function confirmResell() {
-            try {
-                const returnId = document.getElementById('resell-return-id').value;
-                const returnItem = returnsData.find(r => r.id === returnId);
-                if (!returnItem) throw new Error("Возврат не найден");
-
-                const originalSale = salesData.find(s => s.id === returnItem.sale_id);
-                if (!originalSale) throw new Error("Исходная продажа не найдена");
-
-                const quantity = parseInt(document.getElementById('resell-quantity').value) || 0;
-                const maxQuantity = returnItem.return_quantity;
-
-                if (quantity <= 0 || quantity > maxQuantity) {
-                    throw new Error(`Количество должно быть от 1 до ${maxQuantity}`);
-                }
-
-                const newSale = {
-                    name: originalSale.name,
-                    article: originalSale.article,
-                    tracking_number: document.getElementById('resell-tracking-number').value.trim() || null,
-                    purchase_price: 0, // Бесплатно, так как уже оплачен
-                    selling_price: parseFloat(document.getElementById('resell-selling-price').value) || 0,
-                    commission: parseFloat(document.getElementById('resell-commission').value) || 0,
-                    logistics: parseFloat(document.getElementById('resell-logistics').value) || 0,
-                    delivery_to_mv: parseFloat(document.getElementById('resell-delivery-mv').value) || 0,
-                    advertising: originalSale.advertising || 0.98,
-                    tax_rate: originalSale.tax_rate || 0.99,
-                    quantity: quantity,
-                    date: document.getElementById('resell-date').value,
-                    marketplace: document.getElementById('resell-marketplace').value,
-                    shop: document.getElementById('resell-shop').value,
-                    status: "Готов к отгрузке",
-                    is_resell: true,
-                    original_return_id: returnId,
-                    original_sale_id: originalSale.id,
-                    user_id: currentUser.uid,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                // Расчет прибыли для новой продажи
-                newSale.profit = calculateProfit(newSale);
-                newSale.margin = calculateMargin(newSale);
-
-                showLoading('Создаем новую продажу...');
-                const docRef = await db.collection('sales').add(newSale);
-
-                // Обновляем статус возврата
-                await db.collection('returns').doc(returnId).update({
-                    status: "✅ Перепродан",
-                    resold_sale_id: docRef.id,
-                    resold_quantity: quantity,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // Обновляем локальные данные
-                const returnIndex = returnsData.findIndex(r => r.id === returnId);
-                if (returnIndex !== -1) {
-                    returnsData[returnIndex].status = "✅ Перепродан";
-                    returnsData[returnIndex].resold_sale_id = docRef.id;
-                    returnsData[returnIndex].resold_quantity = quantity;
-                }
-
-                salesData.push({...newSale, id: docRef.id});
-
-                // Закрываем модальное окно
-                document.getElementById('resell-modal').style.display = 'none';
-                hideLoading();
-
-                // Обновляем интерфейс
-                updateReturnsWarehouse();
-                updateAllSalesTable();
-                updateDashboard();
-                
-                notyf.success(`Товар перепродан! Создана новая продажа на ${quantity} шт.`);
-                
-            } catch (error) {
-                hideLoading();
-                notyf.error('Ошибка при перепродаже: ' + error.message);
-            }
-        }
+ 
         
         // Функция подтверждения перепродажи
         async function confirmResell() {
