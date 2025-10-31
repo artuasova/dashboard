@@ -95,25 +95,255 @@
             display: none;
             opacity: 0;
             transform: translateY(10px);
-            transition: all 0.3s ease;
+            transition: all 0.28s cubic-bezier(.2,.9,.2,1);
         }
         .tab-content.active {
             display: block;
             opacity: 1;
             transform: translateY(0);
         }
+        /* Card hover and subtle lift */
         .card {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             padding: 24px;
             margin-bottom: 24px;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
         }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(2,6,23,0.08);
+        }
+        /* Modal animation (applies when .show class is added)
+           We add a MutationObserver in JS to toggle .show when style.display changes. */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.22s ease;
+            pointer-events: none;
+        }
+        .modal.show {
+            display: block;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 920px;
+            margin: 40px auto;
+            box-shadow: 0 20px 40px rgba(2,6,23,0.12);
+            transform: translateY(-12px) scale(0.995);
+            transition: transform 0.26s cubic-bezier(.2,.9,.2,1), opacity 0.2s ease;
+            opacity: 0;
+        }
+        .modal.show .modal-content {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 0.18s ease;
+        }
+        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+        .loading-overlay.visible { opacity: 1; pointer-events: auto; }
+        .loading-spinner {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 6px solid rgba(255,255,255,0.12);
+            border-top-color: rgba(255,255,255,0.9);
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        /* Sticky table header */
+        table thead th {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 10;
+        }
+        /* Sortable column cursor */
+        table th { cursor: pointer; user-select: none; }
+        table th .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 8px;
+            height: 100%;
+            cursor: col-resize;
+        }
+        table th { position: relative; }
+        /* Tooltip enhancement for [data-tooltip] */
+        [data-tooltip] { position: relative; }
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%) translateY(8px);
+            background: rgba(17,24,39,0.95);
+            color: white;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.16s ease, transform 0.18s ease;
+            bottom: auto;
+        }
+        [data-tooltip]:hover::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+        /* Отключение анимаций глобально (класс можно убирать/добавлять) */
+        body.no-animations * {
+            transition: none !important;
+            animation: none !important;
+        }
+        /* но спиннер оставляем анимированным для индикации загрузки */
+        body.no-animations .loading-spinner { animation: spin 1s linear infinite !important; }
+
+        /* Когда анимации отключены, убираем трансформы/опацити у ключевых компонентов
+           чтобы не было "прыжков" при переключении (плавность заменена на мгновенное изменение). */
+        body.no-animations .tab-content { transition: none !important; transform: none !important; opacity: 1 !important; }
+        body.no-animations .modal { transition: none !important; }
+        body.no-animations .modal-content { transition: none !important; transform: none !important; opacity: 1 !important; }
+        body.no-animations .card { transition: none !important; transform: none !important; box-shadow: none !important; }
+
+        /* Force loading overlay visible styling override (final rule to avoid conflicts) */
+        .loading-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            background: rgba(15, 23, 42, 0.6) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 99999 !important;
+        }
+        .loading-overlay.hidden { opacity: 0 !important; pointer-events: none !important; }
+        .loading-overlay.visible { opacity: 1 !important; pointer-events: auto !important; }
+
+        /* Prevent jitter/shake on hover for large container elements.
+           Some hover effects (translateY / box-shadow) can cause a visual
+           'tremble' when many elements repaint; override them to keep
+           containers stable while preserving button hover styles. */
+        .card, .status-card, .metric-card, .user-list-item, .custom-modal-content, .user-list-item, .activity-log-item {
+            /* ensure no unexpected transforms on these container elements */
+            transform: none !important;
+            will-change: auto !important;
+            transition-property: background-color, box-shadow !important;
+            transition-duration: 120ms !important;
+            transition-timing-function: ease !important;
+        }
+        /* Disable lift on hover specifically */
+        .card:hover, .status-card:hover, .metric-card:hover, .user-list-item:hover, .activity-log-item:hover, .custom-modal-content:hover {
+            transform: none !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+        }
+        /* Table rows can keep background highlight but avoid transforms */
+        tr:hover, #all-sales-table tbody tr:hover {
+            transform: none !important;
+        }
+
+        /* Улучшенный стиль для уведомлений Notyf (override) */
+        .notyf {
+            z-index: 100000 !important;
+            pointer-events: none;
+        }
+        /* Smaller, dismissible toasts with smooth fade-out */
+        .notyf .notyf__toast {
+            pointer-events: auto;
+            color: #fff !important;
+            padding: 8px 12px !important;
+            border-radius: 10px !important;
+            box-shadow: 0 6px 16px rgba(2,6,23,0.14) !important;
+            font-weight: 600 !important;
+            display: flex !important;
+            gap: 10px !important;
+            align-items: center !important;
+            min-width: 220px !important;
+            max-width: 360px !important;
+            overflow: hidden !important;
+            /* allow Notyf to fade the toast out by changing container opacity */
+            transition: opacity 0.28s ease, transform 0.18s ease;
+        }
+        .notyf .notyf__toast .notyf__icon {
+            width: 28px !important;
+            height: 28px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 8px !important;
+            flex: 0 0 28px !important;
+        }
+        .notyf .notyf__toast--success {
+            background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 100%) !important;
+        }
+        .notyf .notyf__toast--error {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%) !important;
+        }
+        .notyf .notyf__toast--info {
+            background: linear-gradient(90deg, #8b5cf6 0%, #06b6d4 100%) !important;
+        }
+        .notyf .notyf__toast .notyf__message {
+            flex: 1 1 auto !important;
+            font-size: 0.9rem !important;
+            transition: none !important; /* prevent delayed child fade */
+        }
+        .notyf .notyf__toast .notyf__icon { transition: none !important; }
         .card-title {
             font-size: 1.5rem;
             color: var(--dark);
             margin-bottom: 20px;
         }
+
+        /* --- Custom lightweight toasts (fallback instead of Notyf if needed) --- */
+        #custom-toasts {
+            position: fixed;
+            right: 16px;
+            top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 110000;
+            pointer-events: none;
+        }
+        .custom-toast {
+            pointer-events: auto;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: linear-gradient(90deg,#06b6d4,#3b82f6);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 10px;
+            min-width: 200px;
+            max-width: 360px;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.12);
+            transform-origin: right top;
+            transition: opacity 0.28s ease, transform 0.18s ease;
+            opacity: 1;
+        }
+        .custom-toast.hide {
+            opacity: 0;
+            transform: translateY(-6px) scale(0.995);
+        }
+        .custom-toast--error { background: linear-gradient(90deg,#ef4444,#dc2626); }
+        .custom-toast .ct-icon { width: 28px; height:28px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px; background: rgba(255,255,255,0.12); }
+        .custom-toast .ct-message { font-size: 0.95rem; }
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -742,9 +972,47 @@
 /* === ИСПРАВЛЕНИЕ РАЗДЕЛИТЕЛЬНЫХ ЛИНИЙ МЕЖДУ СТРОКАМИ === */
 #all-sales-table tbody tr {
     border-bottom: 1px solid var(--border);
+    transition: background-color 0.2s;
 }
 #all-sales-table tbody tr:last-child {
     border-bottom: none;
+}
+#all-sales-table tbody tr:hover {
+    background-color: rgba(59, 130, 246, 0.05);
+}
+/* Улучшенные стили для таблиц */
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+thead th {
+    background-color: #f8fafc;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 16px;
+    border-bottom: 2px solid #e5e7eb;
+}
+tbody td {
+    padding: 16px;
+    vertical-align: middle;
+    line-height: 1.25;
+}
+/* Улучшенные стили для карточек */
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+.card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* === УМЕНЬШАЕМ ЭМОДЗИ В КОЛОНКЕ "ДЕЙСТВИЯ" === */
@@ -765,6 +1033,7 @@
     background: #3b82f6 !important;
     color: white !important;
     border-color: #3b82f6 !important;
+    transform: translateY(-1px);
 }
 
 .pagination .btn-sm:disabled {
@@ -774,6 +1043,84 @@
 
 .pagination select:hover {
     border-color: #3b82f6;
+}
+
+/* Улучшенные стили для форм */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    background-color: white;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Улучшенные стили для кнопок */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: white;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-secondary:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    transform: translateY(-1px);
+}
+
+.btn-warning {
+    background: #f59e0b;
+    color: white;
+    border: none;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+    transform: translateY(-1px);
 }
 /* === ФИКС: ограничиваем ширину карточек во всех вкладках === */
 #expenses .card,
@@ -1119,6 +1466,11 @@
     <h2 class="card-title">Все продажи</h2>
     <!-- === НОВЫЙ БЛОК ФИЛЬТРОВ В ОДНУ СТРОКУ === -->
     <div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; padding: 16px; background: var(--light); border-radius: 8px; margin-bottom: 20px;">
+        <!-- Быстрый поиск по таблице -->
+        <div style="flex: 1 1 300px; min-width: 220px;">
+            <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Поиск</label>
+            <input type="search" id="all-sales-search" placeholder="Поиск товара, артикула, магазина, трека..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: border-color 0.2s;">
+        </div>
         <!-- Период -->
         <div style="min-width: 150px;">
             <label style="font-size: 0.875rem; color: var(--dark); display: block; margin-bottom: 4px;">Период</label>
@@ -2337,6 +2689,49 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         const notyf = new Notyf({ duration: 3000, position: { x: 'right', y: 'top' } });
+        // Custom showToast fallback which creates predictable toasts
+        (function(){
+            // ensure container exists
+            let toastContainer = document.getElementById('custom-toasts');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'custom-toasts';
+                document.body.appendChild(toastContainer);
+            }
+
+            window.showToast = function(type, message) {
+                // Always use the custom toast implementation for deterministic behavior
+
+                const toast = document.createElement('div');
+                toast.className = 'custom-toast' + (type === 'error' ? ' custom-toast--error' : '');
+                const icon = document.createElement('div');
+                icon.className = 'ct-icon';
+                icon.innerHTML = type === 'error' ? '&#9888;' : '&#10003;';
+                const msg = document.createElement('div');
+                msg.className = 'ct-message';
+                msg.textContent = message || '';
+                toast.appendChild(icon);
+                toast.appendChild(msg);
+                toastContainer.appendChild(toast);
+
+                // show -> hide after 3s -> remove after transition
+                const DURATION = 3000;
+                setTimeout(() => {
+                    toast.classList.add('hide');
+                    const onEnd = () => { try { toast.remove(); } catch(e){} };
+                    toast.addEventListener('transitionend', onEnd, { once: true });
+                }, DURATION);
+            };
+        })();
+        // Monkey-patch Notyf success/error to route through showToast for predictable lifecycle
+        try {
+            if (typeof notyf !== 'undefined' && notyf) {
+                notyf._origSuccess = notyf.success && notyf.success.bind(notyf);
+                notyf._origError = notyf.error && notyf.error.bind(notyf);
+                notyf.success = function(msg){ try { window.showToast('success', msg); } catch(e) { if (notyf._origSuccess) notyf._origSuccess(msg); } };
+                notyf.error = function(msg){ try { window.showToast('error', msg); } catch(e) { if (notyf._origError) notyf._origError(msg); } };
+            }
+        } catch(e) {}
         // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ РАБОТЫ С ДАТАМИ (БЕЗ date-fns) ===
 function startOfDay(date) {
     const d = new Date(date);
@@ -2600,7 +2995,10 @@ function formatDateToLocalYYYYMMDD(date) {
         }
         // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ДОБАВЛЕНИЯ ВОЗВРАТА ===
         async function addReturn() {
-            try {
+                    if (window._processingAddReturn) return; // guard re-entrancy
+                    window._processingAddReturn = true;
+                    window._lastAction = 'addReturn';
+                    try {
                 const saleId = document.getElementById('return-sale').value;
                 const returnQuantity = parseInt(document.getElementById('return-quantity').value) || 0;
                 const logisticsBack = parseFloat(document.getElementById('return-logistics-back').value) || 0;
@@ -2730,9 +3128,12 @@ function formatDateToLocalYYYYMMDD(date) {
                 document.getElementById('return-modal').style.display = 'none';
                 hideLoading();
                 await logActivity('добавил возврат', `Товар: ${sale.name}, Кол-во: ${returnQuantity}`);
-                updateDashboard();
-                updateReturns();
-                updateAllSalesTable();
+                // Schedule UI updates slightly later to avoid blocking the main thread
+                setTimeout(() => {
+                    try { updateDashboard(); } catch(e){console.error(e)}
+                    try { updateReturns(); } catch(e){console.error(e)}
+                    try { updateAllSalesTable(); } catch(e){console.error(e)}
+                }, 50);
                 if (parseInt(returnQuantity) < (parseInt(sale.quantity) || 0)) {
                     notyf.success(`Частичный возврат добавлен! Возвращено ${returnQuantity} из ${sale.quantity}`);
                 } else {
@@ -2741,6 +3142,8 @@ function formatDateToLocalYYYYMMDD(date) {
             } catch (error) {
                 hideLoading();
                 notyf.error(error.message);
+            } finally {
+                window._processingAddReturn = false;
             }
         }
         // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАПОЛНЕНИЯ СПИСКА ПРОДАЖ ===
@@ -2819,6 +3222,9 @@ function updateReturnQuantityHint() {
             });
         }
         async function updateAllSalesTable() {
+            if (window._updatingAllSales) return;
+            window._updatingAllSales = true;
+            window._lastAction = 'updateAllSalesTable';
             const tbody = document.querySelector('#all-sales-table tbody');
             tbody.innerHTML = '';
             const period = document.getElementById('all-sales-period').value;
@@ -2884,12 +3290,17 @@ filteredSales.sort((a, b) => {
     };
     return getDate(b) - getDate(a);
 });
+            // Precompute returns totals per sale to avoid O(n*m) repeated work
+            const returnsMap = returnsData.reduce((map, r) => {
+                const id = r.sale_id;
+                map[id] = (map[id] || 0) + (parseInt(r.return_quantity) || 0);
+                return map;
+            }, {});
+
             const paginatedSales = paginateArray(filteredSales, currentPage, itemsPerPage);
             paginatedSales.forEach(sale => {
                 const userName = userNamesCache[sale.user_id] || 'Неизвестный';
-                const totalReturned = returnsData
-                    .filter(r => r.sale_id === sale.id)
-                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const totalReturned = returnsMap[sale.id] || 0;
                 const actualQuantity = Math.max(0, (parseInt(sale.quantity) || 0) - totalReturned);
                 const actualRevenue = (parseFloat(sale.selling_price) || 0) * actualQuantity;
                 const actualProfit = calculateProfit(sale, actualQuantity);
@@ -2945,6 +3356,7 @@ filteredSales.sort((a, b) => {
                 });
             });
             updatePagination();
+            window._updatingAllSales = false;
         }
         function updateReturns() {
             const tbody = document.querySelector('#returns-table tbody');
@@ -3009,12 +3421,13 @@ filteredSales.sort((a, b) => {
             let returnedCount = 0;
             let returnedValue = 0;
             let returnedShipments = new Set();
+            // Precompute returns totals map to avoid repeated filters
+            const returnsMap = returnsData.reduce((map, r) => { map[r.sale_id] = (map[r.sale_id] || 0) + (parseInt(r.return_quantity) || 0); return map; }, {});
+
             filteredData.forEach(sale => {
                 const sellingPrice = parseFloat(sale.selling_price) || 0;
                 const quantity = parseInt(sale.quantity) || 0;
-                const totalReturned = returnsData
-                    .filter(r => r.sale_id === sale.id)
-                    .reduce((sum, r) => sum + (r.return_quantity || 0), 0);
+                const totalReturned = returnsMap[sale.id] || 0;
                 const actualQuantity = Math.max(0, quantity - totalReturned);
                 const actualRevenue = sellingPrice * actualQuantity;
                 // === СОБИРАЕМ УНИКАЛЬНЫЕ ОТПРАВЛЕНИЯ ===
@@ -3095,9 +3508,7 @@ filteredSales.sort((a, b) => {
         }
             });
             // === СЧИТАЕМ СУММУ ВОЗВРАТОВ ===
-            const totalReturns = returnsData.reduce((sum, ret) => {
-                return sum + (parseFloat(ret.amount) || 0);
-            }, 0);
+            const totalReturns = returnsData.reduce((sum, ret) => sum + (parseFloat(ret.amount) || 0), 0);
                         const returnRate = totalRevenue === 0 ? 0 : Math.round((totalReturns / totalRevenue) * 100);        
     // === ПРЯМЫЕ РАСХОДЫ: только по фактически проданным товарам ===
     let totalDirectCosts = 0;
@@ -3159,28 +3570,40 @@ filteredSales.sort((a, b) => {
         }
         // Функция для обновления дашборда
         function updateDashboard() {
+            // Run metrics calculation asynchronously to avoid blocking the main thread
             const filteredData = filterSalesData();
-            const metrics = calculateMetrics(filteredData);
-            document.getElementById('total-revenue').textContent = formatCurrency(metrics.totalRevenue);
-            document.getElementById('total-cost').textContent = formatCurrency(metrics.totalCost);
-            document.getElementById('total-profit').textContent = formatCurrency(metrics.totalProfit);
-            document.getElementById('average-margin').textContent = metrics.averageMargin + '%';
-            document.getElementById('total-returns').textContent = formatCurrency(metrics.totalReturns);
-            // === НОВЫЕ МЕТРИКИ ===
-            document.getElementById('ready-to-ship-count').textContent = `${metrics.readyToShipCount} шт.`;
-            document.getElementById('ready-to-ship-shipments').textContent = `${metrics.readyToShipShipments} отправлений`;
-            document.getElementById('ready-to-ship-amount').textContent = formatCurrency(metrics.readyToShipValue);
-            document.getElementById('in-transit-count').textContent = `${metrics.inTransitCount} шт.`;
-            document.getElementById('in-transit-shipments').textContent = `${metrics.inTransitShipments} отправлений`;
-            document.getElementById('in-transit-amount').textContent = formatCurrency(metrics.inTransitValue);
-            document.getElementById('delivered-count').textContent = `${metrics.deliveredCount} шт.`;
-            document.getElementById('delivered-shipments').textContent = `${metrics.deliveredShipments} отправлений`;
-            document.getElementById('delivered-amount').textContent = formatCurrency(metrics.deliveredValue);
-            document.getElementById('returned-count').textContent = `${metrics.returnedCount} шт.`;
-            document.getElementById('returned-shipments').textContent = `${metrics.returnedShipments} отправлений`;
-            document.getElementById('returned-amount').textContent = formatCurrency(metrics.returnedValue);
-            updateCharts(filteredData);
-            updateRecentAddedSales();
+            const computeAndApply = () => {
+                try {
+                    const metrics = calculateMetrics(filteredData);
+                    document.getElementById('total-revenue').textContent = formatCurrency(metrics.totalRevenue);
+                    document.getElementById('total-cost').textContent = formatCurrency(metrics.totalCost);
+                    document.getElementById('total-profit').textContent = formatCurrency(metrics.totalProfit);
+                    document.getElementById('average-margin').textContent = metrics.averageMargin + '%';
+                    document.getElementById('total-returns').textContent = formatCurrency(metrics.totalReturns);
+                    // === НОВЫЕ МЕТРИКИ ===
+                    document.getElementById('ready-to-ship-count').textContent = `${metrics.readyToShipCount} шт.`;
+                    document.getElementById('ready-to-ship-shipments').textContent = `${metrics.readyToShipShipments} отправлений`;
+                    document.getElementById('ready-to-ship-amount').textContent = formatCurrency(metrics.readyToShipValue);
+                    document.getElementById('in-transit-count').textContent = `${metrics.inTransitCount} шт.`;
+                    document.getElementById('in-transit-shipments').textContent = `${metrics.inTransitShipments} отправлений`;
+                    document.getElementById('in-transit-amount').textContent = formatCurrency(metrics.inTransitValue);
+                    document.getElementById('delivered-count').textContent = `${metrics.deliveredCount} шт.`;
+                    document.getElementById('delivered-shipments').textContent = `${metrics.deliveredShipments} отправлений`;
+                    document.getElementById('delivered-amount').textContent = formatCurrency(metrics.deliveredValue);
+                    document.getElementById('returned-count').textContent = `${metrics.returnedCount} шт.`;
+                    document.getElementById('returned-shipments').textContent = `${metrics.returnedShipments} отправлений`;
+                    document.getElementById('returned-amount').textContent = formatCurrency(metrics.returnedValue);
+                    updateCharts(filteredData);
+                    updateRecentAddedSales();
+                } catch (e) {
+                    console.error('Ошибка при вычислении метрик:', e);
+                }
+            };
+            if (window.requestIdleCallback) {
+                requestIdleCallback(computeAndApply, { timeout: 500 });
+            } else {
+                setTimeout(computeAndApply, 50);
+            }
         }
         // Функция для фильтрации продаж
         function filterSalesData() {
@@ -4791,12 +5214,26 @@ if (period !== 'all') {
         function showLoading(message = 'Пожалуйста, подождите...') {
             const loadingOverlay = document.getElementById('loading-overlay');
             const loadingText = document.querySelector('.loading-text');
-            loadingText.textContent = message;
+            if (!loadingOverlay) return;
+            if (loadingText) loadingText.textContent = message;
+            // debug log
+            try { console.debug('[showLoading]', message, loadingOverlay); } catch(e){}
+            // make visible: ensure display and classes
             loadingOverlay.style.display = 'flex';
+            loadingOverlay.classList.remove('hidden');
+            loadingOverlay.classList.add('visible');
+            // in case body.no-animations forced opacity changes, ensure visibility
+            loadingOverlay.style.opacity = '1';
         }
         // Функция для скрытия прелоадера
         function hideLoading() {
-            document.getElementById('loading-overlay').style.display = 'none';
+            const overlay = document.getElementById('loading-overlay');
+            try { console.debug('[hideLoading]', overlay); } catch(e){}
+            if (!overlay) return;
+            overlay.classList.remove('visible');
+            overlay.classList.add('hidden');
+            // allow CSS transition then hide
+            setTimeout(()=>{ overlay.style.display = 'none'; overlay.style.opacity = ''; }, 220);
         }
         // Функция для показа модального окна подтверждения
         function showModal(title, message, onConfirm, onCancel = null) {
@@ -5922,6 +6359,9 @@ document.getElementById('reset-report-filters').addEventListener('click', () => 
         }
         // Функция для сохранения изменений продажи
         async function saveEditedSale() {
+            if (window._processingSaveEditedSale) return;
+            window._processingSaveEditedSale = true;
+            window._lastAction = 'saveEditedSale';
             try {
                 const saleId = document.getElementById('edit-sale-id').value;
                 const saleIndex = salesData.findIndex(s => s.id === saleId);
@@ -5957,13 +6397,14 @@ document.getElementById('reset-report-filters').addEventListener('click', () => 
                 salesData[saleIndex] = {...updatedSale, id: saleId};
                 document.getElementById('edit-sale-modal').style.display = 'none';
                 hideLoading();
-                updateDashboard();
-                updateAllSalesTable();
-                updateRecentAddedSales();
+                // Defer heavy UI updates slightly to avoid blocking
+                setTimeout(() => { try { updateDashboard(); } catch(e){console.error(e)} try { updateAllSalesTable(); } catch(e){console.error(e)} try { updateRecentAddedSales(); } catch(e){console.error(e)} }, 50);
                 notyf.success('Продажа успешно обновлена!');
             } catch (error) {
                 hideLoading();
                 notyf.error('Ошибка обновления продажи: ' + error.message);
+            } finally {
+                window._processingSaveEditedSale = false;
             }
         }
         // Функция для удаления продажи
@@ -5981,9 +6422,8 @@ document.getElementById('reset-report-filters').addEventListener('click', () => 
                         await db.collection('sales').doc(saleId).delete();
                         salesData = salesData.filter(s => s.id !== saleId);
                         hideLoading();
-                        updateDashboard();
-                        updateAllSalesTable();
-                        updateRecentAddedSales();
+                        // Defer heavy UI updates to avoid blocking UI thread
+                        setTimeout(() => { try { updateDashboard(); } catch(e){console.error(e)} try { updateAllSalesTable(); } catch(e){console.error(e)} try { updateRecentAddedSales(); } catch(e){console.error(e)} }, 50);
                         notyf.success('Продажа удалена!');
                     } catch (error) {
                         hideLoading();
@@ -6032,7 +6472,10 @@ async function editReturn(returnId) {
 }
         // Функция для сохранения изменений возврата
         async function saveEditedReturn() {
-            try {
+                    if (window._processingSaveEditedReturn) return;
+                    window._processingSaveEditedReturn = true;
+                    window._lastAction = 'saveEditedReturn';
+                    try {
                 const returnId = document.getElementById('edit-return-id').value;
                 const returnIndex = returnsData.findIndex(r => r.id === returnId);
                 if (returnIndex === -1) {
@@ -6161,6 +6604,8 @@ async function editReturn(returnId) {
             } catch (error) {
                 hideLoading();
                 notyf.error('Ошибка обновления возврата: ' + error.message);
+            } finally {
+                window._processingSaveEditedReturn = false;
             }
         }
         // Функция для удаления возврата
@@ -6334,42 +6779,45 @@ async function editReturn(returnId) {
                     notyf.error('Пожалуйста, укажите даты');
                     return;
                 }
-                // === ДОБАВЛЕНА ЗАЩИТА ОТ ПОВТОРНОЙ ОБРАБОТКИ ===
+
+                // Prepare list of sales to confirm
                 const salesToConfirm = salesData.filter(sale => {
-                    return sale.date >= startDate && 
-                           sale.date <= endDate && 
+                    return sale.date >= startDate &&
+                           sale.date <= endDate &&
                            sale.status === "Доставляется" &&
-                           !sale.deliveryConfirmedAt; // ← НОВОЕ УСЛОВИЕ
+                           !sale.deliveryConfirmedAt;
                 });
+
                 if (salesToConfirm.length === 0) {
-                    notyf.info('Нет продаж для подтверждения');
+                    notyf.success('Нет продаж для подтверждения в выбранном периоде');
                     return;
                 }
+
+                // detect returns related to sales
                 const salesWithReturns = new Set();
-                returnsData.forEach(ret => {
-                    if (ret.date >= startDate && ret.date <= endDate) {
-                        salesWithReturns.add(ret.sale_id);
-                    }
-                });
+                returnsData.forEach(ret => { if (ret.sale_id) salesWithReturns.add(ret.sale_id); });
+
                 showLoading('Обновляем статусы...');
                 const batch = db.batch();
                 salesToConfirm.forEach(sale => {
                     const newStatus = salesWithReturns.has(sale.id) ? "Возврат" : "Доставлен";
                     const docRef = db.collection('sales').doc(sale.id);
-                    batch.update(docRef, { 
+                    batch.update(docRef, {
                         status: newStatus,
-                        deliveryConfirmedAt: firebase.firestore.FieldValue.serverTimestamp() // ← ФЛАГ ПОДТВЕРЖДЕНИЯ
+                        deliveryConfirmedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                 });
                 await batch.commit();
-                // Обновляем локальные данные
+
+                // Update local copy
                 salesToConfirm.forEach(sale => {
                     const index = salesData.findIndex(s => s.id === sale.id);
                     if (index !== -1) {
                         salesData[index].status = salesWithReturns.has(sale.id) ? "Возврат" : "Доставлен";
-                        salesData[index].deliveryConfirmedAt = new Date().toISOString(); // ← ЛОКАЛЬНЫЙ ФЛАГ
+                        salesData[index].deliveryConfirmedAt = new Date().toISOString();
                     }
                 });
+
                 hideLoading();
                 updateDashboard();
                 updateAllSalesTable();
@@ -6614,6 +7062,202 @@ async function resellReturnedItem(returnId) {
                 notyf.error('Ошибка при перепродаже: ' + error.message);
             }
         }
+    </script>
+
+    <!-- Доп. скрипт: поиск, сортировка, ресайз столбцов, анимация модалей и индикаторы загрузки -->
+    <script>
+    (function(){
+        // Безопасно определить showLoading/hideLoading, если их нет
+        if (typeof window.showLoading === 'undefined') {
+            window.showLoading = function(message = 'Загрузка...') {
+                let overlay = document.getElementById('loading-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'loading-overlay';
+                    overlay.className = 'loading-overlay';
+                    document.body.appendChild(overlay);
+                }
+                overlay.innerHTML = `<div style="text-align:center;color:#fff"><div class="loading-spinner"></div><div style="margin-top:10px">${message}</div></div>`;
+                // ensure visible regardless of inline display
+                overlay.style.display = 'flex';
+                overlay.classList.remove('hidden');
+                overlay.classList.add('visible');
+            };
+        }
+        if (typeof window.hideLoading === 'undefined') {
+            window.hideLoading = function() {
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) {
+                    overlay.classList.remove('visible');
+                    overlay.classList.add('hidden');
+                    // hide after transition
+                    setTimeout(()=>{ overlay.style.display = 'none'; overlay.innerHTML = ''; }, 220);
+                }
+            };
+        }
+
+        // Автоматически добавляем/убираем класс .show у модалей при изменении style.display
+        function initModalObserver() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                const mo = new MutationObserver(() => {
+                    try {
+                        const isShown = window.getComputedStyle(modal).display !== 'none' && modal.style.display !== 'none';
+                        if (isShown) modal.classList.add('show'); else modal.classList.remove('show');
+                    } catch(e){}
+                });
+                mo.observe(modal, { attributes: true, attributeFilter: ['style', 'class'] });
+                // initial state
+                const isShown = window.getComputedStyle(modal).display !== 'none' && modal.style.display !== 'none';
+                if (isShown) modal.classList.add('show');
+            });
+        }
+        // Confirm wrappers: elements with data-confirm will ask user before proceeding
+        function initConfirmHandlers() {
+            document.addEventListener('click', function(e){
+                const el = e.target.closest('[data-confirm]');
+                if (!el) return;
+                const msg = el.getAttribute('data-confirm') || 'Подтвердите действие';
+                // if custom confirm modal exists, use it (fallback to window.confirm)
+                if (!window.confirm(msg)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, true);
+        }
+
+        // Simple search + sorting post-processor that runs after original updateAllSalesTable
+        function enhanceAllSales() {
+            if (typeof updateAllSalesTable !== 'function') return;
+            const origUpdate = updateAllSalesTable.bind(window);
+            window._allSalesSearch = '';
+            window._allSalesSort = { idx: null, dir: 1 };
+
+            window.updateAllSalesTable = async function(){
+                await origUpdate();
+                applySearchAndSort();
+                bindHeaderHandlers();
+                makeColumnsResizable(document.getElementById('all-sales-table'));
+            };
+
+            // Wire search input
+            const searchInput = document.getElementById('all-sales-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(){
+                    window._allSalesSearch = this.value.trim().toLowerCase();
+                    // call enhanced update
+                    if (typeof updateAllSalesTable === 'function') updateAllSalesTable();
+                });
+            }
+
+            function applySearchAndSort(){
+                const tbody = document.querySelector('#all-sales-table tbody');
+                if (!tbody) return;
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                // Search: hide rows that don't match
+                const q = window._allSalesSearch || '';
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = q && !text.includes(q) ? 'none' : '';
+                });
+                // Sort if needed
+                if (window._allSalesSort.idx !== null) {
+                    const idx = window._allSalesSort.idx;
+                    const dir = window._allSalesSort.dir;
+                    const visibleRows = rows.filter(r => r.style.display !== 'none');
+                    visibleRows.sort((a,b) => {
+                        const aText = (a.children[idx] && a.children[idx].textContent.trim()) || '';
+                        const bText = (b.children[idx] && b.children[idx].textContent.trim()) || '';
+                        // try numeric
+                        const aNum = parseFloat(aText.replace(/[\s₽,%]/g,''));
+                        const bNum = parseFloat(bText.replace(/[\s₽,%]/g,''));
+                        if (!isNaN(aNum) && !isNaN(bNum)) return (aNum - bNum) * dir;
+                        // try date
+                        const aDate = Date.parse(aText);
+                        const bDate = Date.parse(bText);
+                        if (!isNaN(aDate) && !isNaN(bDate)) return (aDate - bDate) * dir;
+                        return aText.localeCompare(bText) * dir;
+                    });
+                    // append in new order
+                    visibleRows.forEach(r => tbody.appendChild(r));
+                }
+            }
+
+            // Add click handlers on headers once
+            let headersBound = false;
+            function bindHeaderHandlers(){
+                if (headersBound) return;
+                const ths = document.querySelectorAll('#all-sales-table thead th');
+                ths.forEach((th, idx) => {
+                    // add resize handle
+                    if (!th.querySelector('.resize-handle')) {
+                        const h = document.createElement('div'); h.className = 'resize-handle'; th.appendChild(h);
+                    }
+                    th.addEventListener('click', function(e){
+                        // ignore clicks on resize handle
+                        if (e.target.classList.contains('resize-handle')) return;
+                        if (window._allSalesSort.idx === idx) window._allSalesSort.dir *= -1; else { window._allSalesSort.idx = idx; window._allSalesSort.dir = 1; }
+                        applySearchAndSort();
+                    });
+                });
+                headersBound = true;
+            }
+
+            // Make columns resizable (simple implementation)
+            function makeColumnsResizable(table){
+                if (!table || table._resizableInit) return; table._resizableInit = true;
+                const ths = table.querySelectorAll('th');
+                ths.forEach(th => {
+                    const handle = th.querySelector('.resize-handle');
+                    if (!handle) return;
+                    let startX, startWidth;
+                    const onMouseMove = (e) => {
+                        const newWidth = Math.max(40, startWidth + (e.clientX - startX));
+                        th.style.width = newWidth + 'px';
+                    };
+                    const onMouseUp = () => { document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); };
+                    handle.addEventListener('mousedown', (e) => {
+                        e.preventDefault(); startX = e.clientX; startWidth = th.offsetWidth; document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp);
+                    });
+                });
+                // set table-layout fixed to respect widths
+                table.style.tableLayout = 'fixed';
+            }
+        }
+
+        // Initialize small UX helpers on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function(){
+            // Отключаем все CSS-анимации (по требованию)
+            try { document.body.classList.add('no-animations'); } catch(e){}
+            initModalObserver();
+            initConfirmHandlers();
+            enhanceAllSales();
+            // initialize tooltips are pure-css via [data-tooltip]
+            // ensure loading overlay initial hidden state
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) { overlay.classList.add('hidden'); overlay.style.display = 'none'; }
+            // Developer debug toolbar (only when URL contains ?debug=1)
+            try {
+                const url = new URL(location.href);
+                if (url.searchParams.get('debug') === '1') {
+                    const toolbar = document.createElement('div');
+                    toolbar.style.position = 'fixed';
+                    toolbar.style.right = '14px';
+                    toolbar.style.bottom = '14px';
+                    toolbar.style.zIndex = '999999';
+                    toolbar.style.display = 'flex';
+                    toolbar.style.flexDirection = 'column';
+                    toolbar.style.gap = '8px';
+                    document.body.appendChild(toolbar);
+                    const btn = (label, cb) => { const b = document.createElement('button'); b.textContent = label; b.className = 'btn btn-secondary'; b.style.padding = '8px 10px'; b.style.fontSize='0.9rem'; b.addEventListener('click', cb); toolbar.appendChild(b); };
+                    btn('Show loader', () => showLoading('Тестовый лоудер'));
+                    btn('Hide loader', () => hideLoading());
+                    btn('Notyf success', () => notyf.success('Тестовое успех-уведомление'));
+                    btn('Notyf error', () => notyf.error('Тестовое ошибка'));
+                    btn('Toggle animations', () => { document.body.classList.toggle('no-animations'); });
+                }
+            } catch (e) {}
+        });
+    })();
     </script>
 </body>
 </html>
